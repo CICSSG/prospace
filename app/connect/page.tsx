@@ -1,21 +1,47 @@
 "use client"
 import { useRouter, useSearchParams } from "next/navigation"
-import { initiateConnection } from "../actions"
+import { getConnections, getUser, initiateConnection } from "../actions"
 import { useUser } from "@clerk/nextjs"
 import { useEffect, useState } from "react"
+import { Dialog, DialogContent } from "@/components/ui/dialog"
+import Image from "next/image"
+import { toast } from "sonner"
 
 export default function Connect() {
   const router = useRouter()
-  const {user} = useUser()
+  const { user } = useUser()
+  const [isLoading, setIsLoading] = useState(true)
   const [isConnecting, setIsConnecting] = useState(false)
   const [connectData, setConnectData] = useState<any | null>(null)
+  const [connections, setConnections] = useState<any | null>(null)
   const searchParams = useSearchParams()
   var id = searchParams.get("id")
   var type = searchParams.get("type")
 
   useEffect(() => {
-    
-  }, [id, type, router])
+    if (id && type) {
+      getUser(id)
+        .then((response) => {
+          // console.log("User data fetched successfully:", response)
+          setConnectData(response.data)
+          setIsLoading(false)
+        })
+        .catch((error) => {
+          console.error("Error fetching user data:", error)
+          setIsLoading(false)
+        })
+    }
+
+    getConnections(user?.id || "")
+      .then((response) => {
+        // console.log("Connections fetched successfully:", response.data)
+        setConnections(response.data)
+      })
+      .catch((error) => {
+        console.error("Error fetching connections:", error)
+      })
+
+  }, [id, type, router, user])
 
   const onConnect = () => {
     setIsConnecting(true)
@@ -25,11 +51,14 @@ export default function Connect() {
       type: type,
     })
       .then((response) => {
-        console.log("Connection initiated successfully:", response)
+        // console.log("Connection initiated successfully:", response)
         router.push("/connect")
+        toast.success("Connection initiated successfully!")
       })
       .catch((error) => {
         console.error("Error initiating connection:", error)
+        router.push("/connect")
+        toast.error(`${error.message}`)
       })
       .finally(() => {
         setIsConnecting(false)
@@ -37,20 +66,79 @@ export default function Connect() {
   }
 
   return (
-    <div className="flex items-center justify-center">
+    <div className="flex h-screen w-full justify-center bg-linear-to-r from-purple-500/15 to-pink-500/15 pt-30 pb-4">
       {id && type && (
-        <div className="flex flex-col items-center gap-4 rounded-lg bg-primary p-8 shadow-lg">
-          <h1 className="text-2xl font-bold">Connect to {type}</h1>
-          <p className="text-primary-foreground">ID: {id}</p>
-          <button
-            className="rounded-full bg-primary-foreground px-4 py-2 text-sm font-medium text-primary hover:bg-primary-foreground/80"
-            onClick={onConnect}
-            disabled={isConnecting}
-          >
-            Connect
-          </button>
-        </div>
+        <Dialog open={true} onOpenChange={() => router.push("/connect")}>
+          <DialogContent className="max-w-md rounded-lg bg-primary p-6 shadow-lg">
+            <h2 className="text-xl font-bold">Connection Request</h2>
+            {isLoading ? (
+              <p>Loading...</p>
+            ) : connectData ? (
+              <>
+                <div className="flex flex-row items-center gap-4">
+                  <Image
+                    src={connectData?.imageUrl}
+                    alt="Profile Picture"
+                    width={50}
+                    height={50}
+                    className="rounded-full"
+                  />
+                  <p>
+                    Do you want to connect with <br />
+                    {connectData?.firstName} {connectData?.lastName}?
+                  </p>
+                </div>
+                <div className="flex justify-end gap-4">
+                  <button
+                    onClick={() => router.push("/connect")}
+                    className="rounded px-4 py-2 hover:cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={onConnect}
+                    disabled={isConnecting}
+                    className="rounded bg-accent px-4 py-2 text-white hover:bg-accent/80 disabled:bg-accent/50 cursor-pointer"
+                  >
+                    {isConnecting ? "Connecting..." : "Connect"}
+                  </button>
+                </div>
+              </>
+            ) : (
+              <p>User data not found.</p>
+            )}
+          </DialogContent>
+        </Dialog>
       )}
+
+      <div className="flex h-fit flex-col items-center gap-4 rounded-lg p-8 shadow-lg">
+        {connections ? (
+          <>
+            <h1 className="text-2xl font-bold">Your Connections</h1>
+            <div className="flex flex-col gap-4">
+              {connections.map((connection: any) => (
+                <div
+                  key={connection.id}
+                  className="flex flex-row items-center gap-4 rounded-lg bg-primary/10 p-4"
+                >
+                  <Image
+                    src={connection.profileImageUrl}
+                    alt="Profile Picture"
+                    width={50} 
+                    height={50}
+                    className="rounded-full"
+                  />
+                  <p>
+                    {connection.fullName}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </>
+        ) : (
+          <p>No connections found.</p>
+        )}
+      </div>
     </div>
   )
 }

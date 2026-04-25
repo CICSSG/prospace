@@ -1,4 +1,5 @@
 "use client"
+import { useUser } from "@clerk/nextjs"
 import { Scanner } from "@yudiel/react-qr-scanner"
 import { QrCode, X } from "lucide-react"
 import { useRouter } from "next/navigation"
@@ -12,9 +13,14 @@ const scannerConstraints: MediaTrackConstraints = {
 }
 
 export default function ScannerComponent() {
+  const { isSignedIn } = useUser()
   const router = useRouter()
   const [scannerOpen, setScannerOpen] = useState(false)
   const [scannerMessage, setScannerMessage] = useState<string | null>(null)
+
+  if (!isSignedIn) {
+    return null
+  }
 
   const handleScan = (detectedCodes: any) => {
     const rawValue = detectedCodes?.[0]?.rawValue
@@ -32,11 +38,13 @@ export default function ScannerComponent() {
     })
 
     router.push(rawValue)
-
   }
 
   const handleError = (error: unknown) => {
-    const message = error instanceof Error ? error.message : "Camera access was blocked or unavailable."
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Camera access was blocked or unavailable."
 
     setScannerMessage(
       message.includes("permission") || message.includes("secure context")
@@ -69,12 +77,12 @@ export default function ScannerComponent() {
               setScannerOpen(false)
               setScannerMessage(null)
             }}
-            className="absolute right-4 top-4 z-101 rounded-full bg-white/10 p-3 text-white backdrop-blur-sm transition hover:bg-white/20"
+            className="absolute top-4 right-4 z-101 rounded-full bg-white/10 p-3 text-white backdrop-blur-sm transition hover:bg-white/20"
           >
             <X size={20} />
           </button>
           {scannerMessage && (
-            <div className="absolute left-4 right-4 top-16 z-101 rounded-2xl border border-white/10 bg-black/80 px-4 py-3 text-sm text-white shadow-2xl backdrop-blur-sm sm:left-auto sm:right-4 sm:top-4 sm:max-w-sm">
+            <div className="absolute top-16 right-4 left-4 z-101 rounded-2xl border border-white/10 bg-black/80 px-4 py-3 text-sm text-white shadow-2xl backdrop-blur-sm sm:top-4 sm:right-4 sm:left-auto sm:max-w-sm">
               {scannerMessage}
             </div>
           )}

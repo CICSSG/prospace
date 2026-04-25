@@ -2,26 +2,16 @@ import type { Metadata } from "next"
 
 import {
   ClerkProvider,
-  Show,
-  SignInButton,
-  SignUpButton,
-  UserButton,
-  UserProfile,
 } from "@clerk/nextjs"
-import { Geist, Geist_Mono, Inter } from "next/font/google"
+import { Geist_Mono, Inter } from "next/font/google"
 
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { cn } from "@/lib/utils"
 import ScannerComponent from "@/components/scanner"
-import { ArrowRightToLineIcon, Menu, TargetIcon } from "lucide-react"
-import UserButtonClerk from "@/components/user-button"
-import GlassSurface from "@/components/GlassSurface"
-import Grainient from "@/components/Grainient"
-import Image from "next/image"
-import Link from "next/link"
 import Footer from "@/components/footer"
 import Header from "@/components/header"
+import { Toaster } from "sonner"
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
 
@@ -56,6 +46,7 @@ export default function RootLayout({
               <Header />
               {children}
               <Footer />
+              <Toaster />
             </div>
 
             

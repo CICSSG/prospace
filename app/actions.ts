@@ -1,9 +1,30 @@
 "use server"
 
-export async function getConnections() {
+export async function getUser(user_id: string) {
   try {
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BASE_URL}/api/connect`,
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/getUser?user_id=${user_id}`,
+        {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+            },
+        }
+    )
+    if (!response.ok) {
+        throw new Error("Failed to fetch user data")
+    }
+    return response.json()
+    } catch (error) {
+        console.error("Error fetching user data:", error)
+        throw error
+    }
+}
+
+export async function getConnections(user_id: string) {
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/api/connect?id=${user_id}`,
       {
         method: "GET",
         headers: {
@@ -31,11 +52,12 @@ export async function initiateConnection(data: any) {
       }
     )
 
+    const responseData = await response.json()
     if (!response.ok) {
-      throw new Error("Failed to initiate connection")
+      throw new Error(responseData.error)
     }
 
-    return response.json()
+    return responseData
   } catch (error) {
     console.error("Error initiating connection:", error)
     throw error

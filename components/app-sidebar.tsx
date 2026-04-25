@@ -148,10 +148,14 @@ const data = {
     },
   ],
 }
+
+interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
+  userData?: any;
+}
+
 export function AppSidebar({
-  ...props
-}: React.ComponentProps<typeof Sidebar> & { user: any }) {
-  const { user } = props
+  userData, ...props
+}: AppSidebarProps) {
 
   return (
     <Sidebar collapsible="offcanvas" {...props}>
@@ -174,7 +178,7 @@ export function AppSidebar({
         <NavSecondary items={data.navSecondary} className="mt-auto" /> */}
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={user} />
+        <NavUser user={userData} />
       </SidebarFooter>
     </Sidebar>
   )

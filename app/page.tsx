@@ -77,7 +77,7 @@ export default function Page() {
       </section>
 
       {/* PARTNERS */}
-      <section className="w-fit py-12 mx-auto">
+      <section className="w-fit max-w-[90vw] py-12 mx-auto">
         <div className="container px-4 flex flex-col items-center">
           <div className="text-center mb-8">
             <h2 className="text-xl font-semibold text-muted-foreground">

@@ -120,7 +120,7 @@ export default function Connect() {
         </Dialog>
       )}
 
-      <div className="flex h-fit flex-col items-center gap-4 rounded-lg p-4 shadow-lg w-full mx-1 bg-primary/10">
+      <div className="flex h-fit flex-col items-center gap-4 rounded-lg p-4 shadow-lg w-full mx-2 bg-primary/10">
         {connections ? (
           <>
           <div className="flex justify-around w-full *:flex *:gap-1 *:justify-center *:py-2 *:rounded-lg bg-black/20 rounded-lg overflow-hidden py-1 px-1.5">
@@ -161,7 +161,7 @@ export default function Connect() {
             </div>
           </>
         ) : (
-          <p>No connections found.</p>
+          <p>Loading..</p>
         )}
       </div>
     </div>

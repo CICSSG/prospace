@@ -23,10 +23,12 @@ export async function GET(req: Request) {
         )
         const fullName = userData.fullName || "Unknown User"
         const profileImageUrl = userData.imageUrl || null
+        const email = userData.emailAddresses[0]?.emailAddress || "No email"
         connectionsWithUserData.push({
           ...connection,
           fullName,
           profileImageUrl,
+          email,
         })
       }
 

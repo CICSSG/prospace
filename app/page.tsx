@@ -84,7 +84,7 @@ export default function Page() {
               Powered by CICSSG and Partners
             </h2>
           </div>
-          <div className="w-full h-[120px] overflow-x-hidden overflow-y-clip">
+          <div className="w-full h-30 overflow-x-hidden overflow-y-clip">
             <LogoLoop
               logos={techLogos}
               speed={50}

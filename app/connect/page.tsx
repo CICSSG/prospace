@@ -6,14 +6,17 @@ import { useEffect, useState } from "react"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import Image from "next/image"
 import { toast } from "sonner"
+import { Building, Users2 } from "lucide-react"
 
 export default function Connect() {
   const router = useRouter()
   const { user } = useUser()
+  const [activeTab, setActiveTab] = useState("user")
   const [isLoading, setIsLoading] = useState(true)
   const [isConnecting, setIsConnecting] = useState(false)
   const [connectData, setConnectData] = useState<any | null>(null)
   const [connections, setConnections] = useState<any | null>(null)
+  const [filteredConnections, setFilteredConnections] = useState<any | null>(null)
   const searchParams = useSearchParams()
   var id = searchParams.get("id")
   var type = searchParams.get("type")
@@ -40,8 +43,14 @@ export default function Connect() {
       .catch((error) => {
         console.error("Error fetching connections:", error)
       })
-
   }, [id, type, router, user])
+
+  useEffect(() => {
+    if (connections) {
+      const filtered = connections.filter((connection: any) => connection.type === activeTab)
+      setFilteredConnections(filtered)
+    }
+  }, [activeTab, connections])
 
   const onConnect = () => {
     setIsConnecting(true)
@@ -98,7 +107,7 @@ export default function Connect() {
                   <button
                     onClick={onConnect}
                     disabled={isConnecting}
-                    className="rounded bg-accent px-4 py-2 text-white hover:bg-accent/80 disabled:bg-accent/50 cursor-pointer"
+                    className="cursor-pointer rounded bg-accent px-4 py-2 text-white hover:bg-accent/80 disabled:bg-accent/50"
                   >
                     {isConnecting ? "Connecting..." : "Connect"}
                   </button>
@@ -111,28 +120,44 @@ export default function Connect() {
         </Dialog>
       )}
 
-      <div className="flex h-fit flex-col items-center gap-4 rounded-lg p-8 shadow-lg">
+      <div className="flex h-fit flex-col items-center gap-4 rounded-lg p-4 shadow-lg w-full mx-1 bg-primary/10">
         {connections ? (
           <>
-            <h1 className="text-2xl font-bold">Your Connections</h1>
-            <div className="flex flex-col gap-4">
-              {connections.map((connection: any) => (
+          <div className="flex justify-around w-full *:flex *:gap-1 *:justify-center *:py-2 *:rounded-lg bg-black/20 rounded-lg overflow-hidden py-1 px-1.5">
+            <button 
+              className={`w-full ${activeTab === "user" ? "bg-white text-black" : ""}`}
+              onClick={() => setActiveTab("user")}
+            >
+              <Users2 /> Users
+            </button>
+            <button 
+              className={`w-full ${activeTab === "company" ? "bg-white text-black" : ""}`}
+              onClick={() => setActiveTab("company")}
+            >
+              <Building /> Companies
+            </button>
+          </div>
+            <div className="flex flex-col gap-4 w-full">
+              {filteredConnections && filteredConnections.length > 0 ? filteredConnections.map((connection: any) => (
                 <div
                   key={connection.id}
-                  className="flex flex-row items-center gap-4 rounded-lg bg-primary/10 p-4"
+                  className="flex flex-row items-center gap-4 rounded-lg bg-primary/10 p-4 w-full"
                 >
                   <Image
                     src={connection.profileImageUrl}
                     alt="Profile Picture"
-                    width={50} 
+                    width={50}
                     height={50}
                     className="rounded-full"
                   />
-                  <p>
-                    {connection.fullName}
-                  </p>
+                  <div>
+                    <p>{connection.fullName}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {connection.email}
+                    </p>
+                  </div>
                 </div>
-              ))}
+              )) : (<p className="flex flex-row items-center gap-4 rounded-lg bg-primary/10 p-4 w-full">No connections found.</p>)}
             </div>
           </>
         ) : (

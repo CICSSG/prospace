@@ -17,7 +17,7 @@ export default function UserButtonClerk() {
     >
       <UserButton.MenuItems>
         <UserButton.Link
-          href="/connections"
+          href="/connect"
           label="Connections"
           labelIcon={<UserRoundPlus size={16} />}
         />

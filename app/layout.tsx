@@ -1,17 +1,10 @@
 import type { Metadata } from "next"
-
-import {
-  ClerkProvider,
-} from "@clerk/nextjs"
+import type { Viewport } from "next"
+import { ClerkProvider } from "@clerk/nextjs"
 import { Geist_Mono, Inter } from "next/font/google"
 
 import "./globals.css"
-import { ThemeProvider } from "@/components/theme-provider"
 import { cn } from "@/lib/utils"
-import ScannerComponent from "@/components/scanner"
-import Footer from "@/components/footer"
-import Header from "@/components/header"
-import { Toaster } from "sonner"
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
 
@@ -19,6 +12,13 @@ const fontMono = Geist_Mono({
   subsets: ["latin"],
   variable: "--font-mono",
 })
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+}
 
 export default function RootLayout({
   children,
@@ -37,23 +37,7 @@ export default function RootLayout({
       )}
     >
       <body>
-        <ClerkProvider>
-          
-
-          <ScannerComponent />
-          <ThemeProvider>
-            <div className="flex w-full flex-col items-center">
-              <Header />
-              {children}
-              <Footer />
-              <Toaster />
-            </div>
-
-            
-          </ThemeProvider>
-
-
-        </ClerkProvider>
+        <ClerkProvider>{children}</ClerkProvider>
       </body>
     </html>
   )

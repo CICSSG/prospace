@@ -1,6 +1,6 @@
 "use client"
 import { useRouter, useSearchParams } from "next/navigation"
-import { getConnections, getUser, initiateConnection } from "../actions"
+import { getConnections, getUser, initiateConnection } from "../../actions"
 import { useUser } from "@clerk/nextjs"
 import { useEffect, useState } from "react"
 import { Dialog, DialogContent } from "@/components/ui/dialog"

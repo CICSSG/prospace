@@ -53,7 +53,7 @@ export default function ScannerComponent() {
         aria-label="Open QR scanner"
         onClick={() => {
           setScannerMessage(null)
-          setScannerOpen(true)
+          setScannerOpen(!scannerOpen)
         }}
         className="fixed right-4 bottom-4 z-100 flex h-16 w-16 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg transition hover:bg-primary/80 active:scale-95"
       >

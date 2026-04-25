@@ -6,6 +6,7 @@ import {
   SignInButton,
   SignUpButton,
   UserButton,
+  UserProfile,
 } from "@clerk/nextjs"
 import { Geist, Geist_Mono, Inter } from "next/font/google"
 
@@ -13,6 +14,14 @@ import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { cn } from "@/lib/utils"
 import ScannerComponent from "@/components/scanner"
+import { ArrowRightToLineIcon, Menu, TargetIcon } from "lucide-react"
+import UserButtonClerk from "@/components/user-button"
+import GlassSurface from "@/components/GlassSurface"
+import Grainient from "@/components/Grainient"
+import Image from "next/image"
+import Link from "next/link"
+import Footer from "@/components/footer"
+import Header from "@/components/header"
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
 
@@ -39,35 +48,20 @@ export default function RootLayout({
     >
       <body>
         <ClerkProvider>
-          <header className="flex h-16 items-center justify-end gap-4 p-4">
-            <Show when="signed-out">
-              <SignInButton
-                mode="modal"
-                appearance={{
-                  options: {
-                    unsafe_disableDevelopmentModeWarnings: true,
-                  },
-                }}
-              />
-              <SignUpButton
-                mode="modal"
-                appearance={{
-                  options: {
-                    unsafe_disableDevelopmentModeWarnings: true,
-                  },
-                }}
-              >
-                <button className="h-10 cursor-pointer rounded-full bg-primary px-4 text-sm font-medium text-white sm:h-12 sm:px-5 sm:text-base">
-                  Sign Up
-                </button>
-              </SignUpButton>
-            </Show>
-            <Show when="signed-in">
-              <UserButton />
-            </Show>
-          </header>
+          
+
           <ScannerComponent />
-          <ThemeProvider>{children}</ThemeProvider>
+          <ThemeProvider>
+            <div className="flex w-full flex-col items-center">
+              <Header />
+              {children}
+              <Footer />
+            </div>
+
+            
+          </ThemeProvider>
+
+
         </ClerkProvider>
       </body>
     </html>

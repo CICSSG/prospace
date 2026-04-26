@@ -12,32 +12,28 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   const { user } = useUser()
-  console.log("Auth state:", user)
+  // console.log("Auth state:", user)
   if (!user) {
     return null
   }
 
   return (
-    <>
-      <ThemeProvider>
-        <SidebarProvider
-          style={
-            {
-              "--sidebar-width": "calc(var(--spacing) * 72)",
-              "--header-height": "calc(var(--spacing) * 12)",
-            } as React.CSSProperties
-          }
-        >
-          <AppSidebar variant="sidebar" userData={user} />
-          <SidebarInset>
-            <SiteHeader />
-            <div className="flex w-full flex-col items-center">
-              {children}
-              <Toaster />
-            </div>
-          </SidebarInset>
-        </SidebarProvider>
-      </ThemeProvider>
-    </>
+    <SidebarProvider
+      style={
+        {
+          "--sidebar-width": "calc(var(--spacing) * 72)",
+          "--header-height": "calc(var(--spacing) * 12)",
+        } as React.CSSProperties
+      }
+    >
+      <AppSidebar variant="sidebar" userData={user} />
+      <SidebarInset>
+        <SiteHeader />
+        <div className="flex w-full flex-col p-4">
+          {children}
+          <Toaster />
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
   )
 }

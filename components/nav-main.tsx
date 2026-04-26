@@ -4,11 +4,13 @@ import { Button } from "@/components/ui/button"
 import {
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 import { CirclePlusIcon, MailIcon } from "lucide-react"
+import Link from "next/link"
 
 export function NavMain({
   items,
@@ -21,6 +23,7 @@ export function NavMain({
 }) {
   return (
     <SidebarGroup>
+      <SidebarGroupLabel>Manage</SidebarGroupLabel>
       <SidebarGroupContent className="flex flex-col gap-2">
         {/* <SidebarMenu>
           <SidebarMenuItem className="flex items-center gap-2">
@@ -46,9 +49,11 @@ export function NavMain({
         <SidebarMenu>
           {items.map((item) => (
             <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton tooltip={item.title}>
-                {item.icon}
-                <span>{item.title}</span>
+              <SidebarMenuButton tooltip={item.title} className="p-0">
+                <Link href={item.url} className="flex items-center gap-2 w-full h-full p-2">
+                  {item.icon}
+                  <span>{item.title}</span>
+                </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
           ))}

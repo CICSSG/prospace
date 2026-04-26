@@ -14,7 +14,7 @@ export default clerkMiddleware(async (auth, req) => {
       }
     | undefined
 
-  console.log("Session claims:", metadata)
+  // console.log("Session claims:", metadata)
 
   if(!isAdminRoutes(req) && metadata?.isAdmin) {
     return NextResponse.redirect(new URL("/admin/dashboard", req.url))

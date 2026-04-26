@@ -1,33 +1,56 @@
-'use client'
+"use client"
 import Grainient from "@/components/Grainient"
 import LogoLoop from "@/components/logoloop"
 import { Button } from "@/components/ui/button"
 import { Award, Badge } from "lucide-react"
 import Image from "next/image"
+import { useEffect, useState } from "react"
+import { getCollectionData } from "../admin/actions"
 
-const techLogos = [
-  {
-    node: (
-      <Image
-        src={"/images/Prospace Logo.png"}
-        width={80}
-        height={80}
-        alt="logo"
-      />
-    ),
-    title: "AnimoAprendo",
-    href: "https://animoaprendo.com",
-  },
-  {
-    node: (
-      <Image src={"/images/Prospace Logo Colored.png"} width={80} height={80} alt="logo" />
-    ),
-    title: "DLSUD",
-    href: "https://dlsud.edu.ph",
-  },
-]
+type Logo = {
+  node: React.ReactNode
+  title: string
+  href: string
+}
 
 export default function Page() {
+  const [logos, setLogos] = useState<Logo[]>([
+    {
+      node: (
+        <Image
+          src={"/images/Prospace Logo.png"}
+          alt={"Prospace Logo"}
+          height={60}
+          width={100}
+          className="h-10 object-contain"
+        />
+      ),
+      title: "Prospace",
+      href: "/",
+    },
+  ])
+
+  useEffect(() => {
+    getCollectionData("logoLoop").then((res) => {
+      const data = res.data
+      const fetchedLogos = data.map((item: any) => ({
+        node: (
+          <Image
+            src={item.logoUrl}
+            alt={item.companyName}
+            height={60}
+            width={100}
+            className="h-10 object-contain"
+          />
+        ),
+        title: item.companyName,
+        href: item.companyUrl,
+      }))
+
+      setLogos(fetchedLogos)
+    })
+  }, [])
+
   return (
     <div>
       {/* HERO */}
@@ -77,16 +100,16 @@ export default function Page() {
       </section>
 
       {/* PARTNERS */}
-      <section className="w-fit max-w-[90vw] py-12 mx-auto">
-        <div className="container px-4 flex flex-col items-center">
-          <div className="text-center mb-8">
+      <section className="mx-auto w-fit max-w-[90vw] py-12">
+        <div className="container flex flex-col items-center px-4">
+          <div className="mb-8 text-center">
             <h2 className="text-xl font-semibold text-muted-foreground">
               Powered by CICSSG and Partners
             </h2>
           </div>
-          <div className="w-full h-30 overflow-x-hidden overflow-y-clip">
+          <div className="h-30 w-full overflow-x-hidden overflow-y-clip">
             <LogoLoop
-              logos={techLogos}
+              logos={logos}
               speed={50}
               direction="left"
               logoHeight={60}

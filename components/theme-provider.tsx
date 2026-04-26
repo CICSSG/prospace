@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { ThemeProvider as NextThemesProvider, useTheme } from "next-themes"
+import { Moon, SunMedium } from "lucide-react"
 
 function ThemeProvider({
   children,
@@ -68,4 +69,21 @@ function ThemeHotkey() {
   return null
 }
 
+export function ThemeToggle() {
+  const { resolvedTheme, setTheme } = useTheme()
+
+  return (
+    <button
+      onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+      className="rounded-md border p-1"
+    >
+      {resolvedTheme === "dark" ? (
+        <SunMedium size={16} />
+      ) : (
+        <Moon size={16} />
+      )}
+
+    </button>
+  )
+}
 export { ThemeProvider }

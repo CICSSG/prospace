@@ -38,80 +38,32 @@ const data = {
     email: "m@example.com",
     avatar: "/avatars/shadcn.jpg",
   },
-  navMain: [
+  navSuperAdmin: [
     {
       title: "Dashboard",
-      url: "#",
+      url: "/admin/dashboard",
       icon: <LayoutDashboardIcon />,
     },
     {
-      title: "Lifecycle",
-      url: "#",
+      title: "Logo Loop",
+      url: "/admin/logo-loop",
       icon: <ListIcon />,
     },
-    {
-      title: "Analytics",
-      url: "#",
-      icon: <ChartBarIcon />,
-    },
-    {
-      title: "Projects",
-      url: "#",
-      icon: <FolderIcon />,
-    },
-    {
-      title: "Team",
-      url: "#",
-      icon: <UsersIcon />,
-    },
-  ],
-  navClouds: [
-    {
-      title: "Capture",
-      icon: <CameraIcon />,
-      isActive: true,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Proposal",
-      icon: <FileTextIcon />,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Prompts",
-      icon: <FileTextIcon />,
-      url: "#",
-      items: [
-        {
-          title: "Active Proposals",
-          url: "#",
-        },
-        {
-          title: "Archived",
-          url: "#",
-        },
-      ],
-    },
+    // {
+    //   title: "Analytics",
+    //   url: "#",
+    //   icon: <ChartBarIcon />,
+    // },
+    // {
+    //   title: "Projects",
+    //   url: "#",
+    //   icon: <FolderIcon />,
+    // },
+    // {
+    //   title: "Team",
+    //   url: "#",
+    //   icon: <UsersIcon />,
+    // },
   ],
   navSecondary: [
     {
@@ -173,7 +125,7 @@ export function AppSidebar({
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={data.navSuperAdmin} />
         {/* <NavDocuments items={data.documents} />
         <NavSecondary items={data.navSecondary} className="mt-auto" /> */}
       </SidebarContent>

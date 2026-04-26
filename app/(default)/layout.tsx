@@ -12,14 +12,12 @@ export default function RootLayout({
   return (
     <>
       <ScannerComponent />
-      <ThemeProvider>
-        <div className="flex w-full flex-col items-center">
-          <Header />
-          {children}
-          <Footer />
-          <Toaster />
-        </div>
-      </ThemeProvider>
+      <div className="flex w-full flex-col items-center">
+        <Header />
+        {children}
+        <Footer />
+        <Toaster />
+      </div>
     </>
   )
 }

@@ -15,6 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import localFont from 'next/font/local'
 
 type Logo = {
   node: React.ReactNode
@@ -29,6 +30,12 @@ const SDGLogos = [
   "/images/SDG10.png",
   "/images/SDG17.png",
 ]
+
+const moscaLaroke = localFont({
+  src: '../mosca-laroke.regular.otf',
+  display: 'swap',
+})
+
 export default function Page() {
   const [logos, setLogos] = useState<Logo[]>([
     {
@@ -101,8 +108,8 @@ export default function Page() {
           />
         </div>
         <div className="absolute top-1/2 left-1/2 -translate-1/2">
-          <h1 className="mt-10 text-center text-5xl font-bold">
-            Welcome to Prospace
+          <h1 className={`mt-10 text-center text-5xl font-bold text-white ${moscaLaroke.className}`}>
+            Welcome to ProSPACE
           </h1>
           <p className="mt-4 text-center text-lg text-gray-300">
             Your gateway to the future of workspaces.

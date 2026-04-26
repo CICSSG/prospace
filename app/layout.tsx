@@ -21,6 +21,11 @@ export const viewport: Viewport = {
   userScalable: false,
 }
 
+export const metadata: Metadata = {
+  title: "Prospace",
+  description: "Prospace is an event held by the College of Information and Computer Studies Student Government (CICSSG) of De La Salle University Dasmariñas. We are dedicated to providing a platform for students to explore and develop their skills in the field of technology, fostering a community of innovation and collaboration.",
+}
+
 export default function RootLayout({
   children,
 }: Readonly<{

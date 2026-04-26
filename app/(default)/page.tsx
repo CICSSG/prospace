@@ -117,9 +117,9 @@ export default function Page() {
 
       {/* SCHEDULE */}
       <section className="bg-linear border-b from-primary/50 to-primary/20">
-        <div className="mx-auto grid max-w-6xl items-center gap-12 px-4 py-12 lg:grid-cols-2">
+        <div className="mx-auto grid max-w-6xl items-center gap-12 px-2 lg:px-4 py-12 lg:grid-cols-2">
           {/* Prospace Information */}
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col items-center gap-3 text-center lg:items-start lg:text-left">
             <div className="flex flex-row gap-2">
               <Image
                 src={"/images/DLSUD.png"}
@@ -167,20 +167,15 @@ export default function Page() {
           <div>
             <Table className="border-border">
               <TableHeader>
-                <TableRow className="*:border-border [&>:not(:last-child)]:border-r *:font-semibold">
-                  <TableHead className="w-45">Online Career Sessions</TableHead>
+                <TableRow className="*:border-border *:font-semibold [&>:not(:last-child)]:border-r">
+                  <TableHead className="w-45 text-center">Online Career Sessions</TableHead>
                   <TableHead colSpan={2} className="text-center">
                     Job Fair
                   </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {/* <TableRow className="*:border-border [&>:not(:last-child)]:border-r">
-                  <TableCell colSpan={3} className="text-center text-lg">
-                    May
-                  </TableCell>
-                </TableRow> */}
-                <TableRow className="*:border-border *:text-center [&>:not(:last-child)]:border-r *:bg-primary/10">
+                <TableRow className="*:border-border *:bg-primary/10 *:text-center [&>:not(:last-child)]:border-r *:text-lg">
                   <TableCell>May 16</TableCell>
                   <TableCell>May 18</TableCell>
                   <TableCell>May 19</TableCell>
@@ -196,10 +191,14 @@ export default function Page() {
                   <TableCell>OPEN TO ALL</TableCell>
                 </TableRow>
                 <TableRow className="*:border-border *:text-center [&>:not(:last-child)]:border-r">
-                  <TableCell rowSpan={2}>Microsoft Teams and Live</TableCell>
-                  <TableCell rowSpan={2}colSpan={2} className="max-w-20 text-wrap">
-                    Salrial Hall and PBH Courtyard <br />De La Salle University
-                    Dasmariñas
+                  <TableCell rowSpan={2} className="text-xs xl:text-base">Microsoft Teams and Live</TableCell>
+                  <TableCell
+                    rowSpan={2}
+                    colSpan={2}
+                    className="max-w-20 text-wrap text-xs xl:text-base"
+                  >
+                    Salrial Hall and PBH Courtyard <br />
+                    De La Salle University Dasmariñas
                   </TableCell>
                 </TableRow>
               </TableBody>

@@ -18,6 +18,7 @@ import {
 import localFont from "next/font/local"
 import Link from "next/link"
 import { Show } from "@clerk/nextjs"
+import { WebMode } from "../types"
 
 type Logo = {
   node: React.ReactNode
@@ -116,7 +117,7 @@ export default function Page() {
             Welcome to ProSPACE
           </h1>
           <p className="mt-4 text-center text-lg text-gray-300 lg:text-3xl">
-            Your gateway to the future of workspaces.
+            Your gateway to the future.
           </p>
           <Show when="signed-out">
             <Link href={"/signup"} className="mt-6 flex justify-center hover:cursor-pointer">

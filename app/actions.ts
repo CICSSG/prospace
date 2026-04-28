@@ -1,14 +1,15 @@
 "use server"
 
-export async function registerUser(email: string) {
+export async function registerUser(data: any) {
   try {
-    const response = await fetch("/api/createUser", {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/createUser`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ email }),
+      body: JSON.stringify(data),
     })
+
     if (!response.ok) {
       throw new Error("Failed to register user")
     }

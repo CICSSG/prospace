@@ -14,7 +14,7 @@ export default function RootLayout({
       <ScannerComponent />
       <div className="flex w-full min-h-screen flex-col items-center">
         <Header />
-        <div className="grow">{children}</div>
+        <div className="grow flex flex-col w-full">{children}</div>
         <Footer />
         <Toaster />
       </div>

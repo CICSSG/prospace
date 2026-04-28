@@ -18,7 +18,7 @@ export interface EmailTemplateProps {
 }
 
 export function EmailTemplate(data: EmailTemplateProps) {
-  const previewText = `${data.title} - OpticSmile`
+  const previewText = `${data.title} - ProSpace`
 
   return (
     <Html>

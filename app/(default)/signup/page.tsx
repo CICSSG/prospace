@@ -2,9 +2,9 @@
 import { UploadImageToBlobStorage } from "@/app/admin/actions"
 import { useForm } from "@tanstack/react-form"
 import clsx from "clsx"
-import React, { useRef, useState } from "react"
+import { useRef, useState } from "react"
 import { ClipLoader } from "react-spinners"
-import z, { optional, string, ZodOptional } from "zod"
+import z from "zod"
 
 const SignUpPage = () => {
   const resumeInputRef = useRef<HTMLInputElement>(null)
@@ -17,13 +17,12 @@ const SignUpPage = () => {
     email: z.string().email("Invalid email address"),
     course: z.string().min(2, "Course must be at least 2 characters"),
     shortBio: z.string().max(500, "Short bio must be less than 500 characters"),
+    resumeLink: z.string(),
   })
 
   const { Field, handleSubmit, getFieldValue } = useForm({
     validators: {
-      
       onChange: formSchema,
-      //   onBlur: formSchema,
     },
     defaultValues: {
       firstName: "",
@@ -31,6 +30,7 @@ const SignUpPage = () => {
       email: "",
       course: "",
       shortBio: "",
+      resumeLink: "",
     },
 
     onSubmit: (values) => {

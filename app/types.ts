@@ -1,0 +1,1 @@
+export type WebMode = "registration" | "production" | "maintenance"

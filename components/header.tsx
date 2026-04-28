@@ -26,13 +26,13 @@ export default function Header() {
           borderRadius={50}
         >
           <div className="mx-2 lg:mx-4 grid w-full grid-cols-3">
-            <button
+            {/* <button
               className="lg:hidden"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
             >
               <Menu size={20} />
-            </button>
-            <Link
+            </button> */}
+            {/* <Link
               href="/"
               className="mx-auto lg:mr-auto lg:mx-0 flex translate-y-0.5 items-center gap-2"
             >
@@ -42,15 +42,26 @@ export default function Header() {
                 width={200}
                 height={100}
               />
+            </Link> */}
+            <Link
+              href="/"
+              className="mx-auto flex translate-y-0.5 items-center gap-2 col-span-3"
+            >
+              <Image
+                src={"/images/Prospace Logo Colored.png"}
+                alt="Prospace Logo"
+                width={200}
+                height={100}
+              />
             </Link>
-            <div className="hidden w-full flex-row items-center justify-between lg:flex">
+            {/* <div className="hidden w-full flex-row items-center justify-between lg:flex">
               <Link href={"/"}>Home</Link>
               <Link href={"/about"}>About</Link>
               <Link href={"/job-fair"}>Job Fair</Link>
               <Link href={"/sessions"}>Sessions</Link>
               <Link href={"/apply"}>Apply</Link>
-            </div>
-            <div className="ml-auto flex flex-row items-center gap-2">
+            </div> */}
+            {/* <div className="ml-auto flex flex-row items-center gap-2">
               <Show when="signed-out">
                 <SignInButton
                   appearance={{
@@ -78,7 +89,7 @@ export default function Header() {
               <Show when="signed-in">
                 <UserButtonClerk />
               </Show>
-            </div>
+            </div> */}
           </div>
         </GlassSurface>
       </div>

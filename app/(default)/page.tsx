@@ -15,7 +15,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import localFont from 'next/font/local'
+import localFont from "next/font/local"
+import Link from "next/link"
+import { Show } from "@clerk/nextjs"
 
 type Logo = {
   node: React.ReactNode
@@ -32,8 +34,8 @@ const SDGLogos = [
 ]
 
 const moscaLaroke = localFont({
-  src: '../mosca-laroke.regular.otf',
-  display: 'swap',
+  src: "../mosca-laroke.regular.otf",
+  display: "swap",
 })
 
 export default function Page() {
@@ -108,23 +110,27 @@ export default function Page() {
           />
         </div>
         <div className="absolute top-1/2 left-1/2 -translate-1/2">
-          <h1 className={`mt-10 text-center text-5xl font-bold text-white ${moscaLaroke.className}`}>
+          <h1
+            className={`mt-10 text-center text-5xl font-bold text-white lg:text-7xl ${moscaLaroke.className}`}
+          >
             Welcome to ProSPACE
           </h1>
-          <p className="mt-4 text-center text-lg text-gray-300">
+          <p className="mt-4 text-center text-lg text-gray-300 lg:text-3xl">
             Your gateway to the future of workspaces.
           </p>
-          <div className="mt-6 flex justify-center">
-            <Button variant="outline" size="lg">
-              Get Started
-            </Button>
-          </div>
+          <Show when="signed-out">
+            <Link href={"/signup"} className="mt-6 flex justify-center hover:cursor-pointer">
+              <Button variant="outline" size="lg" className="text-xl cursor-pointer">
+                Register Now
+              </Button>
+            </Link>
+          </Show>
         </div>
       </section>
 
       {/* SCHEDULE */}
       <section className="bg-linear border-b from-primary/50 to-primary/20">
-        <div className="mx-auto grid max-w-6xl items-center gap-12 px-2 lg:px-4 py-12 lg:grid-cols-2">
+        <div className="mx-auto grid max-w-6xl items-center gap-12 px-2 py-12 lg:grid-cols-2 lg:px-4">
           {/* Prospace Information */}
           <div className="flex flex-col items-center gap-3 text-center lg:items-start lg:text-left">
             <div className="flex flex-row gap-2">
@@ -175,14 +181,16 @@ export default function Page() {
             <Table className="border-border">
               <TableHeader>
                 <TableRow className="*:border-border *:font-semibold [&>:not(:last-child)]:border-r">
-                  <TableHead className="w-45 text-center">Online Career Sessions</TableHead>
+                  <TableHead className="w-45 text-center">
+                    Online Career Sessions
+                  </TableHead>
                   <TableHead colSpan={2} className="text-center">
                     Job Fair
                   </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                <TableRow className="*:border-border *:bg-primary/10 *:text-center [&>:not(:last-child)]:border-r *:text-lg">
+                <TableRow className="*:border-border *:bg-primary/10 *:text-center *:text-lg [&>:not(:last-child)]:border-r">
                   <TableCell>May 16</TableCell>
                   <TableCell>May 18</TableCell>
                   <TableCell>May 19</TableCell>
@@ -198,11 +206,13 @@ export default function Page() {
                   <TableCell>OPEN TO ALL</TableCell>
                 </TableRow>
                 <TableRow className="*:border-border *:text-center [&>:not(:last-child)]:border-r">
-                  <TableCell rowSpan={2} className="text-xs xl:text-base">Microsoft Teams and Live</TableCell>
+                  <TableCell rowSpan={2} className="text-xs xl:text-base">
+                    Microsoft Teams and Live
+                  </TableCell>
                   <TableCell
                     rowSpan={2}
                     colSpan={2}
-                    className="max-w-20 text-wrap text-xs xl:text-base"
+                    className="max-w-20 text-xs text-wrap xl:text-base"
                   >
                     Salrial Hall and PBH Courtyard <br />
                     De La Salle University Dasmariñas
@@ -226,9 +236,14 @@ export default function Page() {
             <CountdownTimer />
           </div>
         </div>
-        <button className="mx-auto mt-4 flex w-full max-w-sm cursor-pointer flex-row items-center justify-center gap-2 rounded bg-primary px-4 py-2 text-lg text-white hover:bg-primary/80">
-          Sign Up <ArrowRight />
-        </button>
+        <Show when="signed-out">
+          <Link
+            href={"/signup"}
+            className="mx-auto mt-4 flex w-full max-w-sm cursor-pointer flex-row items-center justify-center gap-2 rounded bg-primary px-4 py-2 text-lg text-white hover:bg-primary/80"
+          >
+            Sign Up <ArrowRight />
+          </Link>
+        </Show>
       </section>
 
       {/* PARTNERS */}

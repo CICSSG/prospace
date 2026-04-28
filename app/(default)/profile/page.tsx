@@ -65,7 +65,7 @@ export default function Profile() {
                   style: "rounded",
                 }}
                 imageSettings={{
-                  src: "/images/CICSSG.png",
+                  src: "/images/ProspaceMinimalLogo-2.png",
                   height: 60,
                   width: 60,
                   excavate: true,

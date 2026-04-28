@@ -1,5 +1,25 @@
 "use server"
 
+export async function registerUser(email: string) {
+  try {
+    const response = await fetch("/api/createUser", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email }),
+    })
+    if (!response.ok) {
+      throw new Error("Failed to register user")
+    }
+    return response.json()
+  }
+  catch (error) {
+    console.error("Error registering user:", error)
+    throw error
+  }
+}
+
 export async function getUser(user_id: string) {
   try {
     const response = await fetch(

@@ -17,7 +17,11 @@ const nextConfig = {
     serverActions: {
       bodySizeLimit: '10mb',
     }
-  }
+  },
+
+  allowedDevOrigins: [
+    '192.168.1.4'
+  ],
 }
 
 export default nextConfig

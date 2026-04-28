@@ -78,7 +78,7 @@ export default function Header() {
                       },
                     }}
                   >
-                    <button className="hidden h-10 cursor-pointer rounded-full bg-primary px-4 text-sm font-medium text-white sm:h-12 sm:px-5 sm:text-base lg:block">
+                    <button className="h-10 cursor-pointer rounded-full bg-primary px-4 text-sm font-medium text-white sm:h-12 sm:px-5 sm:text-base">
                       Sign In
                     </button>
                   </SignInButton>

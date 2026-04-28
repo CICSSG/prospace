@@ -1,4 +1,3 @@
-
 "use client"
 import { Button } from "@base-ui/react"
 import { UserProfile, useUser } from "@clerk/nextjs"
@@ -13,13 +12,15 @@ export default function Profile() {
   const link = `${process.env.NEXT_PUBLIC_BASE_URL}/connect?id=${user?.id}&type=user`
 
   const handleDownload = () => {
-    if (QRRef.current) {
-      QRRef.current.download({name: `${user?.fullName}-qr-code.png`, format: "png", size: 2000})
-    }
+    QRRef.current?.download({
+        name: `${user?.fullName}-qr-code.png`,
+        format: "png",
+        size: 2000,
+      })
   }
 
   return (
-    <div className="pt-30 pb-4 bg-linear-to-r from-purple-500/15 to-pink-500/15 w-full h-screen flex items-center justify-center">
+    <div className="flex items-center justify-center w-full bg-linear-to-r from-purple-500/15 to-pink-500/15 pt-30 pb-4">
       <UserProfile
         appearance={{
           options: {
@@ -35,16 +36,19 @@ export default function Profile() {
         >
           <div className="flex h-fit flex-col gap-2 overflow-hidden">
             {/* Link: {link} */}
-            <div className="flex flex-row justify-between items-center">
+            <div className="flex flex-row items-center justify-between">
               <h1 className="font-bold">Your QR Code</h1>
-              <button className="bg-primary px-2 py-1 rounded" onClick={handleDownload}>
+              <button
+                className="rounded bg-primary px-3 py-2"
+                onClick={handleDownload}
+              >
                 Download
               </button>
             </div>
             <hr />
-            <div className="flex shrink w-full h-fit mt-4 justify-center">
-                <ReactQRCode
-              size={480}
+            <div className="mt-4 flex h-fit w-full shrink justify-center">
+              <ReactQRCode
+                size={480}
                 marginSize={3}
                 background={"white"}
                 gradient={{
@@ -77,7 +81,7 @@ export default function Profile() {
           </div>
         </UserProfile.Page>
         <UserProfile.Page label="account" />
-    <UserProfile.Page label="security" />
+        <UserProfile.Page label="security" />
       </UserProfile>
     </div>
   )

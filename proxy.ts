@@ -2,7 +2,8 @@ import { auth } from "@clerk/nextjs"
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server"
 import { NextResponse } from "next/server"
 
-const isAdminRoutes = createRouteMatcher(["/admin(.*)"]);
+const isTestingRoutes = createRouteMatcher(["/testing(.*)"])
+const isAdminRoutes = createRouteMatcher(["/admin(.*)"])
 
 export default clerkMiddleware(async (auth, req) => {
   const { sessionClaims, userId } = await auth()
@@ -16,7 +17,13 @@ export default clerkMiddleware(async (auth, req) => {
 
   // console.log("Session claims:", metadata)
 
-  if(!isAdminRoutes(req) && metadata?.isAdmin) {
+  if (isTestingRoutes(req)) {
+    if (process.env.NEXT_PUBLIC_ENVIRONMENT === "development") {
+      return NextResponse.next()
+    }
+    return NextResponse.redirect(new URL("/", req.url))
+  }
+  if (!isAdminRoutes(req) && metadata?.isAdmin) {
     return NextResponse.redirect(new URL("/admin/dashboard", req.url))
   }
 

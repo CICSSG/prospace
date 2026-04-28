@@ -13,7 +13,7 @@ export default function Profile() {
 
   const handleDownload = () => {
     QRRef.current?.download({
-        name: `${user?.fullName}-qr-code.png`,
+        name: "qr-code",
         format: "png",
         size: 2000,
       })

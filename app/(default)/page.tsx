@@ -116,7 +116,7 @@ export default function Page() {
           >
             Welcome to ProSPACE
           </h1>
-          <p className="mt-4 text-center text-lg text-gray-300 lg:text-3xl">
+          <p className="mt-4 text-center text-lg text-primary-foreground/80 lg:text-3xl">
             Your gateway to the future.
           </p>
           <Show when="signed-out">
@@ -269,6 +269,11 @@ export default function Page() {
             />
           </div>
         </div>
+      </section>
+
+      {/* CAREER SESSIONS */}
+      <section>
+        
       </section>
     </div>
   )

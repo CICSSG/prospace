@@ -18,16 +18,17 @@ export default function Header() {
     <>
       <div className="fixed top-0 z-10 mx-auto flex w-full items-center justify-center p-2 lg:p-4">
         <GlassSurface
-          displace={0.2}
-          distortionScale={-180}
+          displace={5}
+          distortionScale={0}
           redOffset={0}
-          greenOffset={10}
-          blueOffset={20}
+          greenOffset={0}
+          blueOffset={0}
           brightness={50}
-          opacity={0.43}
+          opacity={0}
           mixBlendMode="screen"
           width={1200}
           borderRadius={50}
+          blur={30}
         >
           {MODE === "registration" ? (
             <div className="mx-2 grid w-full grid-cols-3 lg:mx-4">
@@ -154,7 +155,7 @@ export default function Header() {
                   Sign In
                 </button>
               </SignInButton>
-              <SignUpButton
+              {/* <SignUpButton
                 appearance={{
                   options: {
                     unsafe_disableDevelopmentModeWarnings: true,
@@ -164,7 +165,7 @@ export default function Header() {
                 <button className="h-10 w-full cursor-pointer rounded-full bg-white px-4 text-sm font-medium text-primary sm:h-12 sm:px-5 sm:text-base">
                   Sign Up
                 </button>
-              </SignUpButton>
+              </SignUpButton> */}
             </Show>
             <Show when="signed-in">
               <SignOutButton>

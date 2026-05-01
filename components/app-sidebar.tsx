@@ -30,7 +30,9 @@ import {
   FileChartColumnIcon,
   FileIcon,
   CommandIcon,
+  Building2,
 } from "lucide-react"
+import Image from "next/image"
 
 const data = {
   user: {
@@ -38,33 +40,37 @@ const data = {
     email: "m@example.com",
     avatar: "/avatars/shadcn.jpg",
   },
-  navSuperAdmin: [
-    {
-      title: "Dashboard",
-      url: "/admin/dashboard",
-      icon: <LayoutDashboardIcon />,
-    },
-    {
-      title: "Logo Loop",
-      url: "/admin/logo-loop",
-      icon: <ListIcon />,
-    },
-    // {
-    //   title: "Analytics",
-    //   url: "#",
-    //   icon: <ChartBarIcon />,
-    // },
-    // {
-    //   title: "Projects",
-    //   url: "#",
-    //   icon: <FolderIcon />,
-    // },
-    // {
-    //   title: "Team",
-    //   url: "#",
-    //   icon: <UsersIcon />,
-    // },
-  ],
+  navigation: {
+    title: "Manage",
+    items: [
+      {
+        title: "Dashboard",
+        url: "/admin/dashboard",
+        icon: <LayoutDashboardIcon />,
+      },
+      {
+        title: "Logo Loop",
+        url: "/admin/logo-loop",
+        icon: <ListIcon />,
+      },
+      {
+        title: "Companies",
+        url: "/admin/company",
+        icon: <Building2 />,
+      },
+      // {
+      //   title: "Projects",
+      //   url: "#",
+      //   icon: <FolderIcon />,
+      // },
+      // {
+      //   title: "Team",
+      //   url: "#",
+      //   icon: <UsersIcon />,
+      // },
+    ],
+  },
+
   navSecondary: [
     {
       title: "Settings",
@@ -102,13 +108,10 @@ const data = {
 }
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
-  userData?: any;
+  userData?: any
 }
 
-export function AppSidebar({
-  userData, ...props
-}: AppSidebarProps) {
-
+export function AppSidebar({ userData, ...props }: AppSidebarProps) {
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -118,14 +121,20 @@ export function AppSidebar({
               className="data-[slot=sidebar-menu-button]:p-1.5!"
               render={<a href="/admin/dashboard" />}
             >
-              <CommandIcon className="size-5!" />
+              <Image
+                src={"/images/ProspaceMinimalLogo.png"}
+                alt={"Prospace Logo"}
+                height={25}
+                width={25}
+                className="object-contain aspect-square"
+              />
               <span className="text-base font-semibold">ProSpace</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navSuperAdmin} />
+        <NavMain data={data.navigation} />
         {/* <NavDocuments items={data.documents} />
         <NavSecondary items={data.navSecondary} className="mt-auto" /> */}
       </SidebarContent>

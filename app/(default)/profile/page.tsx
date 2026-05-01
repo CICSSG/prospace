@@ -7,7 +7,6 @@ import { useRef } from "react"
 
 export default function Profile() {
   const { user } = useUser()
-  console.log("User data:", user) // Log the user object to verify its structure and content
   const QRRef = useRef<ReactQRCodeRef>(null)
   const link = `${process.env.NEXT_PUBLIC_BASE_URL}/connect?id=${user?.id}&type=user`
 

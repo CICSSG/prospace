@@ -10,7 +10,7 @@ export async function GET(req: Request) {
     if (id) {
       const data = await client.users.getUser(id);
 
-      console.log("User data fetched successfully:", data);
+      // console.log("User data fetched successfully:", data);
       return NextResponse.json({ success: true, data });
     } else {
       return NextResponse.json({

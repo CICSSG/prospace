@@ -42,6 +42,27 @@ export async function getUser(user_id: string) {
     }
 }
 
+export async function getUserInCollection(user_id: string) {
+  try {
+    const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/getUserInCollection?user_id=${user_id}`,
+        {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+            },
+        }
+    )
+    if (!response.ok) {
+        throw new Error("Failed to fetch user data")
+    }
+    return response.json()
+    } catch (error) {
+        console.error("Error fetching user data:", error)
+        throw error
+    }
+}
+
 export async function getConnections(user_id: string) {
   try {
     const response = await fetch(

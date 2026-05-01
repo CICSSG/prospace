@@ -22,7 +22,7 @@ const SignupSuccess = () => {
               moscaLaroke.className + " text-center text-2xl font-bold lg:text-3xl"
             }
           >
-            ReGIStration SucceSSful!
+            reGISTrATIon SUCCeSSfUL!
           </h1>
           <img
             src="/images/ProspaceMinimalLogo-2.png"
@@ -33,7 +33,7 @@ const SignupSuccess = () => {
 
         <p className="mt-4 text-center text-lg">
           Thank you for signing up for{" "}
-          <span className={moscaLaroke.className}>ProSPACE</span> 2026: The
+          <span className={moscaLaroke.className}>ProSPACE 2026</span>: The
           DLSU-D Tech and Career Expo. We have sent a confirmation email to your
           registered email address. Please check your inbox for more details
           about the event.

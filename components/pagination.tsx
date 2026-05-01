@@ -32,7 +32,7 @@ export function PaginationComponent({
         <FieldLabel htmlFor="select-rows-per-page">Rows per page</FieldLabel>
         <Select
           defaultValue="10"
-          onValueChange={(value) => setItemsPerPage(Number(value))}
+          onValueChange={(value: string) => setItemsPerPage(Number(value))}
         >
           <SelectTrigger className="w-20" id="select-rows-per-page">
             <SelectValue />
@@ -54,7 +54,8 @@ export function PaginationComponent({
           <PaginationItem>
             <PaginationPrevious
               href="#"
-              onClick={(e) => {
+              size="icon"
+              onClick={(e: React.MouseEvent<HTMLAnchorElement>) => {
                 e.preventDefault()
                 setPage((prev) => Math.max(prev - 1, 1))
               }}
@@ -63,7 +64,8 @@ export function PaginationComponent({
           <PaginationItem>
             <PaginationNext
               href="#"
-              onClick={(e) => {
+              size="icon"
+              onClick={(e: React.MouseEvent<HTMLAnchorElement>) => {
                 e.preventDefault()
                 setPage((prev) => Math.min(prev + 1, totalPages))
               }}

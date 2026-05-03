@@ -116,7 +116,7 @@ export default function Page() {
           >
             Welcome to ProSPACE
           </h1>
-          <p className="mt-4 text-center text-lg text-gray-300 lg:text-3xl">
+          <p className="mt-4 text-center text-lg text-primary-foreground/80 lg:text-3xl">
             Your gateway to the future.
           </p>
           <Show when="signed-out">
@@ -193,8 +193,8 @@ export default function Page() {
               <TableBody>
                 <TableRow className="*:border-border *:bg-primary/10 *:text-center *:text-lg [&>:not(:last-child)]:border-r">
                   <TableCell>May 16</TableCell>
-                  <TableCell>May 18</TableCell>
-                  <TableCell>May 19</TableCell>
+                  <TableCell>May 27</TableCell>
+                  <TableCell>May 28</TableCell>
                 </TableRow>
                 <TableRow className="*:border-border *:text-center [&>:not(:last-child)]:border-r">
                   <TableCell>Saturday</TableCell>
@@ -269,6 +269,11 @@ export default function Page() {
             />
           </div>
         </div>
+      </section>
+
+      {/* CAREER SESSIONS */}
+      <section>
+        
       </section>
     </div>
   )

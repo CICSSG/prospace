@@ -42,6 +42,27 @@ export async function getUser(user_id: string) {
     }
 }
 
+export async function getUserInCollection(user_id: string) {
+  try {
+    const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/getUserInCollection?user_id=${user_id}`,
+        {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+            },
+        }
+    )
+    if (!response.ok) {
+        throw new Error("Failed to fetch user data")
+    }
+    return response.json()
+    } catch (error) {
+        console.error("Error fetching user data:", error)
+        throw error
+    }
+}
+
 export async function getConnections(user_id: string) {
   try {
     const response = await fetch(
@@ -81,6 +102,69 @@ export async function initiateConnection(data: any) {
     return responseData
   } catch (error) {
     console.error("Error initiating connection:", error)
+    throw error
+  }
+}
+
+export async function sendOTP(email: string, firstName: string, lastName: string, course: string) {
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/sendOTP`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, firstName, lastName, course }),
+    })
+
+    if (!response.ok) {
+      const errorData = await response.json()
+      throw new Error(errorData.error || "Failed to send OTP")
+    }
+    return response.json()
+  } catch (error) {
+    console.error("Error sending OTP:", error)
+    throw error
+  }
+}
+
+export async function verifyOTP(email: string, otp: string) {
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/verifyOTP`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, otp }),
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.error || "Failed to verify OTP")
+    }
+    return response.json()
+  } catch (error) {
+    console.error("Error verifying OTP:", error)
+    throw error
+  }
+}
+
+export async function completeSignup(email: string, shortBio: string, socialLinks: string[], portfolioLink: string) {
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/completeSignup`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, shortBio, socialLinks, portfolioLink }),
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.error || "Failed to complete signup")
+    }
+    return response.json()
+  } catch (error) {
+    console.error("Error completing signup:", error)
     throw error
   }
 }

@@ -15,7 +15,13 @@ export default clerkMiddleware(async (auth, req) => {
       }
     | undefined
 
+  const normalizedRole = metadata?.role === "company" ? "data" : metadata?.role
+
   // console.log("Session claims:", metadata)
+
+  if (process.env.NEXT_PUBLIC_ENVIRONMENT === "development") {
+    return NextResponse.next()
+  }
 
   if (isTestingRoutes(req)) {
     if (process.env.NEXT_PUBLIC_ENVIRONMENT === "development") {

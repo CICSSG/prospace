@@ -264,7 +264,7 @@ export default function Page() {
               scaleOnHover
               gap={60}
               fadeOut
-              fadeOutColor="#0c090c"
+              fadeOutColor="#0E1333"
               ariaLabel="Technology partners"
             />
           </div>

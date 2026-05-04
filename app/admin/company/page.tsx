@@ -183,13 +183,13 @@ export default function CompanyList() {
             value={search}
             onChange={(event) => handleSearchChange(event.target.value)}
             placeholder="Search by name, email, description, or social link"
-            className="w-full rounded-lg border bg-background px-3 py-2 text-sm"
+            className="w-full rounded-lg border bg-foreground/10 px-3 py-2 text-sm text-muted-foreground transition-all focus:text-foreground focus:ring-2 focus:ring-primary focus:outline-none"
           />
 
           <select
             value={filter}
             onChange={(event) => handleFilterChange(event.target.value as typeof filter)}
-            className="rounded-lg border bg-background px-3 py-2 text-sm"
+            className="rounded-lg border bg-foreground/40 text-background px-3 py-2 text-sm"
           >
             <option value="all">All records</option>
             <option value="hasImage">Has image</option>

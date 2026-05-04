@@ -33,7 +33,7 @@ export default function DeleteCompanyDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="bg-primary/40">
         <DialogHeader>
           <DialogTitle>Delete Company</DialogTitle>
         </DialogHeader>

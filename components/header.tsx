@@ -22,7 +22,7 @@ export default function Header() {
 
   return (
     <>
-      <div className="fixed top-5 z-10 flex w-full items-center justify-center px-5 text-lg">
+      <div className="fixed top-5 z-20 flex w-full items-center justify-center px-5 text-lg">
         <button
           className="mr-auto lg:hidden"
           onClick={() => setIsMenuOpen(true)}
@@ -41,7 +41,7 @@ export default function Header() {
             opacity={0.1}
             mixBlendMode="screen"
             width={120}
-            height={45}
+            height={40}
             borderRadius={50}
             blur={10}
           >

@@ -11,7 +11,7 @@ export default function Footer() {
     <footer className="relative w-full overflow-hidden bg-linear-to-t from-[#6842d5] to-[#6842d5]/0 pt-15 pb-10">
       <div className="mx-15 flex flex-col items-center justify-center gap-8">
         <Image
-          src={"/images/ProSpaceTitle.png"}
+          src={"/images/Prospace-DLSU-D.png"}
           width={512}
           height={128}
           alt="ProSpace"

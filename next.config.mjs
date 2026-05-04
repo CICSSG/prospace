@@ -9,6 +9,10 @@ const nextConfig = {
         {
           protocol: 'https',
           hostname: 'hd4ny9sgmodyi3bw.public.blob.vercel-storage.com',
+        },
+        {
+          protocol: 'https',
+          hostname: 'placehold.co'
         }
     ],
   },
@@ -22,6 +26,7 @@ const nextConfig = {
   allowedDevOrigins: [
     '192.168.1.4'
   ],
+  devIndicators: false
 }
 
 export default nextConfig

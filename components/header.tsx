@@ -48,7 +48,7 @@ export default function Header() {
             Sign In
           </GlassSurface>
           <Image
-            src={"/images/ProSpaceMinimalLogo.png"}
+            src={"/images/ProspaceMinimalLogo.png"}
             alt="ProSpace Logo"
             width={50}
             height={50}
@@ -77,7 +77,7 @@ export default function Header() {
               >
                 <div className="mb-4 flex flex-row justify-between">
                   <Image
-                    src={"/images/ProSpaceMinimalLogo.png"}
+                    src={"/images/ProspaceMinimalLogo.png"}
                     alt="ProSpace Logo"
                     width={60}
                     height={60}

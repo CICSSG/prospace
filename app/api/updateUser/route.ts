@@ -54,7 +54,8 @@ export async function PUT(req: Request) {
         publicMetadata.adminRole = null
       }
 
-      await clerkClient.users.updateUserMetadata(clerkId, {
+      const clerk = await clerkClient()
+      await clerk.users.updateUserMetadata(clerkId, {
         publicMetadata,
       })
     } catch (clerkError) {

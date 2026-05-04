@@ -1,4 +1,5 @@
 "use client"
+import { motion } from "framer-motion"
 import Grainient from "@/components/Grainient"
 import LogoLoop from "@/components/logoloop"
 import { Button } from "@/components/ui/button"
@@ -19,6 +20,7 @@ import localFont from "next/font/local"
 import Link from "next/link"
 import { Show } from "@clerk/nextjs"
 import { WebMode } from "../types"
+import ColorBends from "@/components/ColorBends"
 
 type Logo = {
   node: React.ReactNode
@@ -36,6 +38,11 @@ const SDGLogos = [
 
 const moscaLaroke = localFont({
   src: "../mosca-laroke.regular.otf",
+  display: "swap",
+})
+
+const sora = localFont({
+  src: "../sora-regular.ttf",
   display: "swap",
 })
 
@@ -78,59 +85,133 @@ export default function Page() {
   }, [])
 
   return (
-    <div>
+    <div className="overflow-hidden">
       {/* HERO */}
-      <section className="relative">
+      <section className="relative flex min-h-lvh max-w-screen flex-col justify-center overflow-hidden">
+        <div className="z-5 absolute min-h-lvh w-full bg-linear-to-t from-[#0e1231] to-60% to-[#0d0d1f]/0"/>
         <div
           style={{ height: "100px" }}
-          className="h-full min-h-screen w-full opacity-50"
+          className="absolute top-0 left-0 h-full min-h-lvh w-screen opacity-50"
         >
-          <Grainient
-            color1="#1b0f2e"
-            color2="#ff5fa2"
-            color3="#7b4dff"
-            timeSpeed={0.5}
-            colorBalance={0.2}
-            warpStrength={1}
-            warpFrequency={5}
-            warpSpeed={2}
-            warpAmplitude={50}
-            blendAngle={180}
-            blendSoftness={0.05}
-            rotationAmount={500}
-            noiseScale={2}
-            grainAmount={0.1}
-            grainScale={2}
-            grainAnimated={false}
-            contrast={1.5}
-            gamma={1}
-            saturation={1}
-            centerX={0}
-            centerY={0}
-            zoom={0.9}
+          <ColorBends
+            rotation={115}
+            speed={0.2}
+            colors={["#5227FF", "#FF9FFC"]}
+            transparent={false}
+            autoRotate={0}
+            scale={1.3}
+            frequency={1.2}
+            warpStrength={0}
+            mouseInfluence={2.3}
+            parallax={0.5}
+            noise={0.1}
+            iterations={1}
+            intensity={1.5}
+            bandWidth={6}
           />
         </div>
-        <div className="absolute top-1/2 left-1/2 -translate-1/2">
-          <h1
-            className={`mt-10 text-center text-5xl font-bold text-white lg:text-7xl ${moscaLaroke.className}`}
-          >
-            Welcome to ProSPACE
-          </h1>
-          <p className="mt-4 text-center text-lg text-primary-foreground/80 lg:text-3xl">
-            Your gateway to the future.
-          </p>
-          <Show when="signed-out">
-            <Link href={"/signup"} className="mt-6 flex justify-center hover:cursor-pointer">
-              <Button variant="outline" size="lg" className="text-xl cursor-pointer">
-                Register Now
-              </Button>
-            </Link>
-          </Show>
+        <div className="absolute top-0 left-0 h-lvh w-screen grow flex flex-col z-10">
+          <div className="relative grow">
+            <motion.div
+              initial={{ opacity: 0, y: -200 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1.5, ease: "easeOut" }}
+              className="absolute -top-10 left-0 w-full"
+            >
+              <Image
+                src={"/images/HeroHandTop.png"}
+                alt={"Hero Hand Top"}
+                width={1028}
+                height={1028}
+                className=" object-cover object-top-right max-w-xs"
+              />
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, y: 200 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1.5, ease: "easeOut" }}
+              className="absolute -bottom-5 right-0 w-full"
+            >
+              <Image
+                src={"/images/HeroHandBottom.png"}
+                alt={"Hero Hand Bottom"}
+                width={1028}
+                height={1028}
+                className="ml-auto max-w-76"
+              />
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, scale: 0 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6, ease: "easeOut", delay: 1 }}
+              className="absolute top-65 left-10 z-10"
+            >
+              <Image
+                src={"/images/HeroStarTopLeft.png"}
+                alt={"Hero Star Top Left"}
+                width={45}
+                height={45}
+                className="rotate-15 animate-spin animate-duration-8000 animate-infinite"
+              />
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, scale: 0 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6, ease: "easeOut", delay: 1 }}
+              className="absolute top-35 right-10"
+            >
+              <Image
+                src={"/images/HeroStarTopRight.png"}
+                alt={"Hero Star Top Right"}
+                width={40}
+                height={40}
+                className="rotate-30 animate-spin animate-duration-8000 animate-infinite"
+              />
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, scale: 0 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.6, ease: "easeOut", delay: 1 }}
+              className="absolute bottom-25 left-15"
+            >
+              <Image
+                src={"/images/HeroStarBottom.png"}
+                alt={"Hero Star Bottom"}
+                width={60}
+                height={60}
+                className="animate-spin animate-duration-8000 animate-infinite"
+              />
+            </motion.div>
+          </div>
         </div>
+
+        <motion.div
+          className="z-5 mx-auto flex max-w-md flex-col items-center justify-center px-10 text-center"
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 1.2, ease: "easeOut" }}
+        >
+          <p
+            className={
+              sora.className +
+              " text-xl font-light tracking-[0.5rem] text-white lg:text-4xl"
+            }
+          >
+            WELCOME TO
+          </p>
+          <Image
+            src={"/images/ProSpaceTitle.png"}
+            alt={"ProSpace Title"}
+            width={512}
+            height={128}
+            className="my-4 w-full object-contain lg:max-w-lg"
+          />
+        </motion.div>
       </section>
 
       {/* SCHEDULE */}
-      <section className="bg-linear border-b from-primary/50 to-primary/20">
+      <section className="border-b ">
         <div className="mx-auto grid max-w-6xl items-center gap-12 px-2 py-12 lg:grid-cols-2 lg:px-4">
           {/* Prospace Information */}
           <div className="flex flex-col items-center gap-3 text-center lg:items-start lg:text-left">
@@ -272,9 +353,7 @@ export default function Page() {
       </section>
 
       {/* CAREER SESSIONS */}
-      <section>
-        
-      </section>
+      <section></section>
     </div>
   )
 }

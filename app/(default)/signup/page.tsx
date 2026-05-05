@@ -10,6 +10,17 @@ import { ClipLoader } from "react-spinners"
 import { toast } from "sonner"
 import z from "zod"
 import { X } from "lucide-react"
+import localFont from "next/font/local"
+
+const moscaLaroke = localFont({
+  src: "../../mosca-laroke.regular.otf",
+  display: "swap",
+})
+
+const sora = localFont({
+  src: "../../sora-regular.ttf",
+  display: "swap",
+})
 
 const SignUpPage = () => {
   const portfolioInputRef = useRef<HTMLInputElement>(null)
@@ -160,12 +171,21 @@ const SignUpPage = () => {
   }, [step])
 
   return (
-    <div className="w-full bg-linear-to-r from-purple-500/15 to-pink-500/15 p-6">
-      <div className="mx-auto mt-30 mb-10 w-full max-w-md rounded-lg border-2 border-primary/70 bg-primary/15 p-6 shadow-2xl">
-        <h1 className="mb-2 text-center text-3xl font-bold">Registration</h1>
-        <p className="mb-6 text-center text-sm text-muted-foreground">
+    <div className="w-full p-6">
+      <div className="mx-auto mt-30 mb-10 w-full max-w-md rounded-lg border-2 border-white/70 bg-linear-to-r from-primary/22 p-6 shadow-2xl">
+        <h1 className={`mb-2 text-center text-3xl font-bold tracking-widest ${moscaLaroke.className}`}>REGISTRATION</h1>
+        <p className="mb-2 text-center text-sm text-white/90 font-thin tracking-[0.2rem]">
           Step {step} of 3
         </p>
+
+        <div className="flex flex-row justify-center mb-6 gap-2">
+          {[...Array(3)].map((_, index) => (
+          <div
+            key={index}
+            className={`h-2 w-8 rounded-full border border-white/30 ${index < step - 1 ? "bg-green-500/30" : index === step - 1 ? "bg-blue-500/30" : "bg-gray-300/10"}`}
+          />
+        ))}
+        </div>
 
         {/* Step 1: Basic Information */}
         {step === 1 && (
@@ -176,10 +196,6 @@ const SignUpPage = () => {
               handleSubmit1()
             }}
           >
-            <p className="mb-4 text-center text-sm text-muted-foreground">
-              Fields marked with <span className="text-red-500">*</span> are required.
-            </p>
-
             <div className="flex flex-row gap-4">
               <Field1 name="firstName">
                 {(field) => {
@@ -357,7 +373,7 @@ const SignUpPage = () => {
 
             <button
               type="submit"
-              className="mt-4 w-full rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:bg-primary/50 disabled:hover:bg-primary/50"
+              className="mt-4 mx-auto rounded-full bg-primary/0 border border-white/20 w-40 px-4 py-2 text-sm font-medium text-white/50 hover:bg-primary/90 hover:text-white transition-all cursor-pointer focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:bg-primary/50 disabled:hover:bg-primary/50"
               disabled={isSending}
             >
               {isSending ? (

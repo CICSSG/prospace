@@ -23,30 +23,48 @@ export default function Header() {
   return (
     <>
       <div className="fixed top-5 z-20 flex w-full items-center justify-center px-5 text-lg">
-        <button
-          className="mr-auto lg:hidden"
-          onClick={() => setIsMenuOpen(true)}
-        >
+        <button className="mr-auto" onClick={() => setIsMenuOpen(true)}>
           <Menu size={36} />
         </button>
 
         <div className="flex flex-row items-center gap-2">
-          <GlassSurface
-            displace={4}
-            distortionScale={-20}
-            redOffset={3}
-            greenOffset={3}
-            blueOffset={3}
-            brightness={50}
-            opacity={0.1}
-            mixBlendMode="screen"
-            width={120}
-            height={40}
-            borderRadius={50}
-            blur={10}
-          >
-            Sign In
-          </GlassSurface>
+          {process.env.NEXT_PUBLIC_MODE === "production" ? (
+            <GlassSurface
+              displace={4}
+              distortionScale={-20}
+              redOffset={3}
+              greenOffset={3}
+              blueOffset={3}
+              brightness={50}
+              opacity={0.1}
+              mixBlendMode="screen"
+              width={120}
+              height={40}
+              borderRadius={50}
+              blur={10}
+            >
+              Sign In
+            </GlassSurface>
+          ) : (
+            <Link href={"/signup"}>
+              <GlassSurface
+                displace={4}
+                distortionScale={-20}
+                redOffset={3}
+                greenOffset={3}
+                blueOffset={3}
+                brightness={50}
+                opacity={0.1}
+                mixBlendMode="screen"
+                width={120}
+                height={40}
+                borderRadius={50}
+                blur={10}
+              >
+                Register
+              </GlassSurface>
+            </Link>
+          )}
           <Image
             src={"/images/ProspaceMinimalLogo.png"}
             alt="ProSpace Logo"
@@ -61,7 +79,7 @@ export default function Header() {
           <>
             {/* Backdrop - Fade in/out */}
             <motion.div
-              className="fixed top-0 left-0 flex z-11 h-full w-full bg-black/80"
+              className="fixed top-0 left-0 z-21 flex h-full w-full bg-black/80"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -69,7 +87,7 @@ export default function Header() {
             >
               {/* Menu Content - Slide from left */}
               <motion.div
-                className={`h-full w-full flex flex-col max-w-3xs bg-linear-to-b from-[#2A3999]/0 via-[#6C5499]/80 to-[#0E1333]/0 p-4 lg:hidden ${sora.className} tracking-widest`}
+                className={`flex h-full w-full max-w-3xs flex-col bg-linear-to-b from-[#2A3999]/0 via-[#6C5499]/80 to-[#0E1333]/0 p-4 lg:hidden ${sora.className} tracking-widest`}
                 initial={{ x: "-100%" }}
                 animate={{ x: 0 }}
                 exit={{ x: "-100%" }}
@@ -87,7 +105,7 @@ export default function Header() {
                   </button>
                 </div>
 
-                <div className="flex flex-col grow gap-2">
+                <div className="flex grow flex-col gap-2">
                   <Link
                     href={"/"}
                     className="block py-2"
@@ -123,28 +141,26 @@ export default function Header() {
 
                 <div className="flex w-full flex-col gap-4">
                   <Show when="signed-out">
-                    <SignInButton
-                      appearance={{
-                        options: {
-                          unsafe_disableDevelopmentModeWarnings: true,
-                        },
-                      }}
-                    >
-                      <button className="h-10 w-full cursor-pointer rounded-full border border-white text-white px-4 text-sm sm:h-12 sm:px-5 sm:text-base">
-                        Sign In
+                    {process.env.NEXT_PUBLIC_MODE === "production" && (
+                      <SignInButton
+                        appearance={{
+                          options: {
+                            unsafe_disableDevelopmentModeWarnings: true,
+                          },
+                        }}
+                      >
+                        <button className="h-10 w-full cursor-pointer rounded-full border border-white px-4 text-sm text-white sm:h-12 sm:px-5 sm:text-base">
+                          Sign In
+                        </button>
+                      </SignInButton>
+                    )}
+                    <Link href={"/signup"}>
+                      <button className="h-10 w-full cursor-pointer rounded-full border border-white px-4 text-sm text-white sm:h-12 sm:px-5 sm:text-base">
+                        {process.env.NEXT_PUBLIC_MODE === "production"
+                          ? "Sign Up"
+                          : "Register Now!"}
                       </button>
-                    </SignInButton>
-                    <SignUpButton
-                      appearance={{
-                        options: {
-                          unsafe_disableDevelopmentModeWarnings: true,
-                        },
-                      }}
-                    >
-                      <button className="h-10 w-full cursor-pointer rounded-full border border-white text-white px-4 text-sm sm:h-12 sm:px-5 sm:text-base">
-                        Sign Up
-                      </button>
-                    </SignUpButton>
+                    </Link>
                   </Show>
                   <Show when="signed-in">
                     <SignOutButton>

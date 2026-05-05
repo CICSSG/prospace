@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import GlassSurface from "./GlassSurface"
 import Link from "next/link"
 import Image from "next/image"
-import { Show, SignInButton, SignOutButton, SignUpButton } from "@clerk/nextjs"
+import { Show, SignInButton, SignOutButton, SignUpButton, UserProfile, UserAvatar, UserButton} from "@clerk/nextjs"
 import { useState } from "react"
 import { WebMode } from "@/app/types"
 import localFont from "next/font/local"
@@ -25,7 +25,8 @@ export default function Header() {
         </button>
 
         <div className="flex flex-row items-center gap-2">
-          {process.env.NEXT_PUBLIC_MODE === "production" ? (
+          <Show when="signed-out">
+            {process.env.NEXT_PUBLIC_MODE === "production" ? (
             <GlassSurface
               displace={4}
               distortionScale={-20}
@@ -62,6 +63,20 @@ export default function Header() {
               </GlassSurface>
             </Link>
           )}
+          </Show>
+
+          <Show when="signed-in">
+            <Link href={"/profile"}>
+              <UserAvatar
+                appearance={{
+                  elements: {
+                    userButtonAvatarBox: "w-10 h-10",
+                    userButtonAvatarImage: "w-10 h-10",
+                  },
+                }}
+              />
+            </Link>
+          </Show>
           <Image
             src={"/images/ProspaceMinimalLogo.png"}
             alt="ProSpace Logo"
@@ -132,9 +147,36 @@ export default function Header() {
                   >
                     Sessions
                   </Link>
-                  <Link href={"/apply"} className="block py-2">
+                  <Link
+                    href={"/apply"}
+                    className="block py-2"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
                     Apply
                   </Link>
+                  <Show when="signed-in">
+                    <Link
+                      href={"/profile"}
+                      className="block py-2"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Profile
+                    </Link>
+                    <Link
+                      href={"/connect"}
+                      className="block py-2"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Connect
+                    </Link>
+                    <Link
+                      href={"/missions"}                      
+                      className="block py-2"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Missions
+                    </Link>
+                  </Show>
                 </div>
 
                 <div className="flex w-full flex-col gap-4">

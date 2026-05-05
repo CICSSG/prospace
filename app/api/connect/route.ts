@@ -54,11 +54,17 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
 
-    const { user_id, user_connect, type } = body
+    const { user_id, user_connect_short, type } = body
 
     const client = await clientPromise
     const db = client.db(process.env.MONGODB_DATABASE)
+    const usersCollection = db.collection("users")
     const connectCollection = db.collection("connect")
+    const user_connect_doc = await usersCollection.findOne(
+      { userId: user_connect_short },
+      { projection: { _id: 1 } }
+    )
+    const user_connect = user_connect_doc?.clerkId.toString()
 
     if (user_id === user_connect) {
       return new NextResponse(

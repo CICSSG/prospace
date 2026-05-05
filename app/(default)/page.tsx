@@ -640,7 +640,8 @@ export default function Page() {
         <h1 className="text-center text-2xl font-semibold tracking-[0.25rem]">
           EVENT MAP
         </h1>
-        <div className="aspect-square rounded-xl border border-white/40 bg-linear-to-r from-[#7B4DFF]/22"></div>
+        <p className="text-center tracking-[0.3rem] mt-8">COMING SOON</p>
+        {/* <div className="aspect-square rounded-xl border border-white/40 bg-linear-to-r from-[#7B4DFF]/22"></div> */}
       </div>
 
       <div className="mx-8">

@@ -15,9 +15,6 @@ const sora = localFont({
 })
 
 export default function Header() {
-  const MODE: WebMode = process.env.NEXT_PUBLIC_MODE as WebMode
-  console.log("Current Web Mode:", MODE)
-
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   return (
@@ -84,6 +81,7 @@ export default function Header() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
+              onClick={() => setIsMenuOpen(false)}
             >
               {/* Menu Content - Slide from left */}
               <motion.div
@@ -154,7 +152,7 @@ export default function Header() {
                         </button>
                       </SignInButton>
                     )}
-                    <Link href={"/signup"}>
+                    <Link href={"/signup"} onClick={() => setIsMenuOpen(false)}>
                       <button className="h-10 w-full cursor-pointer rounded-full border border-white px-4 text-sm text-white sm:h-12 sm:px-5 sm:text-base">
                         {process.env.NEXT_PUBLIC_MODE === "production"
                           ? "Sign Up"

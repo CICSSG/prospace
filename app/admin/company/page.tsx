@@ -10,13 +10,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Plus, RefreshCw, PencilLine, Trash2, ExternalLink } from "lucide-react"
+import { Plus, RefreshCw, PencilLine, Trash2, ExternalLink, QrCode } from "lucide-react"
 import Image from "next/image"
 import { useCallback, useEffect, useState } from "react"
 import { toast } from "sonner"
 import { getCollectionData } from "../actions"
 import CompanyFormDialog from "./company-form-dialog"
 import DeleteCompanyDialog from "./delete-company-dialog"
+import ViewQRDialog from "./view-qr-dialog"
 import { Company } from "./types"
 
 const emptyList: Company[] = []
@@ -30,6 +31,7 @@ export default function CompanyList() {
   const [addOpen, setAddOpen] = useState(false)
   const [editCompany, setEditCompany] = useState<Company | null>(null)
   const [deleteCompany, setDeleteCompany] = useState<Company | null>(null)
+  const [viewQrCompany, setViewQrCompany] = useState<Company | null>(null)
 
   type CompanyCollectionItem = {
     _id: string
@@ -40,6 +42,7 @@ export default function CompanyList() {
     companyEmail?: string
     moderatorEmails?: unknown
     description?: string
+    companyId?: number
   }
 
   const getData = useCallback(() => {
@@ -59,6 +62,7 @@ export default function CompanyList() {
                 ? [item.moderatorEmails]
                 : [],
             description: item.description || "",
+            companyId: item.companyId,
           }))
 
           setCompanies(mappedCompanies)
@@ -280,6 +284,14 @@ export default function CompanyList() {
                     <div className="ml-auto flex justify-end gap-2">
                       <button
                         type="button"
+                        onClick={() => setViewQrCompany(company)}
+                        className="inline-flex items-center rounded-lg border px-3 py-2 text-sm hover:bg-muted"
+                        title="View QR code"
+                      >
+                        <QrCode size={16} />
+                      </button>
+                      <button
+                        type="button"
                         onClick={() => setEditCompany(company)}
                         className="inline-flex items-center rounded-lg border px-3 py-2 text-sm hover:bg-muted"
                         title="Edit company"
@@ -356,6 +368,16 @@ export default function CompanyList() {
             }
           }}
           onDeleted={getData}
+        />
+      )}
+      {viewQrCompany && (
+        <ViewQRDialog
+          company={viewQrCompany}
+          onOpenChange={(open: boolean) => {
+            if (!open) {
+              setViewQrCompany(null)
+            }
+          }}
         />
       )}
     </div>

@@ -126,7 +126,7 @@ export default function Header() {
                   >
                     Home
                   </Link>
-                  <Link
+                  {/* <Link
                     href={"/about"}
                     className="block py-2"
                     onClick={() => setIsMenuOpen(false)}
@@ -153,7 +153,7 @@ export default function Header() {
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Apply
-                  </Link>
+                  </Link> */}
                   <Show when="signed-in">
                     <Link
                       href={"/profile"}
@@ -169,13 +169,13 @@ export default function Header() {
                     >
                       Connect
                     </Link>
-                    <Link
+                    {/* <Link
                       href={"/missions"}                      
                       className="block py-2"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       Missions
-                    </Link>
+                    </Link> */}
                   </Show>
                 </div>
 

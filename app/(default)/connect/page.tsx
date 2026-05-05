@@ -434,22 +434,46 @@ export default function Connect() {
 
   useEffect(() => {
     if (id && type) {
-      getUser(id)
-        .then((response) => {
-          // console.log("User data fetched successfully:", response)
-          setConnectData(response.data)
-          setIsLoading(false)
-        })
-        .catch((error) => {
-          console.error("Error fetching user data:", error)
-          setIsLoading(false)
-        })
+      if (type === "user") {
+        getUser(id)
+          .then((response) => {
+            setConnectData(response.data)
+            setIsLoading(false)
+          })
+          .catch((error) => {
+            console.error("Error fetching user data:", error)
+            setIsLoading(false)
+          })
+      } else if (type === "company") {
+        // fetch companies collection and find by companyId or _id
+        fetch(`/api/getCollectionData?collection=companies`)
+          .then((res) => res.json())
+          .then((res) => {
+            if (res.success && Array.isArray(res.data)) {
+              const found = res.data.find((c: any) => {
+                // match numeric companyId or string _id
+                return String(c.companyId) === String(id) || String(c._id) === String(id)
+              })
+              if (found) {
+                setConnectData(found)
+              } else {
+                setConnectData(null)
+              }
+            } else {
+              setConnectData(null)
+            }
+          })
+          .catch((error) => {
+            console.error("Error fetching company data:", error)
+            setConnectData(null)
+          })
+          .finally(() => setIsLoading(false))
+      }
     }
 
     getConnections(user?.id || "")
       .then((response) => {
-        // console.log("Connections fetched successfully:", response.data)
-        setConnections([...(response.data || []), ...sampleConnections])
+        setConnections([...(response.data || [])])
       })
       .catch((error) => {
         console.error("Error fetching connections:", error)
@@ -501,11 +525,12 @@ export default function Connect() {
 
   const onConnect = () => {
     setIsConnecting(true)
-    initiateConnection({
-      user_id: user?.id,
-      user_connect: id,
-      type: type,
-    })
+    const payload =
+      type === "company"
+        ? { user_id: user?.id, user_connect: connectData?._id || id, type }
+        : { user_id: user?.id, user_connect_short: id, type }
+
+    initiateConnection(payload)
       .then((response) => {
         // console.log("Connection initiated successfully:", response)
         router.push("/connect")
@@ -520,6 +545,12 @@ export default function Connect() {
         setIsConnecting(false)
       })
   }
+
+  const isCompanyRequest = type === "company"
+  const modalDisplayName = isCompanyRequest
+    ? connectData?.name || "Unnamed Company"
+    : `${connectData?.firstName || ""} ${connectData?.lastName || ""}`.trim() || "Unknown User"
+  const modalImage = connectData?.logoUrl || connectData?.imageUrl || "/images/ProspaceMinimalLogo-2.png"
 
   return (
     <div className="flex min-h-screen w-full justify-center pt-30 pb-4">
@@ -536,43 +567,54 @@ export default function Connect() {
 
       {id && type && (
         <Dialog open={true} onOpenChange={() => router.push("/connect")}>
-          <DialogContent className="max-w-md rounded-lg bg-primary p-6 shadow-lg">
-            <h2 className="text-xl font-bold">Connection Request</h2>
+          <DialogContent className="max-w-md rounded-2xl border border-white/40 bg-linear-to-br from-primary via-primary/95 to-[#231219] p-0 shadow-[0_25px_60px_rgba(0,0,0,0.45)] overflow-hidden">
+            <div className="border-b border-white/20 bg-linear-to-r from-[#FF5FA2]/20 to-transparent px-6 py-4">
+              <h2 className={"text-xl font-bold tracking-wide " + moscaLaroke.className}>Connection Request</h2>
+            </div>
             {isLoading ? (
-              <p>Loading...</p>
+              <p className="px-6 py-5 text-sm text-white/80">Loading...</p>
             ) : connectData ? (
               <>
-                <div className="flex flex-row items-center gap-4">
+                <div className="flex flex-row items-center gap-4 px-6 pt-5 pb-4">
                   <Image
-                    src={connectData?.imageUrl}
-                    alt="Profile Picture"
-                    width={50}
-                    height={50}
-                    className="rounded-full"
+                    src={modalImage}
+                    alt={modalDisplayName}
+                    width={56}
+                    height={56}
+                    className="rounded-full border border-white/30 object-cover"
                   />
-                  <p>
-                    Do you want to connect with <br />
-                    {connectData?.firstName} {connectData?.lastName}?
-                  </p>
+                  <div className="min-w-0">
+                    <p className="text-sm text-white/80">
+                      Do you want to connect with
+                    </p>
+                    <p className="text-lg font-semibold leading-tight truncate">
+                      {modalDisplayName}?
+                    </p>
+                    {isCompanyRequest && (
+                      <p className="mt-1 text-xs text-white/70 truncate">
+                        {connectData?.companyEmail || "No company email provided"}
+                      </p>
+                    )}
+                  </div>
                 </div>
-                <div className="flex justify-end gap-4">
+                <div className="flex justify-end gap-3 border-t border-white/15 bg-black/10 px-6 py-4">
                   <button
                     onClick={() => router.push("/connect")}
-                    className="rounded px-4 py-2 hover:cursor-pointer"
+                    className="rounded-lg border border-white/30 px-4 py-2 text-sm hover:cursor-pointer hover:bg-white/10"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={onConnect}
                     disabled={isConnecting}
-                    className="cursor-pointer rounded bg-accent px-4 py-2 text-white hover:bg-accent/80 disabled:bg-accent/50"
+                    className="cursor-pointer rounded-lg bg-linear-to-r from-[#FF5FA2] to-[#FF7C70] px-4 py-2 text-sm font-semibold text-white shadow-[0_10px_25px_rgba(255,95,162,0.35)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     {isConnecting ? "Connecting..." : "Connect"}
                   </button>
                 </div>
               </>
             ) : (
-              <p>User data not found.</p>
+              <p className="px-6 py-5 text-sm text-white/80">Connection target not found.</p>
             )}
           </DialogContent>
         </Dialog>
@@ -588,13 +630,13 @@ export default function Connect() {
           <>
           <div className="flex justify-around w-full *:flex *:gap-1 *:justify-center *:py-2 *:rounded-lg *:border *:border-white/40 *:transition-all *:duration-300 gap-3 rounded-lg overflow-hidden py-1 px-1.5">
             <button 
-              className={`w-full ${activeTab === "user" ? "bg-primary text-white border-none" : ""}`}
+              className={`w-full ${activeTab === "user" ? "bg-primary/58 text-white border-none" : ""}`}
               onClick={() => setActiveTab("user")}
             >
               Users
             </button>
             <button 
-              className={`w-full ${activeTab === "company" ? "bg-primary text-white border-none" : ""}`}
+              className={`w-full ${activeTab === "company" ? "bg-primary/58 text-white border-none" : ""}`}
               onClick={() => setActiveTab("company")}
             >
               Companies

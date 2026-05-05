@@ -1,7 +1,7 @@
 "use client"
 
 import Image from "next/image"
-import { Link as LinkIcon, Mail, X } from "lucide-react"
+import { Link as LinkIcon, Mail, Minimize2, X } from "lucide-react"
 
 type CompanyOverlayData = {
   name?: string
@@ -46,7 +46,7 @@ export default function ConnectCompanyOverlay({
           className="absolute right-4 top-4 rounded-full p-2 text-[#d3b8ff] transition hover:bg-white/10"
           aria-label="Close company details"
         >
-          <X size={28} />
+          <Minimize2 size={28} />
         </button>
 
         <div className="flex flex-row gap-6 sm:flex-row sm:items-center">

@@ -19,9 +19,9 @@ export default clerkMiddleware(async (auth, req) => {
 
   // console.log("Session claims:", metadata)
 
-  if (process.env.NEXT_PUBLIC_ENVIRONMENT === "development") {
-    return NextResponse.next()
-  }
+  // if (process.env.NEXT_PUBLIC_ENVIRONMENT === "development") {
+  //   return NextResponse.next()
+  // }
 
   if (isTestingRoutes(req)) {
     if (process.env.NEXT_PUBLIC_ENVIRONMENT === "development") {

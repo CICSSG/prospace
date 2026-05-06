@@ -10,24 +10,24 @@ const moscaLaroke = localFont({
 const SignupSuccess = () => {
   return (
     <div className="mt-30 mb-10">
-      <div className="flex flex-col max-w-2xl rounded-2xl border-2 border-primary bg-primary/30 px-5 py-8 mx-2">
+      <div className="flex flex-col max-w-2xl rounded-2xl border-2 border-white/50 bg-linear-to-r from-primary/30 px-5 py-8 mx-2">
         <div className="flex flex-row items-center gap-2 mx-auto w-fit mb-10">
           <img
-            src="/images/ProspaceMinimalLogo-2.png"
+            src="/images/ProSpaceMinimalLogo.png"
             alt="ProSpace Logo"
-            className="h-10 w-10 animate-pulse rounded-full"
+            className="h-fit w-10 animate-pulse rounded-full"
           />
           <h1
             className={
-              moscaLaroke.className + " text-center text-2xl font-bold lg:text-3xl"
+              moscaLaroke.className + " text-center text-2xl font-bold lg:text-3xl uppercase"
             }
           >
-            reGISTrATIon SUCCeSSfUL!
+            rEGISTrATIon SUCCeSSfUL!
           </h1>
           <img
-            src="/images/ProspaceMinimalLogo-2.png"
+            src="/images/ProSpaceMinimalLogo.png"
             alt="ProSpace Logo"
-            className="h-10 w-10 animate-pulse rounded-full"
+            className="h-fit w-10 animate-pulse rounded-full"
           />
         </div>
 
@@ -65,7 +65,7 @@ const SignupSuccess = () => {
           We look forward to seeing you at the event!
         </p>
 
-         <Link href="/"  className="mt-4 bg-primary hover:bg-primary/80 text-white font-bold py-2 px-4 rounded text-center">
+         <Link href="/"  className="mt-4 border border-white/50 rounded-full hover:bg-primary/80 text-white font-bold py-2 px-4 transition-all text-center">
            Back to Homepage
          </Link>
 

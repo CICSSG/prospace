@@ -106,14 +106,20 @@ export async function initiateConnection(data: any) {
   }
 }
 
-export async function sendOTP(email: string, firstName: string, lastName: string, course: string) {
+export async function sendOTP(
+  email: string,
+  firstName: string,
+  lastName: string,
+  course: string,
+  resend = false
+) {
   try {
     const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/sendOTP`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ email, firstName, lastName, course }),
+      body: JSON.stringify({ email, firstName, lastName, course, resend }),
     })
 
     if (!response.ok) {

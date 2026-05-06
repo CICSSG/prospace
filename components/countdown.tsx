@@ -1,5 +1,16 @@
+import localFont from "next/font/local"
 import { use, useEffect, useState } from "react"
 import { set } from "zod"
+
+const moscaLaroke = localFont({
+  src: "./mosca-laroke.regular.otf",
+  display: "swap",
+})
+
+const sora = localFont({
+  src: "./sora-regular.ttf",
+  display: "swap",
+})
 
 export default function CountdownTimer() {
   const [days, setDays] = useState(15)
@@ -56,54 +67,30 @@ export default function CountdownTimer() {
   }, [days, hours, minutes, seconds])
 
   return (
-    <div className="grid auto-cols-max grid-flow-col gap-5 text-center">
-      <div className="flex flex-col rounded-box bg-primary p-2 text-neutral-content">
-        <span className="countdown font-mono text-5xl">
-          <span
-            style={{ "--value": days, "--digits": 2 } as React.CSSProperties}
-            aria-live="polite"
-            // aria-label={counter}
-          >
-            {days}
-          </span>
+    <div className={`grid auto-cols-max grid-flow-col gap-3 text-center ${sora.className} text-xs text-white/50 *:pt-4`}>
+      <div className="flex flex-col gap-2 rounded-box bg-linear-to-r from-[#FF5FA2]/20 to-[#FF5FA2]/0 border border-white/60 p-2">
+        <span className={`text-4xl ${moscaLaroke.className} w-16 text-white/80`}>
+          {days.toFixed(0).padStart(2, "0")}
         </span>
         days
       </div>
-      <div className="flex flex-col rounded-box bg-primary p-2 text-neutral-content">
-        <span className="countdown font-mono text-5xl">
-          <span
-            style={{ "--value": hours, "--digits": 2 } as React.CSSProperties}
-            aria-live="polite"
-            // aria-label={counter}
-          >
-            {hours}
-          </span>
+      <div className="flex flex-col gap-2 rounded-box bg-linear-to-r from-[#FF5FA2]/20 to-[#FF5FA2]/0 border border-white/60 p-2">
+        <span className={`text-4xl ${moscaLaroke.className} w-16 text-white/80`}>
+          {hours.toFixed(0).padStart(2, "0")}
         </span>
         hours
       </div>
-      <div className="flex flex-col rounded-box bg-primary p-2 text-neutral-content">
-        <span className="countdown font-mono text-5xl">
-          <span
-            style={{ "--value": minutes, "--digits": 2 } as React.CSSProperties}
-            aria-live="polite"
-            // aria-label={counter}
-          >
-            {minutes}
-          </span>
+      <div className="flex flex-col gap-2 rounded-box bg-linear-to-r from-[#FF5FA2]/20 to-[#FF5FA2]/0 border border-white/60 p-2">
+        <span className={`text-4xl  ${moscaLaroke.className} w-16 text-white/80`}>
+          {minutes.toFixed(0).padStart(2, "0")}
         </span>
-        min
+        minutes
       </div>
-      <div className="flex flex-col rounded-box bg-primary p-2 text-neutral-content">
-        <span className="countdown font-mono text-5xl">
-          <span
-            style={{ "--value": seconds, "--digits": 2 } as React.CSSProperties}
-            aria-live="polite"
-            // aria-label={counter}
-          >
-            {seconds}
-          </span>
+      <div className="flex flex-col gap-2 rounded-box bg-linear-to-r from-[#FF5FA2]/20 to-[#FF5FA2]/0 border border-white/60 p-2">
+        <span className={`text-4xl ${moscaLaroke.className} w-16 text-white/80`}>
+          {seconds.toFixed(0).padStart(2, "0")}
         </span>
-        sec
+        seconds
       </div>
     </div>
   )

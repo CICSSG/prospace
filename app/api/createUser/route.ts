@@ -1,19 +1,31 @@
-import { auth, clerkClient } from "@clerk/nextjs/server"
+import { clerkClient } from "@clerk/nextjs/server"
 import { NextResponse } from "next/server"
 import clientPromise from "@/lib/mongodb"
 
 export async function POST(req: Request) {
   const client = await clerkClient()
   const request = await req.json()
-  const { firstName, lastName, email, course, shortBio, resumeLink } =
-    request.value
+  const value = request.value ?? request
+  const { firstName, lastName, email, course, shortBio, resumeLink } = value
+  const role = request.role || "user"
+  const adminRole = request.adminRole || null
+  const isAdmin = request.isAdmin || role === "admin"
+
+  if (!firstName || !lastName || !email) {
+    return NextResponse.json(
+      { message: "First name, last name, and email are required" },
+      { status: 400 }
+    )
+  }
 
   const user = await client.users.createUser({
     firstName,
     lastName,
     emailAddress: [email],
     publicMetadata: {
-      role: "user",
+      role,
+      adminRole,
+      isAdmin,
     },
   }).catch((error) => {
     console.error("Error creating user in Clerk:", error)
@@ -31,6 +43,9 @@ export async function POST(req: Request) {
     course,
     shortBio,
     resumeLink,
+    role,
+    adminRole,
+    isAdmin,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   }).catch((error) => {

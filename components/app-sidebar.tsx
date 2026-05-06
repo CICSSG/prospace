@@ -31,6 +31,8 @@ import {
   FileIcon,
   CommandIcon,
   Building2,
+  CalendarDays,
+  Target,
 } from "lucide-react"
 import Image from "next/image"
 
@@ -58,16 +60,42 @@ const data = {
         url: "/admin/company",
         icon: <Building2 />,
       },
-      // {
-      //   title: "Projects",
-      //   url: "#",
-      //   icon: <FolderIcon />,
-      // },
-      // {
-      //   title: "Team",
-      //   url: "#",
-      //   icon: <UsersIcon />,
-      // },
+      {
+        title: "Sessions",
+        url: "/admin/sessions",
+        icon: <CalendarDays />,
+      },
+      {
+        title: "Missions",
+        url: "/admin/missions",
+        icon: <Target />,
+      },
+      {
+        title: "Users",
+        url: "/admin/users",
+        icon: <UsersIcon />,
+      },
+    ],
+  },
+
+  dataNavigation: {
+    title: "Manage",
+    items: [
+      {
+        title: "Dashboard",
+        url: "/admin/dashboard",
+        icon: <LayoutDashboardIcon />,
+      },
+      {
+        title: "Sessions",
+        url: "/admin/sessions",
+        icon: <CalendarDays />,
+      },
+      {
+        title: "Missions",
+        url: "/admin/missions",
+        icon: <Target />,
+      },
     ],
   },
 
@@ -112,6 +140,24 @@ interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
 }
 
 export function AppSidebar({ userData, ...props }: AppSidebarProps) {
+  // Get user role from Clerk publicMetadata
+  const rawRole = userData?.publicMetadata?.role as string | undefined
+  const userRole = (rawRole === "company" ? "data" : rawRole) as "admin" | "data" | null
+  const adminRole = userData?.publicMetadata?.adminRole as "superadmin" | "admin" | null
+
+  // Filter navigation based on role
+  let navigationData = data.navigation
+  
+  if (userRole === "data") {
+    navigationData = data.dataNavigation
+  } else if (userRole === "admin" && adminRole !== "superadmin") {
+    // Admin (non-super) cannot see Users
+    navigationData = {
+      ...data.navigation,
+      items: data.navigation.items.filter((item) => item.title !== "Users"),
+    }
+  }
+
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -134,7 +180,7 @@ export function AppSidebar({ userData, ...props }: AppSidebarProps) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavMain data={data.navigation} />
+        <NavMain data={navigationData} />
         {/* <NavDocuments items={data.documents} />
         <NavSecondary items={data.navSecondary} className="mt-auto" /> */}
       </SidebarContent>

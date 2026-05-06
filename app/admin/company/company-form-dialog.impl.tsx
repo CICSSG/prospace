@@ -242,7 +242,7 @@ export default function CompanyFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] w-[min(96vw,1100px)] overflow-y-auto sm:max-w-275">
+      <DialogContent className="max-h-[90vh] w-[min(96vw,1100px)] overflow-y-auto sm:max-w-275 bg-primary/40">
         <DialogHeader>
           <DialogTitle>{mode === "edit" ? "Edit Company" : "Add Company"}</DialogTitle>
         </DialogHeader>

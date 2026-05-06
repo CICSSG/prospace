@@ -12,4 +12,5 @@ export type Company = {
   companyEmail: string
   moderatorEmails: string[]
   description: string
+  companyId?: number
 }

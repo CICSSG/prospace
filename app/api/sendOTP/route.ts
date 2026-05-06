@@ -7,7 +7,7 @@ function generateOTP(): string {
 
 export async function POST(req: Request) {
   try {
-    const { email, firstName, lastName, course } = await req.json()
+    const { email, firstName, lastName, course, resend = false } = await req.json()
 
     if (!email) {
       return NextResponse.json({ error: "Email is required" }, { status: 400 })
@@ -30,6 +30,61 @@ export async function POST(req: Request) {
     // Check if email already exists in tempUsers collection (incomplete registration)
     const existingTempUser = await tempUsersCollection.findOne({ email })
     if (existingTempUser) {
+      if (resend && !existingTempUser.emailVerified) {
+        const otp = generateOTP()
+        const expiryTime = new Date(Date.now() + 5 * 60 * 1000) // 5 minutes from now
+
+        const otpCollection = db.collection("otps")
+
+        await otpCollection.updateOne(
+          { email },
+          {
+            $set: {
+              email,
+              otp,
+              expiryTime,
+              used: false,
+              createdAt: new Date().toISOString(),
+            },
+          },
+          { upsert: true }
+        )
+
+        await tempUsersCollection.updateOne(
+          { email },
+          {
+            $set: {
+              email,
+              firstName: firstName || existingTempUser.firstName,
+              lastName: lastName || existingTempUser.lastName,
+              course: course || existingTempUser.course,
+              createdAt: existingTempUser.createdAt || new Date().toISOString(),
+            },
+          },
+          { upsert: true }
+        )
+
+        await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/send`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            to: [email],
+            subject: "Email Verification - Your OTP for ProSpace",
+            content: {
+              title: "Verify Your Email",
+              name: firstName || existingTempUser.firstName,
+              content: `Your OTP is: ${otp}. This OTP is valid for 5 minutes. Do not share it with anyone.`,
+            },
+          }),
+        }).catch((error) => {
+          console.error("Error sending OTP email:", error)
+        })
+
+        return NextResponse.json({ message: "OTP resent successfully" })
+      }
+
       // Determine which step to send them to
       if (existingTempUser.emailVerified) {
         // Step 2 already complete, go to step 3

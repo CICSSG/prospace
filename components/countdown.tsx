@@ -19,7 +19,7 @@ export default function CountdownTimer() {
   const [seconds, setSeconds] = useState(5)
 
   useEffect(() => {
-    const targetDate = new Date("May 16, 2026 GMT+0800").getTime()
+    const targetDate = new Date("June 06, 2026 GMT+0800").getTime()
     const now = new Date().getTime()
     const distance = targetDate - now
 

@@ -71,7 +71,7 @@ const CareerSessions = [
     title:
       "Engineering the Experience: Building Secure, Scalable Web and Mobile Platforms",
     time: "8:30 AM - 10:30 AM",
-    date: "MAY 16",
+    date: "JUNE 6",
     tag: "Filipino Web Development Peers",
     imageUrl: "https://placehold.co/400/png",
   },
@@ -79,7 +79,7 @@ const CareerSessions = [
     title:
       "Engineering the Experience: Building Secure, Scalable Web and Mobile Platforms",
     time: "8:30 AM - 10:30 AM",
-    date: "MAY 16",
+    date: "JUNE 6",
     tag: "Filipino Web Development Peers",
     imageUrl: "https://placehold.co/400/png",
   },
@@ -87,7 +87,7 @@ const CareerSessions = [
     title:
       "Engineering the Experience: Building Secure, Scalable Web and Mobile Platforms",
     time: "8:30 AM - 10:30 AM",
-    date: "MAY 16",
+    date: "JUNE 6",
     tag: "Filipino Web Development Peers",
     imageUrl: "https://placehold.co/400/png",
   },
@@ -400,7 +400,7 @@ export default function Page() {
                 <div
                   className={`h-fit w-25 rounded-full border border-white/60 bg-linear-to-b from-black/10 to-[#7B4DFF]/50 py-1 text-center text-[0.65rem] ${sora.className}`}
                 >
-                  open to all
+                  Open to All
                 </div>
               </div>
             </div>
@@ -428,9 +428,9 @@ export default function Page() {
                 </div>
                 {/* Tag */}
                 <div
-                  className={`h-fit w-25 rounded-full border border-white/60 bg-linear-to-b from-black/10 to-[#5F92ED]/50 py-1 text-center text-[0.65rem] ${sora.className}`}
+                  className={`h-fit w-25 md:w-fit md:px-2 rounded-full border border-white/60 bg-linear-to-b from-black/10 to-[#5F92ED]/50 py-1 text-center text-[0.65rem] ${sora.className}`}
                 >
-                  DLSU-D only
+                  Open to All La Salle Schools
                 </div>
               </div>
             </div>
@@ -458,9 +458,9 @@ export default function Page() {
                 </div>
                 {/* Tag */}
                 <div
-                  className={`h-fit w-25 rounded-full border border-white/60 bg-linear-to-b from-black/10 to-[#FF5FA2]/50 py-1 text-center text-[0.65rem] ${sora.className}`}
+                  className={`h-fit w-25 md:w-fit md:px-2 rounded-full border border-white/60 bg-linear-to-b from-black/10 to-[#FF5FA2]/50 py-1 text-center text-[0.65rem] ${sora.className}`}
                 >
-                  open to all
+                  Open to All La Salle Schools
                 </div>
               </div>
             </div>
@@ -545,7 +545,7 @@ export default function Page() {
         <p
           className={`mr-5 text-sm leading-snug tracking-[0.15rem] text-white/80 text-center ${sora.className}`}
         >
-          Live discussions and workshops led by industry experts — May 16 via MS
+          Live discussions and workshops led by industry experts — June 6 via MS
           Teams and Facebook Live.
         </p>
         <p className="mt-8 text-center tracking-[0.3rem]">COMING SOON</p>

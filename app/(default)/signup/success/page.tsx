@@ -13,7 +13,7 @@ const SignupSuccess = () => {
       <div className="flex flex-col max-w-2xl rounded-2xl border-2 border-white/50 bg-linear-to-r from-primary/30 px-5 py-8 mx-2">
         <div className="flex flex-row items-center gap-2 mx-auto w-fit mb-10">
           <img
-            src="/images/ProSpaceMinimalLogo.png"
+            src="/images/ProspaceMinimalLogo.png"
             alt="ProSpace Logo"
             className="h-fit w-10 animate-pulse rounded-full"
           />
@@ -25,7 +25,7 @@ const SignupSuccess = () => {
             rEGISTrATIon SUCCeSSfUL!
           </h1>
           <img
-            src="/images/ProSpaceMinimalLogo.png"
+            src="/images/ProspaceMinimalLogo.png"
             alt="ProSpace Logo"
             className="h-fit w-10 animate-pulse rounded-full"
           />

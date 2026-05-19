@@ -48,10 +48,11 @@ const SignUpPage = () => {
   const step1Schema = z.object({
     firstName: z.string().min(2, "First name must be at least 2 characters"),
     lastName: z.string().min(2, "Last name must be at least 2 characters"),
-    email: z.union(
-      [dlsudEmailValidator, dlsuEmailValidator],
-      "Must be a valid email of any DLSU branch"
-    ),
+    // email: z.union(
+    //   [dlsudEmailValidator, dlsuEmailValidator],
+    //   "Must be a valid email of any DLSU branch"
+    // ),
+    email: z.email("Must be a valid email address"),
     course: z.string().min(2, "Course must be at least 2 characters"),
   })
 
@@ -739,7 +740,7 @@ const SignUpPage = () => {
                   <div>
                     <label className="mb-1 flex w-full flex-row items-center text-sm font-normal text-primary-foreground">
                       <div>
-                        Portfolio{" "}
+                        Resume{" "}
                         <span className="text-xs text-primary-foreground/50">
                           (pdf, doc, docx, max: 5MB)
                         </span>
@@ -776,7 +777,7 @@ const SignUpPage = () => {
                           setIsUploading(true)
                           UploadImageToBlobStorage(
                             file,
-                            `portfolio/${getFieldValue1("firstName")}-Portfolio`
+                            `resume/${getFieldValue1("firstName")}-Resume`
                           )
                             .then((blob) => {
                               const fileUrl = blob.url

@@ -71,7 +71,7 @@ const CareerSessions = [
     title:
       "Engineering the Experience: Building Secure, Scalable Web and Mobile Platforms",
     time: "8:30 AM - 10:30 AM",
-    date: "MAY 16",
+    date: "JUNE 6",
     tag: "Filipino Web Development Peers",
     imageUrl: "https://placehold.co/400/png",
   },
@@ -79,7 +79,7 @@ const CareerSessions = [
     title:
       "Engineering the Experience: Building Secure, Scalable Web and Mobile Platforms",
     time: "8:30 AM - 10:30 AM",
-    date: "MAY 16",
+    date: "JUNE 6",
     tag: "Filipino Web Development Peers",
     imageUrl: "https://placehold.co/400/png",
   },
@@ -87,7 +87,7 @@ const CareerSessions = [
     title:
       "Engineering the Experience: Building Secure, Scalable Web and Mobile Platforms",
     time: "8:30 AM - 10:30 AM",
-    date: "MAY 16",
+    date: "JUNE 6",
     tag: "Filipino Web Development Peers",
     imageUrl: "https://placehold.co/400/png",
   },
@@ -176,10 +176,10 @@ export default function Page() {
   }, [])
 
   return (
-    <div className="overflow-hidden max-w-svw">
+    <div className="max-w-svw overflow-hidden">
       {/* HERO */}
       <section className="relative flex min-h-lvh w-svw flex-col justify-center overflow-hidden">
-        <div className="absolute z-5 min-h-lvh w-full bg-linear-to-t from-[#0e1231] to-[#0d0d1f]/0 to-60%" />
+        <div className="absolute z-10 min-h-lvh w-full bg-linear-to-t from-[#05091d] to-[#05091d]/0 to-50%" />
         <div
           style={{ height: "100px" }}
           className="absolute top-0 left-0 h-full min-h-lvh w-screen opacity-50"
@@ -212,7 +212,7 @@ export default function Page() {
                   setAnimateHover(true)
                 }
               }}
-              className="absolute -top-10 left-0 w-full lg:-top-40 lg:-left-20 2xl:-left-10 2xl:-top-70"
+              className="absolute -top-10 left-0 w-full lg:-top-40 lg:-left-20 2xl:-top-70 2xl:-left-10"
             >
               <Image
                 src={"/images/HeroHandTop.png"}
@@ -242,7 +242,7 @@ export default function Page() {
               />
             </motion.div>
 
-            <div className="relative h-lvh w-screen animate-pulse animate-infinite animate-duration-4000 animate-ease-in-out">
+            <div className="relative h-lvh w-screen animate-pulse animate-duration-4000 animate-ease-in-out animate-infinite">
               <motion.div
                 initial={{ opacity: 0, scale: 0 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -318,7 +318,7 @@ export default function Page() {
         <div className="mx-auto grid max-w-6xl items-center gap-12 px-2 py-12 lg:grid-cols-2 lg:px-4 xl:gap-24">
           {/* Prospace Information */}
           <div className="flex flex-col items-center gap-6 text-center lg:items-start lg:text-left">
-            <div className="flex flex-row gap-8 items-center w-fit">
+            <div className="flex w-fit flex-row items-center gap-8">
               <Image
                 src={"/images/DLSU-D Logo.png"}
                 alt={"DLSUD Logo"}
@@ -340,15 +340,15 @@ export default function Page() {
                 alt={"Prospace DLSU-D Logo"}
                 width={512}
                 height={128}
-                className="w-full max-w-xs object-contain "
+                className="w-full max-w-xs object-contain"
               />
             </div>
-            <p className="mx-4 lg:mx-0 text-white/90">
+            <p className="mx-4 text-white/90 lg:mx-0">
               An event to respond to the growing need for structured career
               preparation and exposure to industry practices, emerging
               technologies, and real hiring environments.
             </p>
-            <p className="mx-4 lg:mx-0 text-white/90">
+            <p className="mx-4 text-white/90 lg:mx-0">
               Empowering students to thrive in the digital workforce
             </p>
             <div className="mt-4 flex flex-row items-center gap-3">
@@ -365,7 +365,9 @@ export default function Page() {
             </div>
           </div>
 
-          <div className="lg:hidden"><DividerComponent /></div>
+          <div className="lg:hidden">
+            <DividerComponent />
+          </div>
 
           <div className="flex flex-col items-center gap-4">
             <h2 className={`tracking-[0.3rem] uppercase ${sora.className}`}>
@@ -375,11 +377,11 @@ export default function Page() {
             <div className="grid w-full grid-cols-4 items-center gap-14 rounded-lg border-2 border-white/20 bg-linear-to-r from-[#7B4DFF]/30 to-[#7B4DFF]/10 px-3 py-4">
               {/* Date */}
               <div className="relative">
-                <p className={`${moscaLaroke.className} text-7xl`}>16</p>
+                <p className={`${moscaLaroke.className} text-6xl`}>06</p>
                 <p
-                  className={`${moscaLaroke.className} absolute top-0 -left-1 text-7xl opacity-35 blur-xs`}
+                  className={`${moscaLaroke.className} absolute top-0 -left-1 text-6xl opacity-35 blur-xs`}
                 >
-                  16
+                  06
                 </p>
               </div>
               <div className="col-span-3 flex w-full flex-row items-center justify-between">
@@ -387,7 +389,7 @@ export default function Page() {
                 <div
                   className={`flex flex-col gap-0.5 ${sora.className} text-sm text-white/80`}
                 >
-                  <p className="text-[0.6rem]">MAY • SATURDAY</p>
+                  <p className="text-[0.6rem]">JUNE • SATURDAY</p>
                   <p className="leading-5 font-semibold tracking-widest text-white/95">
                     Online Career <br />
                     Sessions
@@ -398,7 +400,7 @@ export default function Page() {
                 <div
                   className={`h-fit w-25 rounded-full border border-white/60 bg-linear-to-b from-black/10 to-[#7B4DFF]/50 py-1 text-center text-[0.65rem] ${sora.className}`}
                 >
-                  open to all
+                  Open to All
                 </div>
               </div>
             </div>
@@ -406,11 +408,11 @@ export default function Page() {
             <div className="grid w-full grid-cols-4 items-center gap-14 rounded-lg border-2 border-white/20 bg-linear-to-r from-[#5F92ED]/50 to-[#7B4DFF]/10 px-3 py-4">
               {/* Date */}
               <div className="relative">
-                <p className={`${moscaLaroke.className} text-7xl`}>27</p>
+                <p className={`${moscaLaroke.className} text-6xl`}>09</p>
                 <p
-                  className={`${moscaLaroke.className} absolute top-0 -left-1 text-7xl opacity-35 blur-xs`}
+                  className={`${moscaLaroke.className} absolute top-0 -left-1 text-6xl opacity-35 blur-xs`}
                 >
-                  27
+                  09
                 </p>
               </div>
               <div className="col-span-3 flex w-full flex-row items-center justify-between">
@@ -418,7 +420,7 @@ export default function Page() {
                 <div
                   className={`flex flex-col ${sora.className} text-sm text-white/80`}
                 >
-                  <p className="text-[0.6rem]">MAY • WEDNESDAY</p>
+                  <p className="text-[0.6rem]">JUNE • WEDNESDAY</p>
                   <p className="font-semibold tracking-widest text-white/95">
                     Job Fair
                   </p>
@@ -426,9 +428,9 @@ export default function Page() {
                 </div>
                 {/* Tag */}
                 <div
-                  className={`h-fit w-25 rounded-full border border-white/60 bg-linear-to-b from-black/10 to-[#5F92ED]/50 py-1 text-center text-[0.65rem] ${sora.className}`}
+                  className={`h-fit w-25 md:w-fit md:px-2 rounded-full border border-white/60 bg-linear-to-b from-black/10 to-[#5F92ED]/50 py-1 text-center text-[0.65rem] ${sora.className}`}
                 >
-                  DLSU-D only
+                  Open to All La Salle Schools
                 </div>
               </div>
             </div>
@@ -436,11 +438,11 @@ export default function Page() {
             <div className="grid w-full grid-cols-4 items-center gap-14 rounded-lg border-2 border-white/20 bg-linear-to-r from-[#FF5FA2]/50 to-[#7B4DFF]/10 px-3 py-4">
               {/* Date */}
               <div className="relative">
-                <p className={`${moscaLaroke.className} text-7xl`}>28</p>
+                <p className={`${moscaLaroke.className} text-7xl`}>10</p>
                 <p
                   className={`${moscaLaroke.className} absolute top-0 -left-1 text-7xl opacity-35 blur-xs`}
                 >
-                  28
+                  10
                 </p>
               </div>
               <div className="col-span-3 flex w-full flex-row items-center justify-between">
@@ -448,7 +450,7 @@ export default function Page() {
                 <div
                   className={`flex flex-col ${sora.className} text-sm text-white/80`}
                 >
-                  <p className="text-[0.6rem]">MAY • THURSDAY</p>
+                  <p className="text-[0.6rem]">JUNE • THURSDAY</p>
                   <p className="font-semibold tracking-widest text-white/95">
                     Job Fair
                   </p>
@@ -456,9 +458,9 @@ export default function Page() {
                 </div>
                 {/* Tag */}
                 <div
-                  className={`h-fit w-25 rounded-full border border-white/60 bg-linear-to-b from-black/10 to-[#FF5FA2]/50 py-1 text-center text-[0.65rem] ${sora.className}`}
+                  className={`h-fit w-25 md:w-fit md:px-2 rounded-full border border-white/60 bg-linear-to-b from-black/10 to-[#FF5FA2]/50 py-1 text-center text-[0.65rem] ${sora.className}`}
                 >
-                  open to all
+                  Open to All La Salle Schools
                 </div>
               </div>
             </div>
@@ -513,7 +515,7 @@ export default function Page() {
               scaleOnHover
               gap={60}
               fadeOut
-              fadeOutColor="#0E1333"
+              fadeOutColor="#05091d"
               ariaLabel="Technology partners"
             />
           </div>
@@ -525,29 +527,29 @@ export default function Page() {
       </div>
       {/* CAREER SESSIONS */}
       <section className="mx-8 my-8 flex flex-col gap-3">
-        <div className="flex w-full flex-row items-center justify-between">
+        <div className="flex w-full flex-col items-center justify-between">
           <h2
             className={`text-center tracking-[0.3rem] uppercase ${sora.className}`}
           >
             Career Sessions
           </h2>
-          <Link
+          {/* <Link
             href={"/career"}
             className="flex h-fit flex-row items-center gap-2 text-white/60 transition-all duration-300 hover:text-white"
           >
             <div className="flex flex-row items-center text-sm">
               View All <ChevronRight className="size-5" />
             </div>
-          </Link>
+          </Link> */}
         </div>
         <p
-          className={`mr-5 text-sm leading-snug tracking-[0.15rem] text-white/80 ${sora.className}`}
+          className={`mr-5 text-sm leading-snug tracking-[0.15rem] text-white/80 text-center ${sora.className}`}
         >
-          Live discussions and workshops led by industry experts — May 16 via MS
+          Live discussions and workshops led by industry experts — June 6 via MS
           Teams and Facebook Live.
         </p>
-
-        {CareerSessions.map((session, index) => (
+        <p className="mt-8 text-center tracking-[0.3rem]">COMING SOON</p>
+        {/* {CareerSessions.map((session, index) => (
           <div
             key={index}
             className="flex flex-row overflow-hidden rounded-lg border border-white/40 bg-linear-to-r from-[#7B4DFF]/22 to-[#7B4DFF]/0 text-sm"
@@ -574,7 +576,7 @@ export default function Page() {
               </div>
             </div>
           </div>
-        ))}
+        ))} */}
       </section>
 
       <div className="mx-8">
@@ -582,29 +584,29 @@ export default function Page() {
       </div>
 
       {/* INDUSTRY PARTNERS */}
-      <div className="mx-8 my-8 flex flex-col gap-3">
-        <div className="flex w-full flex-row items-center justify-between">
+      <div className="mx-8 my-8 flex flex-col items-center gap-3">
+        <div className="flex w-full flex-col items-center justify-between">
           <h2
             className={`text-center tracking-[0.3rem] uppercase ${sora.className}`}
           >
             Industry Partners
           </h2>
-          <Link
+          {/* <Link
             href={"/partners"}
             className="flex h-fit flex-row items-center gap-2 text-white/60 transition-all duration-300 hover:text-white"
           >
             <div className="flex flex-row items-center text-sm">
               View All <ChevronRight className="size-5" />
             </div>
-          </Link>
+          </Link> */}
         </div>
         <p
-          className={`mr-5 text-sm leading-snug tracking-[0.15rem] text-white/80 ${sora.className}`}
+          className={`mr-5 text-sm leading-snug tracking-[0.15rem] text-white/80 ${sora.className} text-center`}
         >
           Meet the organizations shaping the technology landscape.
         </p>
-
-        <div className="grid grid-cols-2 gap-2">
+        <p className="mt-8 text-left tracking-[0.3rem]">COMING SOON</p>
+        {/* <div className="grid grid-cols-2 gap-2">
           {IndustryPartners.map((partner, index) => (
             <div
               key={index}
@@ -625,7 +627,7 @@ export default function Page() {
               </p>
             </div>
           ))}
-        </div>
+        </div> */}
       </div>
 
       <div className="mx-8">
@@ -640,7 +642,7 @@ export default function Page() {
         <h1 className="text-center text-2xl font-semibold tracking-[0.25rem]">
           EVENT MAP
         </h1>
-        <p className="text-center tracking-[0.3rem] mt-8">COMING SOON</p>
+        <p className="mt-8 text-center tracking-[0.3rem]">COMING SOON</p>
         {/* <div className="aspect-square rounded-xl border border-white/40 bg-linear-to-r from-[#7B4DFF]/22"></div> */}
       </div>
 
@@ -653,8 +655,8 @@ export default function Page() {
         <h1 className="text-center text-lg font-thin tracking-[0.2rem]">
           EVENT MISSIONS
         </h1>
-
-        <div className="mx-6 flex flex-col gap-3">
+        <p className="mt-8 text-center tracking-[0.3rem]">COMING SOON</p>
+        {/* <div className="mx-6 flex flex-col gap-3">
           <div className="mt-4 flex flex-row items-center gap-4">
             <div className="size-6 shrink-0 rounded-full border border-white/40 bg-[#6598F3]/20" />
             <p className="tracking-[0.2rem]">Connect with 10 Companies</p>
@@ -676,7 +678,7 @@ export default function Page() {
           className="mx-auto mt-4 flex cursor-pointer flex-row items-center justify-center gap-2 rounded-full border border-white/80 bg-linear-to-t from-white/10 to-white/0 to-30% px-14 py-1 text-lg text-white transition-all duration-300 hover:bg-linear-to-t hover:to-50%"
         >
           View Missions
-        </Link>
+        </Link> */}
       </div>
     </div>
   )

@@ -100,7 +100,7 @@ export default function Header() {
             >
               {/* Menu Content - Slide from left */}
               <motion.div
-                className={`flex h-full w-full max-w-3xs flex-col bg-linear-to-b from-[#2A3999]/0 via-[#6C5499]/80 to-[#0E1333]/0 p-4 lg:hidden ${sora.className} tracking-widest`}
+                className={`flex h-full w-full max-w-3xs flex-col bg-linear-to-b from-[#2A3999]/0 via-[#6C5499]/80 to-[#0E1333]/0 p-4 ${sora.className} tracking-widest`}
                 initial={{ x: "-100%" }}
                 animate={{ x: 0 }}
                 exit={{ x: "-100%" }}

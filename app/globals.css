@@ -4,6 +4,26 @@
 @import "shadcn/tailwind.css";
 @plugin "daisyui";
 
+@font-face {
+  font-family: "Mosca Laroke";
+  src: url("../components/prospace/mosca-laroke.regular.otf") format("opentype");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Sora Local";
+  src: url("../components/prospace/sora-regular.ttf") format("truetype");
+  font-display: swap;
+}
+
+.font-mosca-laroke {
+  font-family: "Mosca Laroke", var(--font-sans);
+}
+
+.font-sora-local {
+  font-family: "Sora Local", var(--font-sans);
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {

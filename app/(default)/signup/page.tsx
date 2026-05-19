@@ -10,17 +10,7 @@ import { ClipLoader } from "react-spinners"
 import { toast } from "sonner"
 import z from "zod"
 import { X } from "lucide-react"
-import localFont from "next/font/local"
-
-const moscaLaroke = localFont({
-  src: "../../mosca-laroke.regular.otf",
-  display: "swap",
-})
-
-const sora = localFont({
-  src: "../../sora-regular.ttf",
-  display: "swap",
-})
+import { moscaLaroke, sora } from "@/components/prospace/fonts"
 
 const SignUpPage = () => {
   const portfolioInputRef = useRef<HTMLInputElement>(null)

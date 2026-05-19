@@ -7,7 +7,7 @@ import { Dialog, DialogContent } from "@/components/ui/dialog"
 import Image from "next/image"
 import { toast } from "sonner"
 import { Building, Users2 } from "lucide-react"
-import localFont from "next/font/local";
+import { moscaLaroke, sora } from "@/components/prospace/fonts";
 import DividerComponent from "@/components/divider";
 import { m } from "framer-motion";
 import { b } from "framer-motion/client";
@@ -15,16 +15,6 @@ import ConnectUserOverlay from "@/components/connect-user-overlay"
 import ConnectCompanyOverlay from "@/components/connect-company-overlay"
 import ConnectUserCard from "@/components/connect-user-card"
 import ConnectCompanyCard from "@/components/connect-company-card"
-
-const moscaLaroke = localFont({
-  src: "../../mosca-laroke.regular.otf",
-  display: "swap",
-})
-
-const sora = localFont({
-  src: "../../sora-regular.ttf",
-  display: "swap",
-})
 
 const sampleConnections = [
   {

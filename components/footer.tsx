@@ -1,10 +1,5 @@
-import localFont from "next/font/local"
 import Image from "next/image"
-
-const sora = localFont({
-  src: "./sora-regular.ttf",
-  display: "swap",
-})
+import { sora } from "@/components/prospace/fonts"
 
 export default function Footer() {
   return (

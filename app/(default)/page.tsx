@@ -16,13 +16,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import localFont from "next/font/local"
+import { moscaLaroke, sora } from "@/components/prospace/fonts"
 import Link from "next/link"
 import { Show } from "@clerk/nextjs"
 import { WebMode } from "../types"
 import ColorBends from "@/components/ColorBends"
 import DividerComponent from "@/components/divider"
 import { div } from "three/src/nodes/math/OperatorNode.js"
+import EventScheduleComponent from "@/components/prospace/event-schedule";
+import EventMapComponent from "@/components/prospace/event-map";
 
 type Logo = {
   node: React.ReactNode
@@ -126,17 +128,8 @@ const IndustryPartners = [
   },
 ]
 
-const moscaLaroke = localFont({
-  src: "../mosca-laroke.regular.otf",
-  display: "swap",
-})
-
-const sora = localFont({
-  src: "../sora-regular.ttf",
-  display: "swap",
-})
-
 export default function Page() {
+  const mode = process.env.NEXT_PUBLIC_MODE as WebMode
   const [animateHover, setAnimateHover] = useState(false)
   const [logos, setLogos] = useState<Logo[]>([
     {
@@ -369,102 +362,7 @@ export default function Page() {
             <DividerComponent />
           </div>
 
-          <div className="flex flex-col items-center gap-4">
-            <h2 className={`tracking-[0.3rem] uppercase ${sora.className}`}>
-              Event Schedule
-            </h2>
-
-            <div className="grid w-full grid-cols-4 items-center gap-14 rounded-lg border-2 border-white/20 bg-linear-to-r from-[#7B4DFF]/30 to-[#7B4DFF]/10 px-3 py-4">
-              {/* Date */}
-              <div className="relative">
-                <p className={`${moscaLaroke.className} text-6xl`}>06</p>
-                <p
-                  className={`${moscaLaroke.className} absolute top-0 -left-1 text-6xl opacity-35 blur-xs`}
-                >
-                  06
-                </p>
-              </div>
-              <div className="col-span-3 flex w-full flex-row items-center justify-between">
-                {/* Details */}
-                <div
-                  className={`flex flex-col gap-0.5 ${sora.className} text-sm text-white/80`}
-                >
-                  <p className="text-[0.6rem]">JUNE • SATURDAY</p>
-                  <p className="leading-5 font-semibold tracking-widest text-white/95">
-                    Online Career <br />
-                    Sessions
-                  </p>
-                  <p className="text-[0.6rem]">Microsoft Teams and Live</p>
-                </div>
-                {/* Tag */}
-                <div
-                  className={`h-fit w-25 rounded-full border border-white/60 bg-linear-to-b from-black/10 to-[#7B4DFF]/50 py-1 text-center text-[0.65rem] ${sora.className}`}
-                >
-                  Open to All
-                </div>
-              </div>
-            </div>
-
-            <div className="grid w-full grid-cols-4 items-center gap-14 rounded-lg border-2 border-white/20 bg-linear-to-r from-[#5F92ED]/50 to-[#7B4DFF]/10 px-3 py-4">
-              {/* Date */}
-              <div className="relative">
-                <p className={`${moscaLaroke.className} text-6xl`}>09</p>
-                <p
-                  className={`${moscaLaroke.className} absolute top-0 -left-1 text-6xl opacity-35 blur-xs`}
-                >
-                  09
-                </p>
-              </div>
-              <div className="col-span-3 flex w-full flex-row items-center justify-between">
-                {/* Details */}
-                <div
-                  className={`flex flex-col ${sora.className} text-sm text-white/80`}
-                >
-                  <p className="text-[0.6rem]">JUNE • WEDNESDAY</p>
-                  <p className="font-semibold tracking-widest text-white/95">
-                    Job Fair
-                  </p>
-                  <p className="text-[0.6rem]">Salrial Hall • PBH Courtyard</p>
-                </div>
-                {/* Tag */}
-                <div
-                  className={`h-fit w-25 md:w-fit md:px-2 rounded-full border border-white/60 bg-linear-to-b from-black/10 to-[#5F92ED]/50 py-1 text-center text-[0.65rem] ${sora.className}`}
-                >
-                  Open to All La Salle Schools
-                </div>
-              </div>
-            </div>
-
-            <div className="grid w-full grid-cols-4 items-center gap-14 rounded-lg border-2 border-white/20 bg-linear-to-r from-[#FF5FA2]/50 to-[#7B4DFF]/10 px-3 py-4">
-              {/* Date */}
-              <div className="relative">
-                <p className={`${moscaLaroke.className} text-7xl`}>10</p>
-                <p
-                  className={`${moscaLaroke.className} absolute top-0 -left-1 text-7xl opacity-35 blur-xs`}
-                >
-                  10
-                </p>
-              </div>
-              <div className="col-span-3 flex w-full flex-row items-center justify-between">
-                {/* Details */}
-                <div
-                  className={`flex flex-col ${sora.className} text-sm text-white/80`}
-                >
-                  <p className="text-[0.6rem]">JUNE • THURSDAY</p>
-                  <p className="font-semibold tracking-widest text-white/95">
-                    Job Fair
-                  </p>
-                  <p className="text-[0.6rem]">Salrial Hall • PBH Courtyard</p>
-                </div>
-                {/* Tag */}
-                <div
-                  className={`h-fit w-25 md:w-fit md:px-2 rounded-full border border-white/60 bg-linear-to-b from-black/10 to-[#FF5FA2]/50 py-1 text-center text-[0.65rem] ${sora.className}`}
-                >
-                  Open to All La Salle Schools
-                </div>
-              </div>
-            </div>
-          </div>
+          <EventScheduleComponent />
         </div>
       </section>
 
@@ -527,56 +425,63 @@ export default function Page() {
       </div>
       {/* CAREER SESSIONS */}
       <section className="mx-8 my-8 flex flex-col gap-3">
-        <div className="flex w-full flex-col items-center justify-between">
+        <div
+          className={`flex w-full items-center justify-between ${mode === "production" ? "flex-row" : "flex-col"}`}
+        >
           <h2
             className={`text-center tracking-[0.3rem] uppercase ${sora.className}`}
           >
             Career Sessions
           </h2>
-          {/* <Link
-            href={"/career"}
-            className="flex h-fit flex-row items-center gap-2 text-white/60 transition-all duration-300 hover:text-white"
-          >
-            <div className="flex flex-row items-center text-sm">
-              View All <ChevronRight className="size-5" />
-            </div>
-          </Link> */}
+          {mode === "production" && (
+            <Link
+              href={"/career"}
+              className="flex h-fit flex-row items-center gap-2 text-white/60 transition-all duration-300 hover:text-white"
+            >
+              <div className="flex flex-row items-center text-sm">
+                View All <ChevronRight className="size-5" />
+              </div>
+            </Link>
+          )}
         </div>
         <p
-          className={`mr-5 text-sm leading-snug tracking-[0.15rem] text-white/80 text-center ${sora.className}`}
+          className={`mr-5 text-center text-sm leading-snug tracking-[0.15rem] text-white/80 ${sora.className}`}
         >
           Live discussions and workshops led by industry experts — June 6 via MS
           Teams and Facebook Live.
         </p>
-        <p className="mt-8 text-center tracking-[0.3rem]">COMING SOON</p>
-        {/* {CareerSessions.map((session, index) => (
-          <div
-            key={index}
-            className="flex flex-row overflow-hidden rounded-lg border border-white/40 bg-linear-to-r from-[#7B4DFF]/22 to-[#7B4DFF]/0 text-sm"
-          >
-            <Image
-              src={`${session.imageUrl}`}
-              alt="Career Session"
-              width={100}
-              height={300}
-              className="border-r object-cover opacity-30"
-            />
-            <div className="col-span-2 flex flex-col gap-2 p-2 leading-[1.1em]">
-              <h1 className="text-xs leading-[1.1em] tracking-widest">
-                {session.title}
-              </h1>
-              <div className="mt-1 flex flex-col gap-1">
-                <p className="text-[0.65rem] leading-0 font-thin tracking-widest">
-                  {session.time}
-                </p>
-                <p className="text-[0.65rem] font-thin">{session.date}</p>
-              </div>
-              <div className="w-fit rounded-full border border-white/40 px-6 py-0.5 text-[0.65rem] font-thin">
-                {session.tag}
+        {mode === "registration" ? (
+          <p className="mt-8 text-center tracking-[0.3rem]">COMING SOON</p>
+        ) : (
+          CareerSessions.map((session, index) => (
+            <div
+              key={index}
+              className="flex flex-row overflow-hidden rounded-lg border border-white/40 bg-linear-to-r from-[#7B4DFF]/22 to-[#7B4DFF]/0 text-sm"
+            >
+              <Image
+                src={`${session.imageUrl}`}
+                alt="Career Session"
+                width={100}
+                height={300}
+                className="border-r object-cover opacity-30"
+              />
+              <div className="col-span-2 flex flex-col gap-2 p-2 leading-[1.1em]">
+                <h1 className="text-xs leading-[1.1em] tracking-widest">
+                  {session.title}
+                </h1>
+                <div className="mt-1 flex flex-col gap-1">
+                  <p className="text-[0.65rem] leading-0 font-thin tracking-widest">
+                    {session.time}
+                  </p>
+                  <p className="text-[0.65rem] font-thin">{session.date}</p>
+                </div>
+                <div className="w-fit rounded-full border border-white/40 px-6 py-0.5 text-[0.65rem] font-thin">
+                  {session.tag}
+                </div>
               </div>
             </div>
-          </div>
-        ))} */}
+          ))
+        )}
       </section>
 
       <div className="mx-8">
@@ -585,49 +490,56 @@ export default function Page() {
 
       {/* INDUSTRY PARTNERS */}
       <div className="mx-8 my-8 flex flex-col items-center gap-3">
-        <div className="flex w-full flex-col items-center justify-between">
+        <div
+          className={`flex w-full items-center justify-between ${mode === "production" ? "flex-row" : "flex-col"}`}
+        >
           <h2
             className={`text-center tracking-[0.3rem] uppercase ${sora.className}`}
           >
             Industry Partners
           </h2>
-          {/* <Link
-            href={"/partners"}
-            className="flex h-fit flex-row items-center gap-2 text-white/60 transition-all duration-300 hover:text-white"
-          >
-            <div className="flex flex-row items-center text-sm">
-              View All <ChevronRight className="size-5" />
-            </div>
-          </Link> */}
+          {mode === "production" && (
+            <Link
+              href={"/partners"}
+              className="flex h-fit flex-row items-center gap-2 text-white/60 transition-all duration-300 hover:text-white"
+            >
+              <div className="flex flex-row items-center text-sm">
+                View All <ChevronRight className="size-5" />
+              </div>
+            </Link>
+          )}
         </div>
         <p
           className={`mr-5 text-sm leading-snug tracking-[0.15rem] text-white/80 ${sora.className} text-center`}
         >
           Meet the organizations shaping the technology landscape.
         </p>
-        <p className="mt-8 text-left tracking-[0.3rem]">COMING SOON</p>
-        {/* <div className="grid grid-cols-2 gap-2">
-          {IndustryPartners.map((partner, index) => (
-            <div
-              key={index}
-              className="flex flex-col rounded-2xl border border-white/40 bg-linear-to-r from-[#7B4DFF]/22 to-[#7B4DFF]/0 p-3"
-            >
-              <Image
-                src={partner.logoUrl}
-                alt={partner.name}
-                width={200}
-                height={100}
-                className="aspect-square h-12 w-fit rounded-lg object-contain opacity-80"
-              />
-              <p className="mt-1 text-sm font-semibold tracking-widest text-white/80">
-                {partner.name}
-              </p>
-              <p className="mt-1 text-xs font-light tracking-widest text-white/50">
-                {partner.description}
-              </p>
-            </div>
-          ))}
-        </div> */}
+        {mode === "registration" ? (
+          <p className="mt-8 text-left tracking-[0.3rem]">COMING SOON</p>
+        ) : (
+          <div className="grid grid-cols-2 gap-2">
+            {IndustryPartners.map((partner, index) => (
+              <div
+                key={index}
+                className="flex flex-col rounded-2xl border border-white/40 bg-linear-to-r from-[#7B4DFF]/22 to-[#7B4DFF]/0 p-3"
+              >
+                <Image
+                  src={partner.logoUrl}
+                  alt={partner.name}
+                  width={200}
+                  height={100}
+                  className="aspect-square h-12 w-fit rounded-lg object-contain opacity-80"
+                />
+                <p className="mt-1 text-sm font-semibold tracking-widest text-white/80">
+                  {partner.name}
+                </p>
+                <p className="mt-1 text-xs font-light tracking-widest text-white/50">
+                  {partner.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="mx-8">
@@ -639,10 +551,7 @@ export default function Page() {
         <h1 className="text-center text-lg font-thin tracking-[0.2rem]">
           NAVIGATE
         </h1>
-        <h1 className="text-center text-2xl font-semibold tracking-[0.25rem]">
-          EVENT MAP
-        </h1>
-        <p className="mt-8 text-center tracking-[0.3rem]">COMING SOON</p>
+        <EventMapComponent />
         {/* <div className="aspect-square rounded-xl border border-white/40 bg-linear-to-r from-[#7B4DFF]/22"></div> */}
       </div>
 
@@ -655,30 +564,37 @@ export default function Page() {
         <h1 className="text-center text-lg font-thin tracking-[0.2rem]">
           EVENT MISSIONS
         </h1>
-        <p className="mt-8 text-center tracking-[0.3rem]">COMING SOON</p>
-        {/* <div className="mx-6 flex flex-col gap-3">
-          <div className="mt-4 flex flex-row items-center gap-4">
-            <div className="size-6 shrink-0 rounded-full border border-white/40 bg-[#6598F3]/20" />
-            <p className="tracking-[0.2rem]">Connect with 10 Companies</p>
-          </div>
-          <div className="mt-4 flex flex-row items-center gap-4">
-            <div className="size-6 shrink-0 rounded-full border border-white/40 bg-[#6598F3]/20" />
-            <p className="tracking-[0.2rem]">
-              Sign Up to Filipino Web Development Peers
-            </p>
-          </div>
-          <div className="mt-4 flex flex-row items-center gap-4">
-            <div className="size-6 shrink-0 rounded-full border border-white/40 bg-[#6598F3]/20" />
-            <p className="tracking-[0.2rem]">Sign Up to Gen AI Philippines</p>
-          </div>
-        </div>
+        {mode === "registration" ? (
+          <p className="mt-8 text-center tracking-[0.3rem]">COMING SOON</p>
+        ) : (
+          <>
+            <div className="mx-6 flex flex-col gap-3">
+              <div className="mt-4 flex flex-row items-center gap-4">
+                <div className="size-6 shrink-0 rounded-full border border-white/40 bg-[#6598F3]/20" />
+                <p className="tracking-[0.2rem]">Connect with 10 Companies</p>
+              </div>
+              <div className="mt-4 flex flex-row items-center gap-4">
+                <div className="size-6 shrink-0 rounded-full border border-white/40 bg-[#6598F3]/20" />
+                <p className="tracking-[0.2rem]">
+                  Sign Up to Filipino Web Development Peers
+                </p>
+              </div>
+              <div className="mt-4 flex flex-row items-center gap-4">
+                <div className="size-6 shrink-0 rounded-full border border-white/40 bg-[#6598F3]/20" />
+                <p className="tracking-[0.2rem]">
+                  Sign Up to Gen AI Philippines
+                </p>
+              </div>
+            </div>
 
-        <Link
-          href={"/missions"}
-          className="mx-auto mt-4 flex cursor-pointer flex-row items-center justify-center gap-2 rounded-full border border-white/80 bg-linear-to-t from-white/10 to-white/0 to-30% px-14 py-1 text-lg text-white transition-all duration-300 hover:bg-linear-to-t hover:to-50%"
-        >
-          View Missions
-        </Link> */}
+            <Link
+              href={"/missions"}
+              className="mx-auto mt-4 flex cursor-pointer flex-row items-center justify-center gap-2 rounded-full border border-white/80 bg-linear-to-t from-white/10 to-white/0 to-30% px-14 py-1 text-lg text-white transition-all duration-300 hover:bg-linear-to-t hover:to-50%"
+            >
+              View Missions
+            </Link>
+          </>
+        )}
       </div>
     </div>
   )

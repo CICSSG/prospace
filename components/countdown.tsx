@@ -1,16 +1,6 @@
-import localFont from "next/font/local"
 import { use, useEffect, useState } from "react"
 import { set } from "zod"
-
-const moscaLaroke = localFont({
-  src: "./mosca-laroke.regular.otf",
-  display: "swap",
-})
-
-const sora = localFont({
-  src: "./sora-regular.ttf",
-  display: "swap",
-})
+import { moscaLaroke, sora } from "@/components/prospace/fonts"
 
 export default function CountdownTimer() {
   const [days, setDays] = useState(15)
@@ -67,26 +57,26 @@ export default function CountdownTimer() {
   }, [days, hours, minutes, seconds])
 
   return (
-    <div className={`grid auto-cols-max grid-flow-col gap-3 text-center ${sora.className} text-xs text-white/50 *:pt-4`}>
-      <div className="flex flex-col gap-2 rounded-box bg-linear-to-r from-[#FF5FA2]/20 to-[#FF5FA2]/0 border border-white/60 p-2">
+    <div className={`grid auto-cols-max grid-flow-col gap-3 text-center ${sora.className} text-xs text-white/50`}>
+      <div className="flex flex-col gap-2 rounded-box bg-linear-to-r from-[#FF5FA2]/20 to-[#FF5FA2]/0 border border-white/60 p-2 pt-4">
         <span className={`text-4xl ${moscaLaroke.className} w-16 text-white/80`}>
           {days.toFixed(0).padStart(2, "0")}
         </span>
         days
       </div>
-      <div className="flex flex-col gap-2 rounded-box bg-linear-to-r from-[#FF5FA2]/20 to-[#FF5FA2]/0 border border-white/60 p-2">
+      <div className="flex flex-col gap-2 rounded-box bg-linear-to-r from-[#FF5FA2]/20 to-[#FF5FA2]/0 border border-white/60 p-2 pt-4">
         <span className={`text-4xl ${moscaLaroke.className} w-16 text-white/80`}>
           {hours.toFixed(0).padStart(2, "0")}
         </span>
         hours
       </div>
-      <div className="flex flex-col gap-2 rounded-box bg-linear-to-r from-[#FF5FA2]/20 to-[#FF5FA2]/0 border border-white/60 p-2">
+      <div className="flex flex-col gap-2 rounded-box bg-linear-to-r from-[#FF5FA2]/20 to-[#FF5FA2]/0 border border-white/60 p-2 pt-4">
         <span className={`text-4xl  ${moscaLaroke.className} w-16 text-white/80`}>
           {minutes.toFixed(0).padStart(2, "0")}
         </span>
         minutes
       </div>
-      <div className="flex flex-col gap-2 rounded-box bg-linear-to-r from-[#FF5FA2]/20 to-[#FF5FA2]/0 border border-white/60 p-2">
+      <div className="flex flex-col gap-2 rounded-box bg-linear-to-r from-[#FF5FA2]/20 to-[#FF5FA2]/0 border border-white/60 p-2 pt-4">
         <span className={`text-4xl ${moscaLaroke.className} w-16 text-white/80`}>
           {seconds.toFixed(0).padStart(2, "0")}
         </span>

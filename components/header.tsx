@@ -4,17 +4,21 @@ import { motion, AnimatePresence } from "framer-motion"
 import GlassSurface from "./GlassSurface"
 import Link from "next/link"
 import Image from "next/image"
-import { Show, SignInButton, SignOutButton, SignUpButton, UserProfile, UserAvatar, UserButton} from "@clerk/nextjs"
+import {
+  Show,
+  SignInButton,
+  SignOutButton,
+  SignUpButton,
+  UserProfile,
+  UserAvatar,
+  UserButton,
+} from "@clerk/nextjs"
 import { useState } from "react"
 import { WebMode } from "@/app/types"
-import localFont from "next/font/local"
-
-const sora = localFont({
-  src: "./sora-regular.ttf",
-  display: "swap",
-})
+import { sora } from "@/components/prospace/fonts"
 
 export default function Header() {
+  const mode = process.env.NEXT_PUBLIC_MODE as WebMode
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   return (
@@ -26,25 +30,7 @@ export default function Header() {
 
         <div className="flex flex-row items-center gap-2">
           <Show when="signed-out">
-            {process.env.NEXT_PUBLIC_MODE === "production" ? (
-            <GlassSurface
-              displace={4}
-              distortionScale={-20}
-              redOffset={3}
-              greenOffset={3}
-              blueOffset={3}
-              brightness={50}
-              opacity={0.1}
-              mixBlendMode="screen"
-              width={120}
-              height={40}
-              borderRadius={50}
-              blur={10}
-            >
-              Sign In
-            </GlassSurface>
-          ) : (
-            <Link href={"/signup"}>
+            {mode === "production" ? (
               <GlassSurface
                 displace={4}
                 distortionScale={-20}
@@ -59,10 +45,28 @@ export default function Header() {
                 borderRadius={50}
                 blur={10}
               >
-                Register
+                Sign In
               </GlassSurface>
-            </Link>
-          )}
+            ) : (
+              <Link href={"/signup"}>
+                <GlassSurface
+                  displace={4}
+                  distortionScale={-20}
+                  redOffset={3}
+                  greenOffset={3}
+                  blueOffset={3}
+                  brightness={50}
+                  opacity={0.1}
+                  mixBlendMode="screen"
+                  width={120}
+                  height={40}
+                  borderRadius={50}
+                  blur={10}
+                >
+                  Register
+                </GlassSurface>
+              </Link>
+            )}
           </Show>
 
           <Show when="signed-in">
@@ -126,34 +130,38 @@ export default function Header() {
                   >
                     Home
                   </Link>
-                  {/* <Link
-                    href={"/about"}
-                    className="block py-2"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    About
-                  </Link>
-                  <Link
-                    href={"/job-fair"}
-                    className="block py-2"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Job Fair
-                  </Link>
-                  <Link
-                    href={"/sessions"}
-                    className="block py-2"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Sessions
-                  </Link>
-                  <Link
-                    href={"/apply"}
-                    className="block py-2"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Apply
-                  </Link> */}
+                  {mode === "production" && (
+                    <>
+                      <Link
+                        href={"/about"}
+                        className="block py-2"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        About
+                      </Link>
+                      <Link
+                        href={"/job-fair"}
+                        className="block py-2"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        Job Fair
+                      </Link>
+                      <Link
+                        href={"/sessions"}
+                        className="block py-2"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        Sessions
+                      </Link>
+                      <Link
+                        href={"/apply"}
+                        className="block py-2"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        Apply
+                      </Link>
+                    </>
+                  )}
                   <Show when="signed-in">
                     <Link
                       href={"/profile"}
@@ -181,7 +189,7 @@ export default function Header() {
 
                 <div className="flex w-full flex-col gap-4">
                   <Show when="signed-out">
-                    {process.env.NEXT_PUBLIC_MODE === "production" && (
+                    {mode === "production" && (
                       <SignInButton
                         appearance={{
                           options: {
@@ -196,9 +204,7 @@ export default function Header() {
                     )}
                     <Link href={"/signup"} onClick={() => setIsMenuOpen(false)}>
                       <button className="h-10 w-full cursor-pointer rounded-full border border-white px-4 text-sm text-white sm:h-12 sm:px-5 sm:text-base">
-                        {process.env.NEXT_PUBLIC_MODE === "production"
-                          ? "Sign Up"
-                          : "Register Now!"}
+                        {mode === "production" ? "Sign Up" : "Register Now!"}
                       </button>
                     </Link>
                   </Show>

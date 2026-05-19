@@ -1,11 +1,6 @@
 import React from "react"
-import localFont from "next/font/local"
+import { moscaLaroke } from "@/components/prospace/fonts"
 import Link from "next/link"
-
-const moscaLaroke = localFont({
-  src: "../../../mosca-laroke.regular.otf",
-  display: "swap",
-})
 
 const SignupSuccess = () => {
   return (

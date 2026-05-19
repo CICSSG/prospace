@@ -179,7 +179,7 @@ export default function Page() {
     <div className="max-w-svw overflow-hidden">
       {/* HERO */}
       <section className="relative flex min-h-lvh w-svw flex-col justify-center overflow-hidden">
-        <div className="absolute z-5 min-h-lvh w-full bg-linear-to-t from-[#0e1231] to-[#0d0d1f]/0 to-60%" />
+        <div className="absolute z-10 min-h-lvh w-full bg-linear-to-t from-[#05091d] to-[#05091d]/0 to-50%" />
         <div
           style={{ height: "100px" }}
           className="absolute top-0 left-0 h-full min-h-lvh w-screen opacity-50"

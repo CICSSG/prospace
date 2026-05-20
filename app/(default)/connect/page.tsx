@@ -2,7 +2,7 @@
 import { useRouter, useSearchParams } from "next/navigation"
 import { getConnections, getUser, initiateConnection } from "../../actions"
 import { useUser } from "@clerk/nextjs"
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import Image from "next/image"
 import { toast } from "sonner"
@@ -413,13 +413,36 @@ export default function Connect() {
   const [selectedUser, setSelectedUser] = useState<any | null>(null)
   const [selectedCompany, setSelectedCompany] = useState<any | null>(null)
   const searchParams = useSearchParams()
-  var id = searchParams.get("id")
-  var type = searchParams.get("type")
+  const id = searchParams.get("id")
+  const type = searchParams.get("type")
+  const connectionRequestKey = id && type ? `${type}:${id}` : null
+  const dismissedConnectionRequestRef = useRef<string | null>(null)
+  const [isOpen, setIsOpen] = useState(Boolean(connectionRequestKey))
 
   const getConnectionName = (connection: any) => {
     if (connection.name) return connection.name
     if (connection.fullName) return connection.fullName
     return `${connection.firstName || ""} ${connection.lastName || ""}`.trim()
+  }
+
+  useEffect(() => {
+    if (!connectionRequestKey) {
+      dismissedConnectionRequestRef.current = null
+      setIsOpen(false)
+      return
+    }
+
+    if (dismissedConnectionRequestRef.current !== connectionRequestKey) {
+      setIsOpen(true)
+    }
+  }, [connectionRequestKey])
+
+  const closeConnectionDialog = () => {
+    if (connectionRequestKey) {
+      dismissedConnectionRequestRef.current = connectionRequestKey
+    }
+    setIsOpen(false)
+    router.replace("/connect")
   }
 
   useEffect(() => {
@@ -555,8 +578,19 @@ export default function Connect() {
         onClose={() => setSelectedCompany(null)}
       />
 
-      {id && type && (
-        <Dialog open={true} onOpenChange={() => router.replace("/connect")}>
+      {isOpen && (
+        <Dialog
+          open={isOpen}
+          onOpenChange={(nextOpen) => {
+            if (nextOpen) {
+              dismissedConnectionRequestRef.current = null
+              setIsOpen(true)
+              return
+            }
+
+            closeConnectionDialog()
+          }}
+        >
           <DialogContent className="max-w-md rounded-2xl border border-white/40 bg-linear-to-br from-primary via-primary/95 to-[#231219] p-0 shadow-[0_25px_60px_rgba(0,0,0,0.45)] overflow-hidden">
             <div className="border-b border-white/20 bg-linear-to-r from-[#FF5FA2]/20 to-transparent px-6 py-4">
               <h2 className={"text-xl font-bold tracking-wide " + moscaLaroke.className}>Connection Request</h2>
@@ -589,7 +623,7 @@ export default function Connect() {
                 </div>
                 <div className="flex justify-end gap-3 border-t border-white/15 bg-black/10 px-6 py-4">
                   <button
-                    onClick={() => router.replace("/connect")}
+                    onClick={closeConnectionDialog}
                     className="rounded-lg border border-white/30 px-4 py-2 text-sm hover:cursor-pointer hover:bg-white/10"
                   >
                     Cancel

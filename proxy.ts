@@ -5,9 +5,10 @@ import { NextResponse } from "next/server"
 const isTestingRoutes = createRouteMatcher(["/testing(.*)"])
 const isAdminRoutes = createRouteMatcher(["/admin(.*)"])
 const isLogoLoopUploadRoute = createRouteMatcher(["/api/logo-loop/upload(.*)"])
+const isLoggedInRoute = createRouteMatcher(["/connect(.*)", "/profile(.*)"])
 
 export default clerkMiddleware(async (auth, req) => {
-  const { sessionClaims, userId } = await auth()
+  const { sessionClaims, userId, isAuthenticated } = await auth()
   var metadata = sessionClaims?.publicMetadata as
     | {
         isAdmin?: boolean
@@ -45,6 +46,13 @@ export default clerkMiddleware(async (auth, req) => {
       return NextResponse.redirect(new URL("/", req.url))
     }
   }
+
+  if (isLoggedInRoute(req)) {
+    if (!isAuthenticated) {
+      return NextResponse.redirect(new URL("/", req.url))
+    }
+  }
+
 })
 
 export const config = {

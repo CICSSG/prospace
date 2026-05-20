@@ -102,10 +102,10 @@ export async function GET() {
     const db = client.db(process.env.MONGODB_DATABASE)
 
     const [mongoUsers, mongoSessions, mongoCompanies, mongoLogoLoop, clerkUsers] = await Promise.all([
-      db.collection("users").find({}).sort({ createdAt: -1 }).toArray() as Promise<MongoUserRecord[]>,
-      db.collection("sessions").find({}).sort({ createdAt: -1 }).toArray() as Promise<MongoSessionRecord[]>,
-      db.collection("companies").find({}).sort({ createdAt: -1 }).toArray() as Promise<MongoCompanyRecord[]>,
-      db.collection("logoLoop").find({}).sort({ createdAt: -1 }).toArray() as Promise<MongoLogoLoopRecord[]>,
+      db.collection("users").find({}).sort({ createdAt: -1 }).toArray() as unknown as Promise<MongoUserRecord[]>,
+      db.collection("sessions").find({}).sort({ createdAt: -1 }).toArray() as unknown as Promise<MongoSessionRecord[]>,
+      db.collection("companies").find({}).sort({ createdAt: -1 }).toArray() as unknown as Promise<MongoCompanyRecord[]>,
+      db.collection("logoLoop").find({}).sort({ createdAt: -1 }).toArray() as unknown as Promise<MongoLogoLoopRecord[]>,
       getAllClerkUsers().catch((error) => {
         console.error("Error fetching Clerk users for dashboard stats:", error)
         return [] as ClerkUserRecord[]

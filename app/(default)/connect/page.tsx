@@ -556,7 +556,7 @@ export default function Connect() {
       />
 
       {id && type && (
-        <Dialog open={true} onOpenChange={() => router.push("/connect")}>
+        <Dialog open={true} onOpenChange={() => router.replace("/connect")}>
           <DialogContent className="max-w-md rounded-2xl border border-white/40 bg-linear-to-br from-primary via-primary/95 to-[#231219] p-0 shadow-[0_25px_60px_rgba(0,0,0,0.45)] overflow-hidden">
             <div className="border-b border-white/20 bg-linear-to-r from-[#FF5FA2]/20 to-transparent px-6 py-4">
               <h2 className={"text-xl font-bold tracking-wide " + moscaLaroke.className}>Connection Request</h2>
@@ -589,7 +589,7 @@ export default function Connect() {
                 </div>
                 <div className="flex justify-end gap-3 border-t border-white/15 bg-black/10 px-6 py-4">
                   <button
-                    onClick={() => router.push("/connect")}
+                    onClick={() => router.replace("/connect")}
                     className="rounded-lg border border-white/30 px-4 py-2 text-sm hover:cursor-pointer hover:bg-white/10"
                   >
                     Cancel

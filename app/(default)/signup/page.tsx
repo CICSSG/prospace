@@ -732,7 +732,7 @@ const SignUpPage = () => {
                       <div>
                         Resume{" "}
                         <span className="text-xs text-primary-foreground/50">
-                          (pdf, doc, docx, max: 5MB)
+                          (pdf, doc, docx, max: 4.5MB)
                         </span>
                       </div>
                       <span className="mr-2 ml-auto text-xs text-muted-foreground">
@@ -750,12 +750,12 @@ const SignUpPage = () => {
                           // Clear any previous errors when new file is selected
                           setUploadError(null)
                           
-                          // Check file size (max 5MB)
-                          const maxSizeInBytes = 5 * 1024 * 1024 // 5MB
+                          // Check file size (max 4.5MB)
+                          const maxSizeInBytes = 4.5 * 1024 * 1024 // 4.5MB
                           if (file.size > maxSizeInBytes) {
                             const fileSizeInMB = (file.size / (1024 * 1024)).toFixed(2)
                             setUploadError(
-                              `File size (${fileSizeInMB}MB) exceeds the maximum allowed size of 5MB`
+                              `File size (${fileSizeInMB}MB) exceeds the maximum allowed size of 4.5MB`
                             )
                             if (portfolioInputRef.current) {
                               portfolioInputRef.current.value = ""

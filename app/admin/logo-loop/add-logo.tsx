@@ -3,10 +3,11 @@ import { useForm } from "@tanstack/react-form"
 import clsx from "clsx"
 import { X } from "lucide-react"
 import z from "zod"
-import { addLogoToLoop, UploadImageToBlobStorage } from "../actions"
+import { addLogoToLoop } from "../actions"
 import { ClipLoader } from "react-spinners"
 import { useRef, useState } from "react"
 import { toast } from "sonner"
+import { upload } from "@vercel/blob/client"
 
 export default function AddLogoDialog({
   setAddDialogOpen,
@@ -18,6 +19,13 @@ export default function AddLogoDialog({
   const imageInputRef = useRef<HTMLInputElement>(null)
   const [isUploading, setIsUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
+
+  async function uploadImageToBlobStorage(file: File, filename: string) {
+    return upload(filename, file, {
+      access: "public",
+      handleUploadUrl: "/api/logo-loop/upload",
+    })
+  }
 
   const addFormSchema = z.object({
     companyName: z.string().min(1, "Company name is required"),
@@ -196,7 +204,8 @@ export default function AddLogoDialog({
                             const file = e.target.files?.[0]
                             if (file) {
                               setIsUploading(true)
-                              UploadImageToBlobStorage(
+                              setUploadError(null)
+                              uploadImageToBlobStorage(
                                 file,
                                 `logoLoop/${getFieldValue("companyName")}`
                               )

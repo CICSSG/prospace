@@ -2,11 +2,12 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Session } from "./types"
-import { UploadImageToBlobStorage, getCollectionData } from "../actions"
+import { getCollectionData } from "../actions"
 import { useRef, useState, useEffect } from "react"
 import { toast } from "sonner"
 import Image from "next/image"
 import { Combobox } from "@/components/ui/combobox"
+import { upload } from "@vercel/blob/client"
 
 type SessionFormDialogProps = {
   open: boolean
@@ -48,6 +49,13 @@ function createInitialForm(session?: Session | null): SessionFormState {
         company: session.company || "",
       }
     : emptyForm()
+}
+
+async function uploadImageToBlobStorage(file: File, filename: string) {
+  return upload(filename, file, {
+    access: "public",
+    handleUploadUrl: "/api/logo-loop/upload",
+  })
 }
 
 export default function SessionFormDialog({
@@ -109,7 +117,7 @@ export default function SessionFormDialog({
 
     setIsUploadingTopic(true)
     try {
-      const blob = await UploadImageToBlobStorage(file, `session-topic-${Date.now()}`)
+      const blob = await uploadImageToBlobStorage(file, `session-topic-${Date.now()}`)
       setForm((current) => ({
         ...current,
         topicPictureUrl: blob.url,
@@ -129,7 +137,7 @@ export default function SessionFormDialog({
 
     setIsUploadingLogo(true)
     try {
-      const blob = await UploadImageToBlobStorage(file, `session-logo-${Date.now()}`)
+      const blob = await uploadImageToBlobStorage(file, `session-logo-${Date.now()}`)
       setForm((current) => ({
         ...current,
         logoUrl: blob.url,

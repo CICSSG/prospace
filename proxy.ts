@@ -4,6 +4,7 @@ import { NextResponse } from "next/server"
 
 const isTestingRoutes = createRouteMatcher(["/testing(.*)"])
 const isAdminRoutes = createRouteMatcher(["/admin(.*)"])
+const isLogoLoopUploadRoute = createRouteMatcher(["/api/logo-loop/upload(.*)"])
 
 export default clerkMiddleware(async (auth, req) => {
   const { sessionClaims, userId } = await auth()
@@ -28,6 +29,9 @@ export default clerkMiddleware(async (auth, req) => {
       return NextResponse.next()
     }
     return NextResponse.redirect(new URL("/", req.url))
+  }
+  if (isLogoLoopUploadRoute(req)) {
+    return NextResponse.next()
   }
   if (!isAdminRoutes(req) && metadata?.isAdmin) {
     return NextResponse.redirect(new URL("/admin/dashboard", req.url))

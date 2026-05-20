@@ -44,7 +44,7 @@ export default function Profile() {
   }
 
   return (
-    <div className="flex items-center justify-center w-full bg-linear-to-r from-purple-500/15 to-pink-500/15 pt-30 pb-4">
+    <div className="flex items-center justify-center w-full pt-30 pb-4">
       <UserProfile
         appearance={{
           options: {

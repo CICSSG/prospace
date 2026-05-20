@@ -41,6 +41,7 @@ export default function SessionsList() {
     endTime?: string
     sessionDate?: string
     company?: string
+    sessionLinks?: string[]
   }
 
   const getData = useCallback(() => {
@@ -56,6 +57,7 @@ export default function SessionsList() {
             endTime: item.endTime || "",
             sessionDate: item.sessionDate || "",
             company: item.company || "",
+            sessionLinks: Array.isArray(item.sessionLinks) ? item.sessionLinks : [],
           }))
 
           setSessions(mappedSessions)
@@ -245,7 +247,7 @@ export default function SessionsList() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div className="max-w-[10rem] text-sm">
+                    <div className="max-w-40 text-sm">
                       {companies.get(session.company) || "Unknown"}
                     </div>
                   </TableCell>

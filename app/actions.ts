@@ -1,5 +1,18 @@
 "use server"
 
+type ActionResult<T> =
+  | { success: true; data: T }
+  | { success: false; error: string }
+
+async function readErrorMessage(response: Response, fallback: string) {
+  try {
+    const errorData = await response.json()
+    return errorData?.error || fallback
+  } catch {
+    return fallback
+  }
+}
+
 export async function registerUser(data: any) {
   try {
     const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/createUser`, {
@@ -11,13 +24,23 @@ export async function registerUser(data: any) {
     })
 
     if (!response.ok) {
-      throw new Error("Failed to register user")
+      return {
+        success: false,
+        error: await readErrorMessage(response, "Failed to register user"),
+      }
     }
-    return response.json()
+    return {
+      success: true,
+      data: await response.json(),
+    }
   }
   catch (error) {
     console.error("Error registering user:", error)
-    throw error
+    return {
+      success: false,
+      error:
+        error instanceof Error ? error.message : "Failed to register user",
+    }
   }
 }
 
@@ -33,12 +56,22 @@ export async function getUser(user_id: string) {
         }
     )
     if (!response.ok) {
-        throw new Error("Failed to fetch user data")
+            return {
+              success: false,
+              error: await readErrorMessage(response, "Failed to fetch user data"),
+            }
     }
-    return response.json()
+        return {
+          success: true,
+          data: await response.json(),
+        }
     } catch (error) {
         console.error("Error fetching user data:", error)
-        throw error
+            return {
+              success: false,
+              error:
+                error instanceof Error ? error.message : "Failed to fetch user data",
+            }
     }
 }
 
@@ -54,12 +87,22 @@ export async function getUserInCollection(user_id: string) {
         }
     )
     if (!response.ok) {
-        throw new Error("Failed to fetch user data")
+            return {
+              success: false,
+              error: await readErrorMessage(response, "Failed to fetch user data"),
+            }
     }
-    return response.json()
+        return {
+          success: true,
+          data: await response.json(),
+        }
     } catch (error) {
         console.error("Error fetching user data:", error)
-        throw error
+            return {
+              success: false,
+              error:
+                error instanceof Error ? error.message : "Failed to fetch user data",
+            }
     }
 }
 
@@ -74,10 +117,26 @@ export async function getConnections(user_id: string) {
         },
       }
     )
-    return response.json()
+    if (!response.ok) {
+      return {
+        success: false,
+        error: await readErrorMessage(response, "Failed to fetch connections"),
+      }
+    }
+
+    const responseData = await response.json()
+
+    return {
+      success: true,
+      data: responseData.data || [],
+    }
   } catch (error) {
     console.error("Error fetching connections:", error)
-    throw error
+    return {
+      success: false,
+      error:
+        error instanceof Error ? error.message : "Failed to fetch connections",
+    }
   }
 }
 
@@ -96,13 +155,25 @@ export async function initiateConnection(data: any) {
 
     const responseData = await response.json()
     if (!response.ok) {
-      throw new Error(responseData.error)
+      return {
+        success: false,
+        error: responseData.error || "Failed to initiate connection",
+      }
     }
 
-    return responseData
+    return {
+      success: true,
+      data: responseData,
+    }
   } catch (error) {
     console.error("Error initiating connection:", error)
-    throw error
+    return {
+      success: false,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Failed to initiate connection",
+    }
   }
 }
 
@@ -123,13 +194,21 @@ export async function sendOTP(
     })
 
     if (!response.ok) {
-      const errorData = await response.json()
-      throw new Error(errorData.error || "Failed to send OTP")
+      return {
+        success: false,
+        error: await readErrorMessage(response, "Failed to send OTP"),
+      }
     }
-    return response.json()
+    return {
+      success: true,
+      data: await response.json(),
+    }
   } catch (error) {
     console.error("Error sending OTP:", error)
-    throw error
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to send OTP",
+    }
   }
 }
 
@@ -144,13 +223,21 @@ export async function verifyOTP(email: string, otp: string) {
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.error || "Failed to verify OTP")
+      return {
+        success: false,
+        error: await readErrorMessage(response, "Failed to verify OTP"),
+      }
     }
-    return response.json()
+    return {
+      success: true,
+      data: await response.json(),
+    }
   } catch (error) {
     console.error("Error verifying OTP:", error)
-    throw error
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to verify OTP",
+    }
   }
 }
 
@@ -165,12 +252,21 @@ export async function completeSignup(email: string, shortBio: string, socialLink
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.error || "Failed to complete signup")
+      return {
+        success: false,
+        error: await readErrorMessage(response, "Failed to complete signup"),
+      }
     }
-    return response.json()
+    return {
+      success: true,
+      data: await response.json(),
+    }
   } catch (error) {
     console.error("Error completing signup:", error)
-    throw error
+    return {
+      success: false,
+      error:
+        error instanceof Error ? error.message : "Failed to complete signup",
+    }
   }
 }

@@ -12,6 +12,13 @@ type UserOverlayData = {
   school?: string
   shortBio?: string
   email?: string
+  socialLinks?: Array<{
+    platform?: string
+    url?: string
+  }>
+  portfolioLink?: string
+  clerkId?: string
+  userId?: number
   companyEmail?: string
   website?: string
   linkedin?: string
@@ -33,6 +40,8 @@ export default function ConnectUserOverlay({
   const displayName =
     user.fullName || `${user.firstName || ""} ${user.lastName || ""}`.trim() || "Unnamed User"
 
+  const primaryImage = user.profileImageUrl || "/images/ProspaceMinimalLogo-2.png"
+
   return (
     <div className="fixed inset-0 z-999 overflow-y-auto bg-[#02062a] p-4 sm:p-6">
       <div className="mx-auto flex w-full max-w-md flex-col gap-6 pb-6">
@@ -48,12 +57,7 @@ export default function ConnectUserOverlay({
         <div className="rounded-2xl border border-white/40 bg-linear-to-r from-primary/22 to-black/0 p-6 text-white shadow-xl">
           <div className="flex flex-col items-center gap-2 text-center">
             <div className="relative h-24 w-24 overflow-hidden rounded-full border-dashed border-2 border-[#ff5fa2]/50">
-              <Image
-                src={user.profileImageUrl || "/images/ProspaceMinimalLogo-2.png"}
-                alt={displayName}
-                fill
-                className="object-cover"
-              />
+              <Image src={primaryImage} alt={displayName} fill className="object-cover" />
             </div>
             <h2 className="mt-2 text-3xl font-semibold tracking-wide">
               {displayName}
@@ -62,6 +66,7 @@ export default function ConnectUserOverlay({
             <div className="rounded-full border border-white/50 px-4 py-1 text-xs text-white/80">
               {user.school || "No school provided"}
             </div>
+            <div className="mt-2 text-xs text-white/70">ID: {user.userId ?? user.clerkId ?? "—"}</div>
           </div>
 
           <div className="my-5 h-px w-full bg-white/35" />
@@ -72,12 +77,12 @@ export default function ConnectUserOverlay({
           </p>
         </div>
 
-        <div className="space-y-6 text-white">
+          <div className="space-y-6 text-white">
           <div className="space-y-3">
             <p className="bg-linear-to-r from-primary/22 to-black/0 px-3 py-3 text-xs tracking-[0.35em] rounded">
               EMAIL
             </p>
-            <p className="text-lg tracking-[0.3em] text-white/90">
+            <p className="text-sm tracking-[0.2em] text-white/90 ml-3">
               {user.email || "no-email@prospace.local"}
             </p>
           </div>
@@ -87,18 +92,46 @@ export default function ConnectUserOverlay({
               SOCIAL LINKS
             </p>
             <div className="space-y-3 text-base text-white/90">
-              <div className="flex items-center gap-3">
-                <Mail size={18} />
-                <span>{user.companyEmail || "company@email.com.ph"}</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <LinkIcon size={18} />
-                <span>{user.website || "company.com.ph"}</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <LinkIcon size={18} />
-                <span>{user.linkedin || "linkedin"}</span>
-              </div>
+              {user.companyEmail ? (
+                <div className="flex items-center gap-3">
+                  <Mail size={18} />
+                  <span>{user.companyEmail}</span>
+                </div>
+              ) : null}
+
+              {user.socialLinks?.length ? (
+                user.socialLinks.map((link) => (
+                  <div key={`${link.platform}-${link.url}`} className="flex items-center gap-3">
+                    <LinkIcon size={18} />
+                    <a
+                      href={link.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="truncate underline decoration-white/40 underline-offset-4 hover:decoration-white"
+                    >
+                      {link.platform || link.url}
+                    </a>
+                  </div>
+                ))
+              ) : null}
+
+              {user.website ? (
+                <div className="flex items-center gap-3">
+                  <LinkIcon size={18} />
+                  <a href={user.website} target="_blank" rel="noreferrer" className="underline">
+                    {user.website}
+                  </a>
+                </div>
+              ) : null}
+
+              {user.portfolioLink ? (
+                <div className="flex items-center gap-3">
+                  <LinkIcon size={18} />
+                  <a href={user.portfolioLink} target="_blank" rel="noreferrer" className="underline">
+                    Portfolio
+                  </a>
+                </div>
+              ) : null}
             </div>
           </div>
         </div>

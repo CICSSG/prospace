@@ -5,9 +5,9 @@ import { NextRequest, NextResponse } from "next/server"
 
 export async function GET(req: Request) {
   try {
-    const clerkclient = await clerkClient()
     const client = await clientPromise
     const db = client.db(process.env.MONGODB_DATABASE)
+    const clerkclient = await clerkClient()
     const url = new URL(req.url)
     const id = url.searchParams.get("id")
 
@@ -21,14 +21,26 @@ export async function GET(req: Request) {
       for (const connection of data) {
         if (connection.type === "user") {
           try {
-            const userData = await clerkclient.users.getUser(
-              connection.user_connect
-            )
-            const fullName = userData.fullName || "Unknown User"
-            const profileImageUrl = userData.imageUrl || null
-            const email = userData.emailAddresses[0]?.emailAddress || "No email"
+            const usersCollection = db.collection("users")
+            const userData = await usersCollection.findOne({
+              clerkId: connection.user_connect,
+            })
+
+            if (!userData) {
+              connectionsWithUserData.push({ ...connection })
+              continue
+            }
+
+            const fullName =
+              userData.fullName ||
+              `${userData.firstName || ""} ${userData.lastName || ""}`.trim() ||
+              "Unknown User"
+            const clerkUser = await clerkclient.users.getUser(userData.clerkId)
+            const profileImageUrl = clerkUser.imageUrl || userData.profileImageUrl || userData.imageUrl || null
+            const email = userData.email || "No email"
             connectionsWithUserData.push({
               ...connection,
+              ...userData,
               fullName,
               profileImageUrl,
               email,
@@ -115,8 +127,17 @@ export async function POST(request: NextRequest) {
       final_user_connect = companyDoc._id.toString()
     } else {
       const usersCollection = db.collection("users")
+      const numericUserConnectShort = Number(user_connect_short)
+      const userConnectQuery = Number.isNaN(numericUserConnectShort)
+        ? { userId: user_connect_short }
+        : {
+            $or: [
+              { userId: numericUserConnectShort },
+              { userId: user_connect_short },
+            ],
+          }
       const user_connect_doc = await usersCollection.findOne(
-        { userId: user_connect_short },
+        userConnectQuery,
         { projection: { clerkId: 1 } }
       )
       final_user_connect = user_connect_doc?.clerkId?.toString()

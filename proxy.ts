@@ -34,7 +34,7 @@ export default clerkMiddleware(async (auth, req) => {
   if (isLogoLoopUploadRoute(req)) {
     return NextResponse.next()
   }
-  if (!isAdminRoutes(req) && metadata?.isAdmin) {
+  if (!req.nextUrl.pathname.startsWith("/api") && !isAdminRoutes(req) && metadata?.isAdmin) {
     return NextResponse.redirect(new URL("/admin/dashboard", req.url))
   }
 

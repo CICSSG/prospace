@@ -78,10 +78,15 @@ const SignUpPage = () => {
       sendOTP(values.email, values.firstName, values.lastName, values.course)
         .then((response: any) => {
           setIsSending(false)
+          if (!response.success) {
+            toast.error(response.error || "Failed to send OTP. Please try again.")
+            return
+          }
+
           // Check if there's a nextStep (existing tempUser found)
-          if (response.nextStep) {
-            toast.success(response.message)
-            setStep(response.nextStep)
+          if (response.data?.nextStep) {
+            toast.success(response.data.message)
+            setStep(response.data.nextStep)
           } else {
             // New registration, send OTP
             setOtpSent(true)
@@ -115,8 +120,13 @@ const SignUpPage = () => {
       const values = formData.value
       setIsVerifying(true)
       verifyOTP(email, values.otp)
-        .then(() => {
+        .then((response: any) => {
           setIsVerifying(false)
+          if (!response.success) {
+            toast.error(response.error || "Failed to verify OTP")
+            return
+          }
+
           toast.success("Email verified successfully!")
           setStep(3)
         })
@@ -148,8 +158,13 @@ const SignUpPage = () => {
         socialLinksData.map((s) => s.url),
         values.portfolioLink
       )
-        .then(() => {
+        .then((response: any) => {
           setIsCompleting(false)
+          if (!response.success) {
+            toast.error(response.error || "Registration failed. Please try again.")
+            return
+          }
+
           toast.success("Registration successful! Redirecting...")
           permanentRedirect("/signup/success", RedirectType.push)
         })

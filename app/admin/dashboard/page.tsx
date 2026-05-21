@@ -159,7 +159,6 @@ export default function AdminDashboard() {
               </h1>
               <p className="max-w-2xl text-sm leading-6 text-white/70 sm:text-base">
                 A single place to track registrations, sessions, companies, and the homepage partner loop.
-                The registered user count only includes users marked as <span className="font-semibold text-white">user</span> or users whose Clerk <span className="font-semibold text-white">publicMetadata.role</span> is <span className="font-semibold text-white">user</span>.
               </p>
             </div>
 

@@ -6,6 +6,7 @@ const isTestingRoutes = createRouteMatcher(["/testing(.*)"])
 const isAdminRoutes = createRouteMatcher(["/admin(.*)"])
 const isLogoLoopUploadRoute = createRouteMatcher(["/api/logo-loop/upload(.*)"])
 const isLoggedInRoute = createRouteMatcher(["/connect(.*)", "/profile(.*)"])
+const isSignupRoute = createRouteMatcher(["/signup(.*)"])
 
 export default clerkMiddleware(async (auth, req) => {
   const { sessionClaims, userId, isAuthenticated } = await auth()
@@ -30,6 +31,22 @@ export default clerkMiddleware(async (auth, req) => {
       return NextResponse.next()
     }
     return NextResponse.redirect(new URL("/", req.url))
+  }
+  // If the app is in registration mode, restrict public access to only root and signup paths.
+  if (process.env.NEXT_PUBLIC_MODE === "registration") {
+    const path = req.nextUrl.pathname
+
+    // Allow API, admin, testing, logo-upload, and signup-related paths and root.
+    if (
+      !path.startsWith("/api") &&
+      !isAdminRoutes(req) &&
+      !isTestingRoutes(req) &&
+      !isLogoLoopUploadRoute(req) &&
+      !isSignupRoute(req) &&
+      path !== "/"
+    ) {
+      return NextResponse.redirect(new URL("/", req.url))
+    }
   }
   if (isLogoLoopUploadRoute(req)) {
     return NextResponse.next()

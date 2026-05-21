@@ -355,6 +355,9 @@ const SignUpPage = () => {
                       }}
                       onBlur={field.handleBlur}
                     />
+                    <p className="mt-1 text-xs text-white/70">
+                      * Please use your school email if applicable.
+                    </p>
                     {isTouched &&
                       uniqueErrorMessages.length > 0 &&
                       uniqueErrorMessages.map((message, index) => (

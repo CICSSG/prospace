@@ -5,7 +5,7 @@ import LogoLoop from "@/components/logoloop"
 import { Button } from "@/components/ui/button"
 import { ArrowRight, Award, Badge, ChevronRight } from "lucide-react"
 import Image from "next/image"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { getCollectionData } from "../admin/actions"
 import CountdownTimer from "@/components/countdown"
 import {
@@ -23,8 +23,8 @@ import { WebMode } from "../types"
 import ColorBends from "@/components/ColorBends"
 import DividerComponent from "@/components/divider"
 import { div } from "three/src/nodes/math/OperatorNode.js"
-import EventScheduleComponent from "@/components/prospace/event-schedule";
-import EventMapComponent from "@/components/prospace/event-map";
+import EventScheduleComponent from "@/components/prospace/event-schedule"
+import EventMapComponent from "@/components/prospace/event-map"
 
 type Logo = {
   node: React.ReactNode
@@ -46,28 +46,30 @@ type CompanyPartner = {
 }
 
 const topHandVariants = {
-  initial: { opacity: 0, y: -200 },
+  initial: { opacity: 0, x: -200 },
   slideIn: {
     opacity: 1,
-    y: 0,
+    x: 0,
     transition: { duration: 1.5, ease: "easeOut" as const },
   },
   hover: {
     opacity: 1,
+    x: 0,
     y: [0, -15, 0],
     transition: { duration: 5, repeat: Infinity, ease: "easeInOut" as const },
   },
 }
 
 const bottomHandVariants = {
-  initial: { opacity: 0, y: 200 },
+  initial: { opacity: 0, x: 200 },
   slideIn: {
     opacity: 1,
-    y: 0,
+    x: 0,
     transition: { duration: 1.5, ease: "easeOut" as const },
   },
   hover: {
     opacity: 1,
+    x: 0,
     y: [0, 15, 0],
     transition: { duration: 5, repeat: Infinity, ease: "easeInOut" as const },
   },
@@ -82,6 +84,39 @@ const SDGLogos = [
 ]
 
 const CareerSessions = [
+  {
+    title:
+      "Engineering the Experience: Building Secure, Scalable Web and Mobile Platforms",
+    time: "8:30 AM - 10:30 AM",
+    date: "JUNE 6",
+    tag: "Filipino Web Development Peers",
+    imageUrl: "https://placehold.co/400/png",
+  },
+  ,
+  {
+    title:
+      "Engineering the Experience: Building Secure, Scalable Web and Mobile Platforms",
+    time: "8:30 AM - 10:30 AM",
+    date: "JUNE 6",
+    tag: "Filipino Web Development Peers",
+    imageUrl: "https://placehold.co/400/png",
+  },
+  {
+    title:
+      "Engineering the Experience: Building Secure, Scalable Web and Mobile Platforms",
+    time: "8:30 AM - 10:30 AM",
+    date: "JUNE 6",
+    tag: "Filipino Web Development Peers",
+    imageUrl: "https://placehold.co/400/png",
+  },
+  {
+    title:
+      "Engineering the Experience: Building Secure, Scalable Web and Mobile Platforms",
+    time: "8:30 AM - 10:30 AM",
+    date: "JUNE 6",
+    tag: "Filipino Web Development Peers",
+    imageUrl: "https://placehold.co/400/png",
+  },
   {
     title:
       "Engineering the Experience: Building Secure, Scalable Web and Mobile Platforms",
@@ -202,6 +237,7 @@ const CareerSessions = [
 export default function Page() {
   const mode = process.env.NEXT_PUBLIC_MODE as WebMode
   const [animateHover, setAnimateHover] = useState(false)
+  const carouselRef = useRef<HTMLDivElement | null>(null)
   const [companies, setCompanies] = useState<CompanyPartner[]>([])
   const [logos, setLogos] = useState<Logo[]>([
     {
@@ -257,8 +293,94 @@ export default function Page() {
     })
   }, [])
 
+  // keep the carousel edge-to-edge without extra start/end spacing
+  useEffect(() => {
+    const el = carouselRef.current
+    if (!el) return
+    const initialScrolledRef = { current: false } as { current: boolean }
+    const lastIsLgRef = { current: null as boolean | null }
+
+    const compute = () => {
+      // detect breakpoint change
+      const isLg = typeof window !== "undefined" && window.matchMedia && window.matchMedia("(min-width:1028px)").matches
+      if (lastIsLgRef.current === null) lastIsLgRef.current = isLg
+      if (lastIsLgRef.current !== isLg) {
+        lastIsLgRef.current = isLg
+        initialScrolledRef.current = false
+      }
+
+      // perform initial scroll: 2nd item on lg, 1st on smaller
+      if (!initialScrolledRef.current) {
+        const items = Array.from(el.querySelectorAll<HTMLElement>(".snap-center"))
+        if (items.length) {
+          const desiredIndex = isLg ? 1 : 0
+          const index = Math.min(desiredIndex, items.length - 1)
+          const targetItem = items[index]
+          const target = targetItem.offsetLeft - (el.clientWidth - targetItem.offsetWidth) / 2
+          el.scrollTo({ left: Math.max(0, Math.round(target)), behavior: "smooth" })
+        }
+        initialScrolledRef.current = true
+      }
+    }
+    compute()
+    window.addEventListener("resize", compute)
+    return () => window.removeEventListener("resize", compute)
+  }, [carouselRef.current])
+
+  // programmatic snap on scroll end to avoid browser creating multiple snap points
+  useEffect(() => {
+    const el = carouselRef.current
+    if (!el) return
+    let timer: number | null = null
+    const onScroll = () => {
+      if (timer) window.clearTimeout(timer)
+      timer = window.setTimeout(() => {
+        const children = Array.from(el.children) as HTMLElement[]
+        if (!children.length) return
+        const containerCenter = el.scrollLeft + el.clientWidth / 2
+        let closest: HTMLElement | null = null
+        let closestDiff = Infinity
+        for (const child of children) {
+          const rect = child.getBoundingClientRect()
+          const childCenter = child.offsetLeft + rect.width / 2
+          const diff = Math.abs(childCenter - containerCenter)
+          if (diff < closestDiff) {
+            closestDiff = diff
+            closest = child
+          }
+        }
+        if (closest) {
+          const target = closest.offsetLeft - (el.clientWidth - closest.offsetWidth) / 2
+          el.scrollTo({ left: Math.max(0, Math.round(target)), behavior: "smooth" })
+        }
+      }, 120)
+    }
+    el.addEventListener("scroll", onScroll, { passive: true })
+    return () => {
+      el.removeEventListener("scroll", onScroll)
+      if (timer) window.clearTimeout(timer)
+    }
+  }, [carouselRef.current])
+
   return (
     <div className="max-w-svw overflow-hidden">
+      <style jsx>{`
+        .career-carousel {
+          scrollbar-color: rgba(255,255,255,0.12) transparent;
+          scrollbar-width: thin;
+          scroll-behavior: smooth;
+        }
+        .career-carousel::-webkit-scrollbar { height: 10px; }
+        .career-carousel::-webkit-scrollbar-track { background: transparent; }
+        .career-carousel::-webkit-scrollbar-thumb {
+          background: rgba(255,255,255,0.12);
+          border-radius: 9999px;
+          border: 2px solid rgba(0,0,0,0.12);
+        }
+        .career-carousel::-webkit-scrollbar-thumb:hover {
+          background: rgba(255,255,255,0.22);
+        }
+      `}</style>
       {/* HERO */}
       <section className="relative flex min-h-lvh w-svw flex-col justify-center overflow-hidden">
         <div className="absolute z-10 min-h-lvh w-full bg-linear-to-t from-[#05091d] to-[#05091d]/0 to-50%" />
@@ -294,7 +416,7 @@ export default function Page() {
                   setAnimateHover(true)
                 }
               }}
-              className="absolute -top-10 left-0 w-full lg:-top-40 lg:-left-20 2xl:-top-70 2xl:-left-10"
+              className="absolute top-10 left-0 w-full lg:-top-40 lg:-left-20 2xl:-top-70 2xl:-left-10"
             >
               <Image
                 src={"/images/HeroHandTop.png"}
@@ -379,8 +501,7 @@ export default function Page() {
         >
           <p
             className={
-              sora.className +
-              " text-xl font-light tracking-[0.5rem] text-white lg:text-4xl 2xl:text-6xl"
+              "text-xl font-light tracking-[0.5rem] text-white lg:text-xl"
             }
           >
             WELCOME TO
@@ -388,23 +509,32 @@ export default function Page() {
           <Image
             src={"/images/ProSpaceTitle.png"}
             alt={"ProSpace Title"}
-            width={512}
-            height={128}
-            className="my-4 w-full object-contain 2xl:max-w-lg"
+            width={612}
+            height={228}
+            className="my-4 w-full object-contain 2xl:max-w-2xl"
           />
         </motion.div>
       </section>
-
+      <div className="relative w-full">
+        <div className="absolute top-1/2 left-1/2 z-10 h-50 w-[calc(100vw+30%)] -translate-1/2 rounded-[50%] bg-[#BCA4FF]/30 blur-[100px]" />
+      </div>
       {/* SCHEDULE */}
-      <section className="mx-4">
+      <section className="relative z-10 mx-4">
         <div className="mx-auto grid max-w-6xl items-center gap-12 px-2 py-12 lg:grid-cols-2 lg:px-4 xl:gap-24">
           {/* Prospace Information */}
           <div className="flex flex-col items-center gap-6 text-center lg:items-start lg:text-left">
-            <div className="flex w-fit flex-row items-center gap-8">
+            <div className="mx-auto flex w-fit flex-row items-center gap-8">
               <Image
                 src={"/images/DLSU-D Logo.png"}
                 alt={"DLSUD Logo"}
                 width={130}
+                height={100}
+                className="h-fit object-contain"
+              />
+              <Image
+                src={"/images/AARO Logo.png"}
+                alt={"AARO Logo"}
+                width={50}
                 height={100}
                 className="h-fit object-contain"
               />
@@ -422,7 +552,7 @@ export default function Page() {
                 alt={"Prospace DLSU-D Logo"}
                 width={512}
                 height={128}
-                className="w-full max-w-xs object-contain"
+                className="w-full max-w-md object-contain"
               />
             </div>
             <p className="mx-4 text-white/90 lg:mx-0">
@@ -439,9 +569,9 @@ export default function Page() {
                   key={index}
                   src={logo}
                   alt={`SDG Logo`}
-                  width={50}
+                  width={55}
                   height={65}
-                  className="rounded-lg opacity-80"
+                  className="h-fit rounded-xs opacity-80"
                 />
               ))}
             </div>
@@ -455,14 +585,27 @@ export default function Page() {
         </div>
       </section>
 
-      <div className="mx-8">
-        <DividerComponent />
-      </div>
       {/* COUNTDOWN */}
-      <section className="mx-auto w-fit max-w-[90vw] py-12">
-        <div className="container flex flex-col items-center px-4">
+      <section className="relative flex flex-col items-center justify-center py-42 text-center">
+        <div className="absolute top-1/2 left-1/2 z-1 h-80 w-[calc(50vw)] -translate-1/2 rounded-[50%] bg-linear-to-b from-[#FFC5DD] to-[#680F34] opacity-40 blur-[100px]" />
+        <div className="absolute top-1/2 left-1/2 h-220 w-[calc(100vw)] -translate-1/2 rounded-[50%] bg-linear-to-b from-[#BCA4FF] to-[#05091D] opacity-30 blur-[100px]" />
+        <Image
+          src={"/images/starPink.png"}
+          alt="Hero Star Bottom"
+          width={400}
+          height={400}
+          className="absolute -top-50 -left-40 z-1 animate-spin blur-2xl animate-duration-150000 animate-infinite"
+        />
+        <Image
+          src={"/images/starPink.png"}
+          alt="Hero Star Bottom"
+          width={400}
+          height={400}
+          className="absolute -right-50 -bottom-50 z-1 animate-spin blur-2xl animate-duration-150000 animate-infinite"
+        />
+        <div className="relative z-10 container flex flex-col items-center px-4">
           <div className="mb-8 text-center">
-            <h2 className="text-xl font-semibold text-muted-foreground">
+            <h2 className="text-2xl font-light tracking-[0.2rem] text-white">
               Aligning success, launching careers
             </h2>
           </div>
@@ -473,22 +616,19 @@ export default function Page() {
         <Show when="signed-out">
           <Link
             href={"/signup"}
-            className="mx-auto mt-4 flex w-full max-w-sm cursor-pointer flex-row items-center justify-center gap-2 rounded-full border border-white/80 bg-linear-to-t from-white/10 to-white/0 to-30% px-4 py-1 text-lg text-white transition-all duration-300 hover:bg-linear-to-t hover:to-50%"
+            className="relative z-10 mx-auto mt-4 flex w-full max-w-sm cursor-pointer flex-row items-center justify-center gap-2 rounded-full border border-white/80 bg-linear-to-t from-white/10 to-white/0 to-30% px-4 py-1 text-lg text-white transition-all duration-300 hover:bg-linear-to-t hover:to-50%"
           >
             Register Now!
           </Link>
         </Show>
       </section>
 
-      <div className="mx-8">
-        <DividerComponent />
-      </div>
       {/* PARTNERS */}
-      <section className="mx-auto w-fit max-w-[90vw] py-12">
+      <section className="relative z-10 mx-auto w-fit max-w-[90vw] py-12">
         <div className="container flex flex-col items-center px-4">
           <div className="mb-8 text-center">
             <h2
-              className={`text-sm font-semibold tracking-[0.2rem] text-muted-foreground ${sora.className}`}
+              className={`text-sm font-light tracking-[0.2rem] text-muted-foreground lg:text-2xl ${sora.className}`}
             >
               Powered by CICSSG and Partners
             </h2>
@@ -501,37 +641,23 @@ export default function Page() {
               logoHeight={60}
               scaleOnHover
               gap={60}
-              fadeOut
-              fadeOutColor="#05091d"
               ariaLabel="Technology partners"
             />
           </div>
         </div>
       </section>
 
-      <div className="mx-8">
-        <DividerComponent />
-      </div>
       {/* CAREER SESSIONS */}
-      <section className="mx-8 my-8 flex flex-col gap-3">
+      <section className="relative z-10 max-w-7xl mx-auto overflow-visible  my-8 flex flex-col gap-3">
         <div
-          className={`flex w-full items-center justify-between ${mode === "production" ? "flex-row" : "flex-col"}`}
+          className={`flex w-full items-center justify-between flex-col`}
         >
           <h2
-            className={`text-center tracking-[0.3rem] uppercase ${sora.className}`}
+            className={`text-center tracking-[0.3rem] uppercase ${sora.className} lg:text-2xl`}
           >
             Career Sessions
           </h2>
-          {mode === "production" && (
-            <Link
-              href={"/career"}
-              className="flex h-fit flex-row items-center gap-2 text-white/60 transition-all duration-300 hover:text-white"
-            >
-              <div className="flex flex-row items-center text-sm">
-                View All <ChevronRight className="size-5" />
-              </div>
-            </Link>
-          )}
+          
         </div>
         <p
           className={`mr-5 text-center text-sm leading-snug tracking-[0.15rem] text-white/80 ${sora.className}`}
@@ -539,64 +665,87 @@ export default function Page() {
           Live discussions and workshops led by industry experts — June 6 via MS
           Teams and Facebook Live.
         </p>
-        {mode === "registration" ? (
-          <p className="mt-8 text-center tracking-[0.3rem]">COMING SOON</p>
-        ) : (
-          CareerSessions.map((session, index) => (
-            <div
-              key={index}
-              className="flex flex-row overflow-hidden rounded-lg border border-white/40 bg-linear-to-r from-[#7B4DFF]/22 to-[#7B4DFF]/0 text-sm"
-            >
-              <Image
-                src={`${session.imageUrl}`}
-                alt="Career Session"
-                width={100}
-                height={300}
-                className="border-r object-cover opacity-30"
-              />
-              <div className="col-span-2 flex flex-col gap-2 p-2 leading-[1.1em]">
-                <h1 className="text-xs leading-[1.1em] tracking-widest">
-                  {session.title}
-                </h1>
-                <div className="mt-1 flex flex-col gap-1">
-                  <p className="text-[0.65rem] leading-0 font-thin tracking-widest">
-                    {session.time}
-                  </p>
-                  <p className="text-[0.65rem] font-thin">{session.date}</p>
-                </div>
-                <div className="w-fit rounded-full border border-white/40 px-6 py-0.5 text-[0.65rem] font-thin">
-                  {session.tag}
+        <div
+          ref={carouselRef}
+          className="career-carousel mt-8 flex w-full flex-row items-center gap-4 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-4 overflow-y-hidden"
+          style={{ touchAction: "pan-x" }}
+          role="region"
+          aria-label="Career sessions carousel"
+        >
+          {mode === "registration" ? (
+            <p className="mt-8 text-center tracking-[0.3rem]">COMING SOON</p>
+          ) : (
+            CareerSessions.map((session, index) => (
+              <div
+                key={index}
+                className="snap-center snap-always shrink-0 w-sm flex flex-row overflow-hidden rounded-lg border border-white/40 bg-linear-to-r from-[#7B4DFF]/22 to-[#7B4DFF]/0 text-sm"
+              >
+                <Image
+                  src={`${session?.imageUrl}`}
+                  alt="Career Session"
+                  width={100}
+                  height={300}
+                  className="border-r object-cover opacity-30"
+                />
+                <div className="col-span-2 flex flex-col gap-2 p-2 leading-[1.1em]">
+                  <h1 className="text-xs leading-[1.1em] tracking-widest">
+                    {session?.title}
+                  </h1>
+                  <div className="mt-1 flex flex-col gap-1">
+                    <p className="text-[0.65rem] leading-0 font-thin tracking-widest">
+                      {session?.time}
+                    </p>
+                    <p className="text-[0.65rem] font-thin">{session?.date}</p>
+                  </div>
+                  <div className="w-fit rounded-full border border-white/40 px-6 py-0.5 text-[0.65rem] font-thin">
+                    {session?.tag}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))
-        )}
-      </section>
-
-      <div className="mx-8">
-        <DividerComponent />
-      </div>
-
-      {/* INDUSTRY PARTNERS */}
-      <div className="mx-8 my-8 flex flex-col items-center gap-3">
-        <div
-          className={`flex w-full items-center justify-between ${mode === "production" ? "flex-row" : "flex-col"}`}
-        >
-          <h2
-            className={`text-center tracking-[0.3rem] uppercase ${sora.className}`}
-          >
-            Industry Partners
-          </h2>
-          {mode === "production" && (
+            ))
+          )}
+        </div>
+        {mode === "production" && (
             <Link
-              href={"/partners"}
-              className="flex h-fit flex-row items-center gap-2 text-white/60 transition-all duration-300 hover:text-white"
+              href={"/career"}
+              className="flex h-fit flex-row items-center gap-2 ml-auto mr-4 text-white/60 transition-all duration-300 hover:text-white"
             >
               <div className="flex flex-row items-center text-sm">
                 View All <ChevronRight className="size-5" />
               </div>
             </Link>
           )}
+      </section>
+
+      <div className="relative w-full h-1">
+        <div className="absolute top-1/2 left-1/2 h-150 w-[calc(100vw+30%)] -translate-1/2 rounded-[50%] bg-[#BCA4FF]/30 blur-[200px]" />
+        <Image 
+          src={"/images/starPurple.png"}
+          alt="Hero Star Bottom"
+          width={400}
+          height={400}
+          className="absolute -top-50 -left-40 z-1 animate-spin blur-2xl animate-duration-150000 animate-infinite opacity-50"
+        />
+        <Image 
+          src={"/images/starPurple.png"}
+          alt="Hero Star Bottom"
+          width={400}
+          height={400}
+          className="absolute -top-50 -right-40 z-1 animate-spin blur-2xl animate-duration-150000 animate-infinite opacity-50"
+        />
+      </div>
+
+      {/* INDUSTRY PARTNERS */}
+      <div className="relative my-8 flex flex-col items-center gap-3 z-10 max-w-7xl mx-auto">
+        <div
+          className={`flex w-full items-center justify-between flex-col`}
+        >
+          <h2
+            className={`text-center tracking-[0.3rem] uppercase ${sora.className} lg:text-2xl`}
+          >
+            Industry Partners
+          </h2>
+          
         </div>
         <p
           className={`mr-5 text-sm leading-snug tracking-[0.15rem] text-white/80 ${sora.className} text-center`}
@@ -606,35 +755,51 @@ export default function Page() {
         {mode === "registration" ? (
           <p className="mt-8 text-left tracking-[0.3rem]">COMING SOON</p>
         ) : (
-          <div className="w-full overflow-x-auto scroll-smooth pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x snap-mandatory">
-            <div className="grid grid-flow-col grid-rows-3 gap-2 px-2 auto-cols-[minmax(14rem,14rem)]">
-              {companies.length ? companies.map((partner, index) => (
-                <div
-                  key={partner._id || `${partner.name}-${index}`}
-                  className="snap-center flex h-full flex-col rounded-2xl border border-white/40 bg-linear-to-r from-[#7B4DFF]/22 to-[#7B4DFF]/0 p-3"
-                >
-                  <Image
-                    src={partner.logoUrl || partner.imageUrl || "/images/ProspaceMinimalLogo-2.png"}
-                    alt={partner.name || "Company logo"}
-                    width={200}
-                    height={100}
-                    className="aspect-square h-12 w-fit rounded-lg object-contain opacity-80"
-                  />
-                  <p className="mt-1 text-sm font-semibold tracking-widest text-white/80">
-                    {partner.name || "Unnamed Company"}
-                  </p>
-                  <p className="mt-1 text-xs font-light tracking-widest text-white/50">
-                    {partner.description || "No description available"}
-                  </p>
-                </div>
-              )) : (
-                <div className="col-span-full row-span-3 flex min-h-40 items-center justify-center rounded-2xl border border-white/40 bg-linear-to-r from-[#7B4DFF]/22 to-[#7B4DFF]/0 px-6 text-center tracking-[0.3rem] text-white/70 snap-center">
+          <div className="w-full snap-x snap-mandatory overflow-x-auto scroll-smooth pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="grid auto-cols-[minmax(14rem,14rem)] grid-flow-col grid-rows-2 gap-2 px-2">
+              {companies.length ? (
+                companies.map((partner, index) => (
+                  <div
+                    key={partner._id || `${partner.name}-${index}`}
+                    className="flex h-full snap-center flex-col rounded-2xl border border-white/40 bg-linear-to-r from-[#7B4DFF]/22 to-[#7B4DFF]/0 p-3"
+                  >
+                    <Image
+                      src={
+                        partner.logoUrl ||
+                        partner.imageUrl ||
+                        "/images/ProspaceMinimalLogo-2.png"
+                      }
+                      alt={partner.name || "Company logo"}
+                      width={200}
+                      height={100}
+                      className="aspect-square h-12 w-fit rounded-lg object-contain opacity-80"
+                    />
+                    <p className="mt-1 text-sm font-semibold tracking-widest text-white/80">
+                      {partner.name || "Unnamed Company"}
+                    </p>
+                    <p className="mt-1 text-xs font-light tracking-widest text-white/50">
+                      {partner.description || "No description available"}
+                    </p>
+                  </div>
+                ))
+              ) : (
+                <div className="col-span-full row-span-3 flex min-h-40 snap-center items-center justify-center rounded-2xl border border-white/40 bg-linear-to-r from-[#7B4DFF]/22 to-[#7B4DFF]/0 px-6 text-center tracking-[0.3rem] text-white/70">
                   LOADING COMPANIES
                 </div>
               )}
             </div>
           </div>
         )}
+        {mode === "production" && (
+            <Link
+              href={"/partners"}
+              className="flex h-fit ml-auto mr-4 flex-row items-center gap-2 text-white/60 transition-all duration-300 hover:text-white"
+            >
+              <div className="flex flex-row items-center text-sm">
+                View All <ChevronRight className="size-5" />
+              </div>
+            </Link>
+          )}
       </div>
 
       <div className="mx-8">

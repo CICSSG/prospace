@@ -21,15 +21,6 @@ import { getCollectionData } from "../actions"
 import DeleteLogoDialog from "./delete-logo"
 import EditLogoDialog from "./edit-logo"
 
-const tempData = [
-  {
-    id: "1",
-    logoUrl: "/images/CICSSG.png",
-    companyName:
-      "College of Information and Computer Studies Student Government",
-    companyUrl: "https://cicssg.com",
-  }
-]
 type Logo = {
   id: string
   logoUrl: string
@@ -38,12 +29,12 @@ type Logo = {
 }
 
 const LogoLoop = () => {
-  const [logos, setLogos] = useState(tempData)
+  const [logos, setLogos] = useState<Logo[]>([])
   const [selectedLogoId, setSelectedLogoId] = useState<string | null>(null)
   const [itemsPerPage, setItemsPerPage] = useState(10)
   const [totalPages, setTotalPages] = useState(1)
   const [page, setPage] = useState(1)
-  const [paginatedLogos, setPaginatedLogos] = useState(tempData)
+  const [paginatedLogos, setPaginatedLogos] = useState<Logo[]>([])
   const [addDialogOpen, setAddDialogOpen] = useState(false)
   const [deleteLogo, setDeleteLogo] = useState<Logo | null>(null)
   const [editLogo, setEditLogo] = useState<Logo | null>(null)

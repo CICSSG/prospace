@@ -2,11 +2,12 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Company, SocialLink } from "./types"
-import { UploadImageToBlobStorage, addCompanyToCollection, updateCompanyInCollection } from "../actions"
+import { addCompanyToCollection, updateCompanyInCollection } from "../actions"
 import { useRef, useState } from "react"
 import { toast } from "sonner"
 import { Plus, Trash2 } from "lucide-react"
 import Image from "next/image"
+import { upload } from "@vercel/blob/client"
 
 type CompanyFormDialogProps = {
   open: boolean
@@ -67,6 +68,13 @@ function slugify(value: string) {
 
 function isEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+}
+
+async function uploadImageToBlobStorage(file: File, filename: string) {
+  return upload(filename, file, {
+    access: "public",
+    handleUploadUrl: "/api/logo-loop/upload",
+  })
 }
 
 export default function CompanyFormDialog({
@@ -174,7 +182,7 @@ export default function CompanyFormDialog({
   const handleImageUpload = async (file: File) => {
     setIsUploadingImage(true)
     try {
-      const blob = await UploadImageToBlobStorage(
+      const blob = await uploadImageToBlobStorage(
         file,
         `companies/${slugify(form.name || "company")}/image`
       )
@@ -191,7 +199,7 @@ export default function CompanyFormDialog({
   const handleLogoUpload = async (file: File) => {
     setIsUploadingLogo(true)
     try {
-      const blob = await UploadImageToBlobStorage(
+      const blob = await uploadImageToBlobStorage(
         file,
         `companies/${slugify(form.name || "company")}/logo`
       )

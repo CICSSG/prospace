@@ -32,6 +32,19 @@ type Logo = {
   href: string
 }
 
+type CompanyPartner = {
+  _id?: string
+  imageUrl?: string
+  logoUrl?: string
+  name?: string
+  description?: string
+  socialLinks?: Array<{
+    platform?: string
+    url?: string
+  }>
+  companyEmail?: string
+}
+
 const topHandVariants = {
   initial: { opacity: 0, y: -200 },
   slideIn: {
@@ -95,42 +108,101 @@ const CareerSessions = [
   },
 ]
 
-const IndustryPartners = [
-  {
-    name: "Bossjob",
-    logoUrl: "https://placehold.co/400/png",
-    description: "Job matching platform",
-  },
-  {
-    name: "Bossjob",
-    logoUrl: "https://placehold.co/400/png",
-    description: "Job matching platform",
-  },
-  {
-    name: "Bossjob",
-    logoUrl: "https://placehold.co/400/png",
-    description: "Job matching platform",
-  },
-  {
-    name: "Bossjob",
-    logoUrl: "https://placehold.co/400/png",
-    description: "Job matching platform",
-  },
-  {
-    name: "Bossjob",
-    logoUrl: "https://placehold.co/400/png",
-    description: "Job matching platform",
-  },
-  {
-    name: "Bossjob",
-    logoUrl: "https://placehold.co/400/png",
-    description: "Job matching platform",
-  },
-]
+// const IndustryPartners = [
+//   {
+//     name: "Bossjob",
+//     logoUrl: "https://placehold.co/400/png",
+//     description: "Job matching platform",
+//   },
+//   {
+//     name: "Bossjob",
+//     logoUrl: "https://placehold.co/400/png",
+//     description: "Job matching platform",
+//   },
+//   {
+//     name: "Bossjob",
+//     logoUrl: "https://placehold.co/400/png",
+//     description: "Job matching platform",
+//   },
+//   {
+//     name: "Bossjob",
+//     logoUrl: "https://placehold.co/400/png",
+//     description: "Job matching platform",
+//   },
+//   {
+//     name: "Bossjob",
+//     logoUrl: "https://placehold.co/400/png",
+//     description: "Job matching platform",
+//   },
+//   {
+//     name: "Bossjob",
+//     logoUrl: "https://placehold.co/400/png",
+//     description: "Job matching platform",
+//   },
+//   {
+//     name: "Bossjob",
+//     logoUrl: "https://placehold.co/400/png",
+//     description: "Job matching platform",
+//   },
+//   {
+//     name: "Bossjob",
+//     logoUrl: "https://placehold.co/400/png",
+//     description: "Job matching platform",
+//   }
+//   ,
+//   {
+//     name: "Bossjob",
+//     logoUrl: "https://placehold.co/400/png",
+//     description: "Job matching platform",
+//   },
+//   {
+//     name: "Bossjob",
+//     logoUrl: "https://placehold.co/400/png",
+//     description: "Job matching platform",
+//   },
+//   {
+//     name: "Bossjob",
+//     logoUrl: "https://placehold.co/400/png",
+//     description: "Job matching platform",
+//   },
+//   {
+//     name: "Bossjob",
+//     logoUrl: "https://placehold.co/400/png",
+//     description: "Job matching platform",
+//   }
+//   ,
+//   {
+//     name: "Bossjob",
+//     logoUrl: "https://placehold.co/400/png",
+//     description: "Job matching platform",
+//   },
+//   {
+//     name: "Bossjob",
+//     logoUrl: "https://placehold.co/400/png",
+//     description: "Job matching platform",
+//   },
+//   {
+//     name: "Bossjob",
+//     logoUrl: "https://placehold.co/400/png",
+//     description: "Job matching platform",
+//   },
+//   {
+//     name: "Bossjob",
+//     logoUrl: "https://placehold.co/400/png",
+//     description: "Job matching platform",
+//   }
+//   ,
+//   {
+//     name: "Bossjob",
+//     logoUrl: "https://placehold.co/400/png",
+//     description: "Job matching platform",
+//   },
+// ]
 
 export default function Page() {
   const mode = process.env.NEXT_PUBLIC_MODE as WebMode
   const [animateHover, setAnimateHover] = useState(false)
+  const [companies, setCompanies] = useState<CompanyPartner[]>([])
   const [logos, setLogos] = useState<Logo[]>([
     {
       node: (
@@ -165,6 +237,23 @@ export default function Page() {
       }))
 
       setLogos(fetchedLogos)
+    })
+  }, [])
+
+  useEffect(() => {
+    getCollectionData("companies").then((res) => {
+      const data = Array.isArray(res?.data) ? res.data : []
+      const fetchedCompanies = data.map((item: CompanyPartner) => ({
+        _id: item._id,
+        imageUrl: item.imageUrl,
+        logoUrl: item.logoUrl,
+        name: item.name,
+        description: item.description,
+        socialLinks: Array.isArray(item.socialLinks) ? item.socialLinks : [],
+        companyEmail: item.companyEmail,
+      }))
+
+      setCompanies(fetchedCompanies)
     })
   }, [])
 
@@ -517,27 +606,33 @@ export default function Page() {
         {mode === "registration" ? (
           <p className="mt-8 text-left tracking-[0.3rem]">COMING SOON</p>
         ) : (
-          <div className="grid grid-cols-2 gap-2">
-            {IndustryPartners.map((partner, index) => (
-              <div
-                key={index}
-                className="flex flex-col rounded-2xl border border-white/40 bg-linear-to-r from-[#7B4DFF]/22 to-[#7B4DFF]/0 p-3"
-              >
-                <Image
-                  src={partner.logoUrl}
-                  alt={partner.name}
-                  width={200}
-                  height={100}
-                  className="aspect-square h-12 w-fit rounded-lg object-contain opacity-80"
-                />
-                <p className="mt-1 text-sm font-semibold tracking-widest text-white/80">
-                  {partner.name}
-                </p>
-                <p className="mt-1 text-xs font-light tracking-widest text-white/50">
-                  {partner.description}
-                </p>
-              </div>
-            ))}
+          <div className="w-full overflow-x-auto scroll-smooth pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden snap-x snap-mandatory">
+            <div className="grid grid-flow-col grid-rows-3 gap-2 px-2 auto-cols-[minmax(14rem,14rem)]">
+              {companies.length ? companies.map((partner, index) => (
+                <div
+                  key={partner._id || `${partner.name}-${index}`}
+                  className="snap-center flex h-full flex-col rounded-2xl border border-white/40 bg-linear-to-r from-[#7B4DFF]/22 to-[#7B4DFF]/0 p-3"
+                >
+                  <Image
+                    src={partner.logoUrl || partner.imageUrl || "/images/ProspaceMinimalLogo-2.png"}
+                    alt={partner.name || "Company logo"}
+                    width={200}
+                    height={100}
+                    className="aspect-square h-12 w-fit rounded-lg object-contain opacity-80"
+                  />
+                  <p className="mt-1 text-sm font-semibold tracking-widest text-white/80">
+                    {partner.name || "Unnamed Company"}
+                  </p>
+                  <p className="mt-1 text-xs font-light tracking-widest text-white/50">
+                    {partner.description || "No description available"}
+                  </p>
+                </div>
+              )) : (
+                <div className="col-span-full row-span-3 flex min-h-40 items-center justify-center rounded-2xl border border-white/40 bg-linear-to-r from-[#7B4DFF]/22 to-[#7B4DFF]/0 px-6 text-center tracking-[0.3rem] text-white/70 snap-center">
+                  LOADING COMPANIES
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>

@@ -2,11 +2,12 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Session } from "./types"
-import { UploadImageToBlobStorage, getCollectionData } from "../actions"
+import { getCollectionData } from "../actions"
 import { useRef, useState, useEffect } from "react"
 import { toast } from "sonner"
 import Image from "next/image"
 import { Combobox } from "@/components/ui/combobox"
+import { upload } from "@vercel/blob/client"
 
 type SessionFormDialogProps = {
   open: boolean
@@ -24,6 +25,26 @@ type SessionFormState = {
   endTime: string
   sessionDate: string
   company: string
+  sessionLinks: SessionLinkItem[]
+}
+
+type SessionLinkItem = {
+  id: string
+  value: string
+}
+
+const createSessionLinkItem = (value = ""): SessionLinkItem => ({
+  id: typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`,
+  value,
+})
+
+const normalizeSessionLink = (value: string) => {
+  const trimmedValue = value.trim()
+
+  if (!trimmedValue) return ""
+  if (/^https?:\/\//i.test(trimmedValue)) return trimmedValue
+
+  return `https://${trimmedValue}`
 }
 
 const emptyForm = (): SessionFormState => ({
@@ -34,6 +55,7 @@ const emptyForm = (): SessionFormState => ({
   endTime: "",
   sessionDate: "",
   company: "",
+  sessionLinks: [createSessionLinkItem()],
 })
 
 function createInitialForm(session?: Session | null): SessionFormState {
@@ -46,8 +68,18 @@ function createInitialForm(session?: Session | null): SessionFormState {
         endTime: session.endTime || "",
         sessionDate: session.sessionDate || "",
         company: session.company || "",
+        sessionLinks: session.sessionLinks?.length
+          ? session.sessionLinks.map((link) => createSessionLinkItem(link))
+          : [createSessionLinkItem()],
       }
     : emptyForm()
+}
+
+async function uploadImageToBlobStorage(file: File, filename: string) {
+  return upload(filename, file, {
+    access: "public",
+    handleUploadUrl: "/api/logo-loop/upload",
+  })
 }
 
 export default function SessionFormDialog({
@@ -90,6 +122,9 @@ export default function SessionFormDialog({
 
   const validateForm = () => {
     const nextErrors: string[] = []
+    const normalizedSessionLinks = form.sessionLinks
+      .map((link) => normalizeSessionLink(link.value))
+      .filter(Boolean)
 
     if (!form.sessionTitle.trim()) nextErrors.push("Session title is required")
     if (!form.topicPictureUrl.trim()) nextErrors.push("Topic picture is required")
@@ -98,9 +133,36 @@ export default function SessionFormDialog({
     if (!form.endTime.trim()) nextErrors.push("End time is required")
     if (!form.sessionDate.trim()) nextErrors.push("Session date is required")
     if (!form.company.trim()) nextErrors.push("Company is required")
+    if (normalizedSessionLinks.length === 0) nextErrors.push("At least one session link is required")
 
     setErrors(nextErrors)
     return nextErrors.length === 0
+  }
+
+  const addSessionLink = () => {
+    setForm((current) => ({
+      ...current,
+      sessionLinks: [...current.sessionLinks, createSessionLinkItem()],
+    }))
+  }
+
+  const updateSessionLink = (index: number, value: string) => {
+    setForm((current) => ({
+      ...current,
+      sessionLinks: current.sessionLinks.map((link, currentIndex) =>
+        currentIndex === index ? { ...link, value } : link
+      ),
+    }))
+  }
+
+  const removeSessionLink = (index: number) => {
+    setForm((current) => {
+      const nextLinks = current.sessionLinks.filter((_, currentIndex) => currentIndex !== index)
+      return {
+        ...current,
+        sessionLinks: nextLinks.length ? nextLinks : [createSessionLinkItem()],
+      }
+    })
   }
 
   const handleTopicImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -109,7 +171,7 @@ export default function SessionFormDialog({
 
     setIsUploadingTopic(true)
     try {
-      const blob = await UploadImageToBlobStorage(file, `session-topic-${Date.now()}`)
+      const blob = await uploadImageToBlobStorage(file, `session-topic-${Date.now()}`)
       setForm((current) => ({
         ...current,
         topicPictureUrl: blob.url,
@@ -129,7 +191,7 @@ export default function SessionFormDialog({
 
     setIsUploadingLogo(true)
     try {
-      const blob = await UploadImageToBlobStorage(file, `session-logo-${Date.now()}`)
+      const blob = await uploadImageToBlobStorage(file, `session-logo-${Date.now()}`)
       setForm((current) => ({
         ...current,
         logoUrl: blob.url,
@@ -150,7 +212,11 @@ export default function SessionFormDialog({
 
     setSaving(true)
     try {
-      const url = mode === "add" ? "/api/addSession" : `/api/updateSession?id=${session?.id}`
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || window.location.origin
+      const url =
+        mode === "add"
+          ? `${baseUrl}/api/addSession`
+          : `${baseUrl}/api/updateSession?id=${session?.id}`
       const method = mode === "add" ? "POST" : "PUT"
 
       const response = await fetch(url, {
@@ -166,6 +232,7 @@ export default function SessionFormDialog({
           endTime: form.endTime,
           sessionDate: form.sessionDate,
           company: form.company,
+          sessionLinks: form.sessionLinks.map((link) => normalizeSessionLink(link.value)).filter(Boolean),
         }),
       })
 
@@ -294,6 +361,41 @@ export default function SessionFormDialog({
               }
               placeholder="Search and select a company..."
             />
+          </div>
+
+          {/* Session Links */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between gap-3">
+              <label className="text-sm font-medium">Session Links</label>
+              <button
+                type="button"
+                onClick={addSessionLink}
+                className="rounded-lg border px-3 py-2 text-xs hover:bg-muted"
+              >
+                Add Link
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              {form.sessionLinks.map((link, index) => (
+                <div key={link.id} className="flex gap-2">
+                  <input
+                    type="text"
+                    value={link.value}
+                    onChange={(event) => updateSessionLink(index, event.target.value)}
+                    placeholder={`Session link ${index + 1}`}
+                    className="w-full rounded-lg border bg-background px-3 py-2 text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeSessionLink(index)}
+                    className="rounded-lg border px-3 py-2 text-sm hover:bg-muted"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Session Title */}

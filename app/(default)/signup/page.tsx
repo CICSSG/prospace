@@ -78,10 +78,15 @@ const SignUpPage = () => {
       sendOTP(values.email, values.firstName, values.lastName, values.course)
         .then((response: any) => {
           setIsSending(false)
+          if (!response.success) {
+            toast.error(response.error || "Failed to send OTP. Please try again.")
+            return
+          }
+
           // Check if there's a nextStep (existing tempUser found)
-          if (response.nextStep) {
-            toast.success(response.message)
-            setStep(response.nextStep)
+          if (response.data?.nextStep) {
+            toast.success(response.data.message)
+            setStep(response.data.nextStep)
           } else {
             // New registration, send OTP
             setOtpSent(true)
@@ -115,8 +120,13 @@ const SignUpPage = () => {
       const values = formData.value
       setIsVerifying(true)
       verifyOTP(email, values.otp)
-        .then(() => {
+        .then((response: any) => {
           setIsVerifying(false)
+          if (!response.success) {
+            toast.error(response.error || "Failed to verify OTP")
+            return
+          }
+
           toast.success("Email verified successfully!")
           setStep(3)
         })
@@ -148,8 +158,13 @@ const SignUpPage = () => {
         socialLinksData.map((s) => s.url),
         values.portfolioLink
       )
-        .then(() => {
+        .then((response: any) => {
           setIsCompleting(false)
+          if (!response.success) {
+            toast.error(response.error || "Registration failed. Please try again.")
+            return
+          }
+
           toast.success("Registration successful! Redirecting...")
           permanentRedirect("/signup/success", RedirectType.push)
         })
@@ -340,6 +355,9 @@ const SignUpPage = () => {
                       }}
                       onBlur={field.handleBlur}
                     />
+                    <p className="mt-1 text-xs text-white/70">
+                      * Please use your school email if applicable.
+                    </p>
                     {isTouched &&
                       uniqueErrorMessages.length > 0 &&
                       uniqueErrorMessages.map((message, index) => (
@@ -732,7 +750,7 @@ const SignUpPage = () => {
                       <div>
                         Resume{" "}
                         <span className="text-xs text-primary-foreground/50">
-                          (pdf, doc, docx, max: 5MB)
+                          (pdf, doc, docx, max: 4.5MB)
                         </span>
                       </div>
                       <span className="mr-2 ml-auto text-xs text-muted-foreground">
@@ -750,12 +768,12 @@ const SignUpPage = () => {
                           // Clear any previous errors when new file is selected
                           setUploadError(null)
                           
-                          // Check file size (max 5MB)
-                          const maxSizeInBytes = 5 * 1024 * 1024 // 5MB
+                          // Check file size (max 4.5MB)
+                          const maxSizeInBytes = 4.5 * 1024 * 1024 // 4.5MB
                           if (file.size > maxSizeInBytes) {
                             const fileSizeInMB = (file.size / (1024 * 1024)).toFixed(2)
                             setUploadError(
-                              `File size (${fileSizeInMB}MB) exceeds the maximum allowed size of 5MB`
+                              `File size (${fileSizeInMB}MB) exceeds the maximum allowed size of 4.5MB`
                             )
                             if (portfolioInputRef.current) {
                               portfolioInputRef.current.value = ""

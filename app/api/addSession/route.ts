@@ -1,6 +1,8 @@
 import clientPromise from "@/lib/mongodb"
 
 export async function POST(req: Request) {
+
+  console.log("Received request to add session")
   try {
     const {
       topicPictureUrl,
@@ -10,6 +12,7 @@ export async function POST(req: Request) {
       endTime,
       sessionDate,
       company,
+      sessionLinks,
     } = await req.json()
 
     const client = await clientPromise
@@ -24,6 +27,7 @@ export async function POST(req: Request) {
       endTime,
       sessionDate,
       company,
+      sessionLinks: Array.isArray(sessionLinks) ? sessionLinks : [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     })

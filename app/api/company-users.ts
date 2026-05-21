@@ -38,7 +38,7 @@ export async function ensureCompanyModeratorAccounts({
         clerkUser = await clerk.users.updateUser(existingUser.id, {
           publicMetadata: {
             ...(existingUser.publicMetadata ?? {}),
-            role: "data",
+            role: "companymoderator",
             companyId,
             companyName,
           },
@@ -49,7 +49,7 @@ export async function ensureCompanyModeratorAccounts({
           lastName: "Moderator",
           emailAddress: [email],
           publicMetadata: {
-            role: "data",
+            role: "companymoderator",
             companyId,
             companyName,
           },
@@ -62,7 +62,7 @@ export async function ensureCompanyModeratorAccounts({
           $set: {
             clerkId: clerkUser.id,
             email,
-            role: "data",
+            role: "companymoderator",
             companyId,
             companyName,
             updatedAt: new Date().toISOString(),

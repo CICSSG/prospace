@@ -7,6 +7,7 @@ export async function UploadImageToBlobStorage(file: File, filename: string) {
     access: "public",
     addRandomSuffix: false,
     allowOverwrite: true,
+    maximumSizeInBytes: 15 * 1024 * 1024, // 15MB
   })
   return blob
 }

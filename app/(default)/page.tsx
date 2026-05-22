@@ -143,102 +143,99 @@ const CareerSessions = [
   },
 ]
 
-// const IndustryPartners = [
-//   {
-//     name: "Bossjob",
-//     logoUrl: "https://placehold.co/400/png",
-//     description: "Job matching platform",
-//   },
-//   {
-//     name: "Bossjob",
-//     logoUrl: "https://placehold.co/400/png",
-//     description: "Job matching platform",
-//   },
-//   {
-//     name: "Bossjob",
-//     logoUrl: "https://placehold.co/400/png",
-//     description: "Job matching platform",
-//   },
-//   {
-//     name: "Bossjob",
-//     logoUrl: "https://placehold.co/400/png",
-//     description: "Job matching platform",
-//   },
-//   {
-//     name: "Bossjob",
-//     logoUrl: "https://placehold.co/400/png",
-//     description: "Job matching platform",
-//   },
-//   {
-//     name: "Bossjob",
-//     logoUrl: "https://placehold.co/400/png",
-//     description: "Job matching platform",
-//   },
-//   {
-//     name: "Bossjob",
-//     logoUrl: "https://placehold.co/400/png",
-//     description: "Job matching platform",
-//   },
-//   {
-//     name: "Bossjob",
-//     logoUrl: "https://placehold.co/400/png",
-//     description: "Job matching platform",
-//   }
-//   ,
-//   {
-//     name: "Bossjob",
-//     logoUrl: "https://placehold.co/400/png",
-//     description: "Job matching platform",
-//   },
-//   {
-//     name: "Bossjob",
-//     logoUrl: "https://placehold.co/400/png",
-//     description: "Job matching platform",
-//   },
-//   {
-//     name: "Bossjob",
-//     logoUrl: "https://placehold.co/400/png",
-//     description: "Job matching platform",
-//   },
-//   {
-//     name: "Bossjob",
-//     logoUrl: "https://placehold.co/400/png",
-//     description: "Job matching platform",
-//   }
-//   ,
-//   {
-//     name: "Bossjob",
-//     logoUrl: "https://placehold.co/400/png",
-//     description: "Job matching platform",
-//   },
-//   {
-//     name: "Bossjob",
-//     logoUrl: "https://placehold.co/400/png",
-//     description: "Job matching platform",
-//   },
-//   {
-//     name: "Bossjob",
-//     logoUrl: "https://placehold.co/400/png",
-//     description: "Job matching platform",
-//   },
-//   {
-//     name: "Bossjob",
-//     logoUrl: "https://placehold.co/400/png",
-//     description: "Job matching platform",
-//   }
-//   ,
-//   {
-//     name: "Bossjob",
-//     logoUrl: "https://placehold.co/400/png",
-//     description: "Job matching platform",
-//   },
-// ]
+const IndustryPartners = [
+  {
+    name: "Bossjob",
+    logoUrl: "https://placehold.co/400/png",
+    description: "Job matching platform",
+  },
+  {
+    name: "Bossjob",
+    logoUrl: "https://placehold.co/400/png",
+    description: "Job matching platform",
+  },
+  {
+    name: "Bossjob",
+    logoUrl: "https://placehold.co/400/png",
+    description: "Job matching platform",
+  },
+  {
+    name: "Bossjob",
+    logoUrl: "https://placehold.co/400/png",
+    description: "Job matching platform",
+  },
+  {
+    name: "Bossjob",
+    logoUrl: "https://placehold.co/400/png",
+    description: "Job matching platform",
+  },
+  {
+    name: "Bossjob",
+    logoUrl: "https://placehold.co/400/png",
+    description: "Job matching platform",
+  },
+  {
+    name: "Bossjob",
+    logoUrl: "https://placehold.co/400/png",
+    description: "Job matching platform",
+  },
+  {
+    name: "Bossjob",
+    logoUrl: "https://placehold.co/400/png",
+    description: "Job matching platform",
+  },
+  {
+    name: "Bossjob",
+    logoUrl: "https://placehold.co/400/png",
+    description: "Job matching platform",
+  },
+  {
+    name: "Bossjob",
+    logoUrl: "https://placehold.co/400/png",
+    description: "Job matching platform",
+  },
+  {
+    name: "Bossjob",
+    logoUrl: "https://placehold.co/400/png",
+    description: "Job matching platform",
+  },
+  {
+    name: "Bossjob",
+    logoUrl: "https://placehold.co/400/png",
+    description: "Job matching platform",
+  },
+  {
+    name: "Bossjob",
+    logoUrl: "https://placehold.co/400/png",
+    description: "Job matching platform",
+  },
+  {
+    name: "Bossjob",
+    logoUrl: "https://placehold.co/400/png",
+    description: "Job matching platform",
+  },
+  {
+    name: "Bossjob",
+    logoUrl: "https://placehold.co/400/png",
+    description: "Job matching platform",
+  },
+  {
+    name: "Bossjob",
+    logoUrl: "https://placehold.co/400/png",
+    description: "Job matching platform",
+  },
+  {
+    name: "Bossjob",
+    logoUrl: "https://placehold.co/400/png",
+    description: "Job matching platform",
+  },
+]
 
 export default function Page() {
   const mode = process.env.NEXT_PUBLIC_MODE as WebMode
   const [animateHover, setAnimateHover] = useState(false)
   const carouselRef = useRef<HTMLDivElement | null>(null)
-  const [companies, setCompanies] = useState<CompanyPartner[]>([])
+  const [companies, setCompanies] = useState<CompanyPartner[]>(IndustryPartners)
   const [logos, setLogos] = useState<Logo[]>([
     {
       node: (
@@ -276,22 +273,22 @@ export default function Page() {
     })
   }, [])
 
-  useEffect(() => {
-    getCollectionData("companies").then((res) => {
-      const data = Array.isArray(res?.data) ? res.data : []
-      const fetchedCompanies = data.map((item: CompanyPartner) => ({
-        _id: item._id,
-        imageUrl: item.imageUrl,
-        logoUrl: item.logoUrl,
-        name: item.name,
-        description: item.description,
-        socialLinks: Array.isArray(item.socialLinks) ? item.socialLinks : [],
-        companyEmail: item.companyEmail,
-      }))
+  // useEffect(() => {
+  //   getCollectionData("companies").then((res) => {
+  //     const data = Array.isArray(res?.data) ? res.data : []
+  //     const fetchedCompanies = data.map((item: CompanyPartner) => ({
+  //       _id: item._id,
+  //       imageUrl: item.imageUrl,
+  //       logoUrl: item.logoUrl,
+  //       name: item.name,
+  //       description: item.description,
+  //       socialLinks: Array.isArray(item.socialLinks) ? item.socialLinks : [],
+  //       companyEmail: item.companyEmail,
+  //     }))
 
-      setCompanies(fetchedCompanies)
-    })
-  }, [])
+  //     setCompanies(fetchedCompanies)
+  //   })
+  // }, [])
 
   // keep the carousel edge-to-edge without extra start/end spacing
   useEffect(() => {
@@ -302,7 +299,10 @@ export default function Page() {
 
     const compute = () => {
       // detect breakpoint change
-      const isLg = typeof window !== "undefined" && window.matchMedia && window.matchMedia("(min-width:1028px)").matches
+      const isLg =
+        typeof window !== "undefined" &&
+        window.matchMedia &&
+        window.matchMedia("(min-width:1028px)").matches
       if (lastIsLgRef.current === null) lastIsLgRef.current = isLg
       if (lastIsLgRef.current !== isLg) {
         lastIsLgRef.current = isLg
@@ -311,13 +311,20 @@ export default function Page() {
 
       // perform initial scroll: 2nd item on lg, 1st on smaller
       if (!initialScrolledRef.current) {
-        const items = Array.from(el.querySelectorAll<HTMLElement>(".snap-center"))
+        const items = Array.from(
+          el.querySelectorAll<HTMLElement>(".snap-center")
+        )
         if (items.length) {
           const desiredIndex = isLg ? 1 : 0
           const index = Math.min(desiredIndex, items.length - 1)
           const targetItem = items[index]
-          const target = targetItem.offsetLeft - (el.clientWidth - targetItem.offsetWidth) / 2
-          el.scrollTo({ left: Math.max(0, Math.round(target)), behavior: "smooth" })
+          const target =
+            targetItem.offsetLeft -
+            (el.clientWidth - targetItem.offsetWidth) / 2
+          el.scrollTo({
+            left: Math.max(0, Math.round(target)),
+            behavior: "smooth",
+          })
         }
         initialScrolledRef.current = true
       }
@@ -350,8 +357,12 @@ export default function Page() {
           }
         }
         if (closest) {
-          const target = closest.offsetLeft - (el.clientWidth - closest.offsetWidth) / 2
-          el.scrollTo({ left: Math.max(0, Math.round(target)), behavior: "smooth" })
+          const target =
+            closest.offsetLeft - (el.clientWidth - closest.offsetWidth) / 2
+          el.scrollTo({
+            left: Math.max(0, Math.round(target)),
+            behavior: "smooth",
+          })
         }
       }, 120)
     }
@@ -366,19 +377,42 @@ export default function Page() {
     <div className="max-w-svw overflow-hidden">
       <style jsx>{`
         .career-carousel {
-          scrollbar-color: rgba(255,255,255,0.12) transparent;
+          scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
           scrollbar-width: thin;
           scroll-behavior: smooth;
         }
-        .career-carousel::-webkit-scrollbar { height: 10px; }
-        .career-carousel::-webkit-scrollbar-track { background: transparent; }
+        .career-carousel::-webkit-scrollbar {
+          height: 10px;
+        }
+        .career-carousel::-webkit-scrollbar-track {
+          background: transparent;
+        }
         .career-carousel::-webkit-scrollbar-thumb {
-          background: rgba(255,255,255,0.12);
+          background: rgba(255, 255, 255, 0.12);
           border-radius: 9999px;
-          border: 2px solid rgba(0,0,0,0.12);
+          border: 2px solid rgba(0, 0, 0, 0.12);
         }
         .career-carousel::-webkit-scrollbar-thumb:hover {
-          background: rgba(255,255,255,0.22);
+          background: rgba(255, 255, 255, 0.22);
+        }
+        .partner-carousel {
+          scrollbar-color: rgba(255, 255, 255, 0.12) transparent;
+          scrollbar-width: thin;
+          scroll-behavior: smooth;
+        }
+        .partner-carousel::-webkit-scrollbar {
+          height: 10px;
+        }
+        .partner-carousel::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .partner-carousel::-webkit-scrollbar-thumb {
+          background: rgba(255, 255, 255, 0.12);
+          border-radius: 9999px;
+          border: 2px solid rgba(0, 0, 0, 0.12);
+        }
+        .partner-carousel::-webkit-scrollbar-thumb:hover {
+          background: rgba(255, 255, 255, 0.22);
         }
       `}</style>
       {/* HERO */}
@@ -577,9 +611,9 @@ export default function Page() {
             </div>
           </div>
 
-          <div className="lg:hidden">
+          {/* <div className="lg:hidden">
             <DividerComponent />
-          </div>
+          </div> */}
 
           <EventScheduleComponent />
         </div>
@@ -648,16 +682,13 @@ export default function Page() {
       </section>
 
       {/* CAREER SESSIONS */}
-      <section className="relative z-10 max-w-7xl mx-auto overflow-visible  my-8 flex flex-col gap-3">
-        <div
-          className={`flex w-full items-center justify-between flex-col`}
-        >
+      <section className="relative z-10 mx-auto my-8 flex max-w-7xl flex-col gap-3 overflow-visible">
+        <div className={`flex w-full flex-col items-center justify-between`}>
           <h2
             className={`text-center tracking-[0.3rem] uppercase ${sora.className} lg:text-2xl`}
           >
             Career Sessions
           </h2>
-          
         </div>
         <p
           className={`mr-5 text-center text-sm leading-snug tracking-[0.15rem] text-white/80 ${sora.className}`}
@@ -667,7 +698,7 @@ export default function Page() {
         </p>
         <div
           ref={carouselRef}
-          className="career-carousel mt-8 flex w-full flex-row items-center gap-4 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-4 overflow-y-hidden"
+          className="career-carousel mt-8 flex w-full snap-x snap-mandatory flex-row items-center gap-4 overflow-x-auto overflow-y-hidden scroll-smooth pb-4"
           style={{ touchAction: "pan-x" }}
           role="region"
           aria-label="Career sessions carousel"
@@ -678,7 +709,7 @@ export default function Page() {
             CareerSessions.map((session, index) => (
               <div
                 key={index}
-                className="snap-center snap-always shrink-0 w-sm flex flex-row overflow-hidden rounded-lg border border-white/40 bg-linear-to-r from-[#7B4DFF]/22 to-[#7B4DFF]/0 text-sm"
+                className="flex w-sm shrink-0 snap-center snap-always flex-row overflow-hidden rounded-lg border border-white/40 bg-linear-to-r from-[#7B4DFF]/22 to-[#7B4DFF]/0 text-sm"
               >
                 <Image
                   src={`${session?.imageUrl}`}
@@ -706,46 +737,43 @@ export default function Page() {
           )}
         </div>
         {mode === "production" && (
-            <Link
-              href={"/career"}
-              className="flex h-fit flex-row items-center gap-2 ml-auto mr-4 text-white/60 transition-all duration-300 hover:text-white"
-            >
-              <div className="flex flex-row items-center text-sm">
-                View All <ChevronRight className="size-5" />
-              </div>
-            </Link>
-          )}
+          <Link
+            href={"/career"}
+            className="mr-4 ml-auto flex h-fit flex-row items-center gap-2 text-white/60 transition-all duration-300 hover:text-white"
+          >
+            <div className="flex flex-row items-center text-sm">
+              View All <ChevronRight className="size-5" />
+            </div>
+          </Link>
+        )}
       </section>
 
-      <div className="relative w-full h-1">
+      <div className="relative h-1 w-full">
         <div className="absolute top-1/2 left-1/2 h-150 w-[calc(100vw+30%)] -translate-1/2 rounded-[50%] bg-[#BCA4FF]/30 blur-[200px]" />
-        <Image 
+        <Image
           src={"/images/starPurple.png"}
           alt="Hero Star Bottom"
           width={400}
           height={400}
-          className="absolute -top-50 -left-40 z-1 animate-spin blur-2xl animate-duration-150000 animate-infinite opacity-50"
+          className="absolute -top-50 -left-40 z-1 animate-spin opacity-50 blur-2xl animate-duration-150000 animate-infinite"
         />
-        <Image 
+        <Image
           src={"/images/starPurple.png"}
           alt="Hero Star Bottom"
           width={400}
           height={400}
-          className="absolute -top-50 -right-40 z-1 animate-spin blur-2xl animate-duration-150000 animate-infinite opacity-50"
+          className="absolute -top-50 -right-40 z-1 animate-spin opacity-50 blur-2xl animate-duration-150000 animate-infinite"
         />
       </div>
 
       {/* INDUSTRY PARTNERS */}
-      <div className="relative my-8 flex flex-col items-center gap-3 z-10 max-w-7xl mx-auto">
-        <div
-          className={`flex w-full items-center justify-between flex-col`}
-        >
+      <div className="relative z-10 mx-auto my-8 flex max-w-7xl flex-col items-center gap-3">
+        <div className={`flex w-full flex-col items-center justify-between`}>
           <h2
             className={`text-center tracking-[0.3rem] uppercase ${sora.className} lg:text-2xl`}
           >
             Industry Partners
           </h2>
-          
         </div>
         <p
           className={`mr-5 text-sm leading-snug tracking-[0.15rem] text-white/80 ${sora.className} text-center`}
@@ -755,13 +783,13 @@ export default function Page() {
         {mode === "registration" ? (
           <p className="mt-8 text-left tracking-[0.3rem]">COMING SOON</p>
         ) : (
-          <div className="w-full snap-x snap-mandatory overflow-x-auto scroll-smooth pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            <div className="grid auto-cols-[minmax(14rem,14rem)] grid-flow-col grid-rows-2 gap-2 px-2">
+          <div className="partner-carousel w-full snap-x snap-mandatory overflow-x-auto overflow-y-hidden scroll-smooth pb-4">
+            <div className="grid auto-cols-[minmax(16rem,16rem)] grid-flow-col grid-rows-2 gap-4 px-2">
               {companies.length ? (
                 companies.map((partner, index) => (
                   <div
                     key={partner._id || `${partner.name}-${index}`}
-                    className="flex h-full snap-center flex-col rounded-2xl border border-white/40 bg-linear-to-r from-[#7B4DFF]/22 to-[#7B4DFF]/0 p-3"
+                    className="flex h-full snap-center flex-col gap-1 rounded-2xl border border-white/40 bg-linear-to-r from-[#7B4DFF]/22 to-[#7B4DFF]/0 p-3"
                   >
                     <Image
                       src={
@@ -772,12 +800,12 @@ export default function Page() {
                       alt={partner.name || "Company logo"}
                       width={200}
                       height={100}
-                      className="aspect-square h-12 w-fit rounded-lg object-contain opacity-80"
+                      className="aspect-square h-16 w-fit rounded-lg object-contain opacity-80"
                     />
-                    <p className="mt-1 text-sm font-semibold tracking-widest text-white/80">
+                    <p className="font-semibold tracking-widest text-white/80">
                       {partner.name || "Unnamed Company"}
                     </p>
-                    <p className="mt-1 text-xs font-light tracking-widest text-white/50">
+                    <p className="mb-3 text-sm font-light tracking-widest text-white/50">
                       {partner.description || "No description available"}
                     </p>
                   </div>
@@ -791,28 +819,25 @@ export default function Page() {
           </div>
         )}
         {mode === "production" && (
-            <Link
-              href={"/partners"}
-              className="flex h-fit ml-auto mr-4 flex-row items-center gap-2 text-white/60 transition-all duration-300 hover:text-white"
-            >
-              <div className="flex flex-row items-center text-sm">
-                View All <ChevronRight className="size-5" />
-              </div>
-            </Link>
-          )}
-      </div>
-
-      <div className="mx-8">
-        <DividerComponent />
+          <Link
+            href={"/partners"}
+            className="mr-4 ml-auto flex h-fit flex-row items-center gap-2 text-white/60 transition-all duration-300 hover:text-white"
+          >
+            <div className="flex flex-row items-center text-sm">
+              View All <ChevronRight className="size-5" />
+            </div>
+          </Link>
+        )}
       </div>
 
       {/* NAVIGATE */}
-      <div className="mx-8 my-8 flex flex-col gap-3">
-        <h1 className="text-center text-lg font-thin tracking-[0.2rem]">
+      <div className="relative mx-8 my-8 flex flex-col gap-3">
+        <div className="absolute top-1/2 left-1/2 z-10 h-[calc(140%)] w-[calc(100vw+30%)] -translate-1/2 rounded-[50%] bg-[#BCA4FF]/20 blur-[100px]" />
+        <h1 className="text-center text-lg font-thin tracking-[0.2rem] lg:text-2xl">
           NAVIGATE
         </h1>
-        <EventMapComponent />
-        {/* <div className="aspect-square rounded-xl border border-white/40 bg-linear-to-r from-[#7B4DFF]/22"></div> */}
+        {/* <EventMapComponent /> */}
+        <div className="aspect-video rounded-xl max-w-200 w-full mx-auto border border-white/40 bg-linear-to-r from-[#7B4DFF]/22"></div>
       </div>
 
       <div className="mx-8">
@@ -821,14 +846,14 @@ export default function Page() {
 
       {/* EVENT MISSIONS */}
       <div className="mx-8 my-8 flex flex-col gap-3">
-        <h1 className="text-center text-lg font-thin tracking-[0.2rem]">
+        <h1 className="text-center text-lg font-thin tracking-[0.2rem] lg:text-2xl">
           EVENT MISSIONS
         </h1>
         {mode === "registration" ? (
           <p className="mt-8 text-center tracking-[0.3rem]">COMING SOON</p>
         ) : (
           <>
-            <div className="mx-6 flex flex-col gap-3">
+            <div className="mx-6 flex flex-col gap-10">
               <div className="mt-4 flex flex-row items-center gap-4">
                 <div className="size-6 shrink-0 rounded-full border border-white/40 bg-[#6598F3]/20" />
                 <p className="tracking-[0.2rem]">Connect with 10 Companies</p>
@@ -849,7 +874,7 @@ export default function Page() {
 
             <Link
               href={"/missions"}
-              className="mx-auto mt-4 flex cursor-pointer flex-row items-center justify-center gap-2 rounded-full border border-white/80 bg-linear-to-t from-white/10 to-white/0 to-30% px-14 py-1 text-lg text-white transition-all duration-300 hover:bg-linear-to-t hover:to-50%"
+              className="ml-auto mt-4 flex cursor-pointer flex-row items-center justify-center gap-2 rounded-full border border-white/80 bg-linear-to-t from-white/10 to-white/0 to-30% px-14 py-1 text-lg text-white transition-all duration-300 hover:bg-linear-to-t hover:to-50%"
             >
               View Missions
             </Link>

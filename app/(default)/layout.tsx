@@ -16,6 +16,7 @@ export default function RootLayout({
         <Header />
         <div className="grow flex flex-col w-full max-w-svw overflow-hidden items-center">{children}</div>
         <Footer />
+        <div className="z-10 w-full overflow-visible"></div>
         <Toaster />
       </div>
     </>

@@ -482,45 +482,45 @@ export default function Page() {
 
             <div className="relative h-lvh w-screen animate-pulse animate-duration-4000 animate-ease-in-out animate-infinite">
               <motion.div
-                initial={{ opacity: 0, scale: 0 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.6, ease: "easeOut", delay: 1 }}
-                className="absolute top-65 left-10 z-10"
+                initial={{ opacity: 0, scale: 0, y: -200 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ duration: 1.6, ease: "easeOut", delay: 0.8 }}
+                className="absolute top-65 left-10 z-10 lg:left-20 2xl:top-70 2xl:left-40"
               >
                 <Image
                   src={"/images/HeroStarTopLeft.png"}
                   alt={"Hero Star Top Left"}
                   width={45}
                   height={45}
-                  className="rotate-15 animate-spin animate-duration-8000 animate-infinite"
+                  className="rotate-15 animate-spin animate-duration-8000 animate-infinite lg:size-20"
                 />
               </motion.div>
               <motion.div
-                initial={{ opacity: 0, scale: 0 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.6, ease: "easeOut", delay: 1 }}
-                className="absolute top-35 right-10"
+                initial={{ opacity: 0, scale: 0, y: -200 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ duration: 1.6, ease: "easeOut", delay: 0.8 }}
+                className="absolute top-35 right-10 lg:right-30 2xl:right-40 2xl:top-40"
               >
                 <Image
                   src={"/images/HeroStarTopRight.png"}
                   alt={"Hero Star Top Right"}
                   width={40}
                   height={40}
-                  className="rotate-30 animate-spin animate-duration-8000 animate-infinite"
+                  className="rotate-30 animate-spin animate-duration-25000 animate-infinite lg:size-40"
                 />
               </motion.div>
               <motion.div
-                initial={{ opacity: 0, scale: 0 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.6, ease: "easeOut", delay: 1 }}
-                className="absolute bottom-25 left-15"
+                initial={{ opacity: 0, scale: 0, y: 200 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ duration: 1.6, ease: "easeOut", delay: 0.8 }}
+                className="absolute bottom-25 left-15 lg:bottom-25 lg:left-20 2xl:bottom-30 2xl:left-80"
               >
                 <Image
                   src={"/images/HeroStarBottom.png"}
                   alt={"Hero Star Bottom"}
                   width={60}
                   height={60}
-                  className="animate-spin animate-duration-8000 animate-infinite"
+                  className="animate-spin animate-duration-100000 animate-reverse animate-infinite lg:size-60"
                 />
               </motion.div>
             </div>
@@ -621,7 +621,7 @@ export default function Page() {
 
       {/* COUNTDOWN */}
       <section className="relative flex flex-col items-center justify-center py-42 text-center">
-        <div className="absolute top-1/2 left-1/2 z-1 h-80 w-[calc(50vw)] -translate-1/2 rounded-[50%] bg-linear-to-b from-[#FFC5DD] to-[#680F34] opacity-40 blur-[100px]" />
+        <div className="absolute top-1/2 left-1/2 z-1 h-120 w-[calc(80vw)] -translate-1/2 rounded-[50%] bg-linear-to-b from-[#FFC5DD] to-[#680F34] opacity-40 blur-[120px]" />
         <div className="absolute top-1/2 left-1/2 h-220 w-[calc(100vw)] -translate-1/2 rounded-[50%] bg-linear-to-b from-[#BCA4FF] to-[#05091D] opacity-30 blur-[100px]" />
         <Image
           src={"/images/starPink.png"}
@@ -639,7 +639,7 @@ export default function Page() {
         />
         <div className="relative z-10 container flex flex-col items-center px-4">
           <div className="mb-8 text-center">
-            <h2 className="text-2xl font-light tracking-[0.2rem] text-white">
+            <h2 className="text-2xl font-light tracking-[0.2rem] text-white lg:text-3xl 2xl:text-4xl">
               Aligning success, launching careers
             </h2>
           </div>
@@ -682,7 +682,7 @@ export default function Page() {
       </section>
 
       {/* CAREER SESSIONS */}
-      <section className="relative z-10 mx-auto my-8 flex max-w-7xl flex-col gap-3 overflow-visible">
+      <section className="relative z-10 mx-auto my-8 flex max-w-6xl flex-col gap-3 overflow-visible">
         <div className={`flex w-full flex-col items-center justify-between`}>
           <h2
             className={`text-center tracking-[0.3rem] uppercase ${sora.className} lg:text-2xl`}
@@ -709,7 +709,7 @@ export default function Page() {
             CareerSessions.map((session, index) => (
               <div
                 key={index}
-                className="flex w-sm shrink-0 snap-center snap-always flex-row overflow-hidden rounded-lg border border-white/40 bg-linear-to-r from-[#7B4DFF]/22 to-[#7B4DFF]/0 text-sm"
+                className="flex w-sm shrink-0 snap-center snap-always flex-row overflow-hidden rounded-lg border border-white/40 bg-linear-to-r from-[#7B4DFF]/22 to-[#7B4DFF]/0 text-sm ml-2"
               >
                 <Image
                   src={`${session?.imageUrl}`}
@@ -767,7 +767,7 @@ export default function Page() {
       </div>
 
       {/* INDUSTRY PARTNERS */}
-      <div className="relative z-10 mx-auto my-8 flex max-w-7xl flex-col items-center gap-3">
+      <div className="relative z-10 mx-auto my-8 flex max-w-6xl flex-col items-center gap-3">
         <div className={`flex w-full flex-col items-center justify-between`}>
           <h2
             className={`text-center tracking-[0.3rem] uppercase ${sora.className} lg:text-2xl`}
@@ -840,12 +840,8 @@ export default function Page() {
         <div className="aspect-video rounded-xl max-w-200 w-full mx-auto border border-white/40 bg-linear-to-r from-[#7B4DFF]/22"></div>
       </div>
 
-      <div className="mx-8">
-        <DividerComponent />
-      </div>
-
       {/* EVENT MISSIONS */}
-      <div className="mx-8 my-8 flex flex-col gap-3">
+      <div className="my-8 flex flex-col gap-3 max-w-5xl mx-auto">
         <h1 className="text-center text-lg font-thin tracking-[0.2rem] lg:text-2xl">
           EVENT MISSIONS
         </h1>

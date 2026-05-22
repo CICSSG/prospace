@@ -14,39 +14,148 @@ import {
   UserButton,
 } from "@clerk/nextjs"
 import { useState } from "react"
+import { usePathname } from "next/navigation"
 import { WebMode } from "@/app/types"
 import { sora } from "@/components/prospace/fonts"
 
 export default function Header() {
   const mode = process.env.NEXT_PUBLIC_MODE as WebMode
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const pathname = usePathname()
+
+  const isActive = (href: string) => {
+    if (!pathname) return false
+    if (href === "/") return pathname === "/"
+    return pathname.startsWith(href)
+  }
 
   return (
     <>
-      <div className="fixed top-5 z-20 flex w-full items-center justify-center px-5 text-lg">
-        <button className="mr-auto" onClick={() => setIsMenuOpen(true)}>
+      <div className="fixed top-5 z-20 flex w-full items-center justify-center px-5 text-lg lg:justify-around">
+        <button
+          className="mr-auto lg:hidden"
+          onClick={() => setIsMenuOpen(true)}
+        >
           <Menu size={36} />
         </button>
+        <Link href={"/"}>
+          <Image
+            src={"/images/ProspaceMinimalLogo.png"}
+            alt="ProSpace Logo"
+            width={80}
+            height={80}
+            className="hidden lg:block"
+          />
+        </Link>
 
-        <div className="flex flex-row items-center gap-2">
+        <div className="hidden lg:flex flex-row gap-2 xl:gap-4">
+          <Link
+            href="/"
+            className={`block h-fit rounded-full px-6 py-1 ${isActive("/") ? "bg-linear-to-b to-primary/50 outline outline-white/60" : "hover:outline hover:outline-white/60"}`}
+            onClick={() => setIsMenuOpen(false)}
+          >
+            Home
+          </Link>
+          {mode === "production" && (
+            <>
+              <Link
+                href="/about"
+                className={`block h-fit rounded-full px-6 py-1 ${isActive("/about") ? "bg-linear-to-b to-primary/50 outline outline-white/60" : "hover:outline hover:outline-white/60"}`}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                About
+              </Link>
+              <Link
+                href="/job-fair"
+                className={`block h-fit rounded-full px-6 py-1 ${isActive("/job-fair") ? "bg-linear-to-b to-primary/50 outline outline-white/60" : "hover:outline hover:outline-white/60"}`}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Job Fair
+              </Link>
+              <Link
+                href="/sessions"
+                className={`block h-fit rounded-full px-6 py-1 ${isActive("/sessions") ? "bg-linear-to-b to-primary/50 outline outline-white/60" : "hover:outline hover:outline-white/60"}`}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Sessions
+              </Link>
+              <Link
+                href="/apply"
+                className={`block h-fit rounded-full px-6 py-1 ${isActive("/apply") ? "bg-linear-to-b to-primary/50 outline outline-white/60" : "hover:outline hover:outline-white/60"}`}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Apply
+              </Link>
+            </>
+          )}
+          <Show when="signed-in">
+            <Link
+              href="/profile"
+              className={`block py-2 ${isActive("/profile") ? "font-semibold text-primary" : ""}`}
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Profile
+            </Link>
+            <Link
+              href="/connect"
+              className={`block py-2 ${isActive("/connect") ? "font-semibold text-primary" : ""}`}
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Connect
+            </Link>
+            {/* <Link
+                      href={"/missions"}                      
+                      className="block py-2"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Missions
+                    </Link> */}
+          </Show>
+        </div>
+
+        <div className="flex flex-row items-center gap-4">
           <Show when="signed-out">
             {mode === "production" ? (
-              <GlassSurface
-                displace={4}
-                distortionScale={-20}
-                redOffset={3}
-                greenOffset={3}
-                blueOffset={3}
-                brightness={50}
-                opacity={0.1}
-                mixBlendMode="screen"
-                width={120}
-                height={40}
-                borderRadius={50}
-                blur={10}
-              >
-                Sign In
-              </GlassSurface>
+              <>
+                <Link href={"/signin"}>
+                  <GlassSurface
+                    displace={4}
+                    distortionScale={-20}
+                    redOffset={3}
+                    greenOffset={3}
+                    blueOffset={3}
+                    brightness={50}
+                    opacity={0.1}
+                    mixBlendMode="screen"
+                    width={120}
+                    height={40}
+                    borderRadius={50}
+                    blur={10}
+                    className="cursor-pointer  p-0 *:p-0"
+                  >
+                    <span className="hover:bg-[#FF5FA2]/20 transition-colors w-[calc(400%)] h-full text-center flex flex-row items-center justify-center">Sign In</span>
+                  </GlassSurface>
+                </Link>
+                <Link href={"/signup"} className="hidden lg:block">
+                  <GlassSurface
+                    displace={4}
+                    distortionScale={-20}
+                    redOffset={3}
+                    greenOffset={3}
+                    blueOffset={3}
+                    brightness={50}
+                    opacity={0.1}
+                    mixBlendMode="screen"
+                    width={120}
+                    height={40}
+                    borderRadius={50}
+                    blur={10}
+                    className="cursor-pointer p-0 *:p-0"
+                  >
+                   <span className="bg-[#FF5FA2]/20 hover:bg-[#FF5FA2]/40 transition-colors w-[calc(400%)] h-full text-center flex flex-row items-center justify-center">Sign Up</span>
+                  </GlassSurface>
+                </Link>
+              </>
             ) : (
               <Link href={"/signup"}>
                 <GlassSurface
@@ -86,6 +195,7 @@ export default function Header() {
             alt="ProSpace Logo"
             width={50}
             height={50}
+            className="lg:hidden"
           />
         </div>
       </div>
@@ -124,8 +234,8 @@ export default function Header() {
 
                 <div className="flex grow flex-col gap-2">
                   <Link
-                    href={"/"}
-                    className="block py-2"
+                    href="/"
+                    className={`block py-2 ${isActive("/") ? "font-semibold text-primary" : ""}`}
                     onClick={() => setIsMenuOpen(false)}
                   >
                     Home
@@ -133,29 +243,29 @@ export default function Header() {
                   {mode === "production" && (
                     <>
                       <Link
-                        href={"/about"}
-                        className="block py-2"
+                        href="/about"
+                        className={`block py-2 ${isActive("/about") ? "font-semibold text-primary" : ""}`}
                         onClick={() => setIsMenuOpen(false)}
                       >
                         About
                       </Link>
                       <Link
-                        href={"/job-fair"}
-                        className="block py-2"
+                        href="/job-fair"
+                        className={`block py-2 ${isActive("/job-fair") ? "font-semibold text-primary" : ""}`}
                         onClick={() => setIsMenuOpen(false)}
                       >
                         Job Fair
                       </Link>
                       <Link
-                        href={"/sessions"}
-                        className="block py-2"
+                        href="/sessions"
+                        className={`block py-2 ${isActive("/sessions") ? "font-semibold text-primary" : ""}`}
                         onClick={() => setIsMenuOpen(false)}
                       >
                         Sessions
                       </Link>
                       <Link
-                        href={"/apply"}
-                        className="block py-2"
+                        href="/apply"
+                        className={`block py-2 ${isActive("/apply") ? "font-semibold text-primary" : ""}`}
                         onClick={() => setIsMenuOpen(false)}
                       >
                         Apply
@@ -164,15 +274,15 @@ export default function Header() {
                   )}
                   <Show when="signed-in">
                     <Link
-                      href={"/profile"}
-                      className="block py-2"
+                      href="/profile"
+                      className={`block py-2 ${isActive("/profile") ? "font-semibold text-primary" : ""}`}
                       onClick={() => setIsMenuOpen(false)}
                     >
                       Profile
                     </Link>
                     <Link
-                      href={"/connect"}
-                      className="block py-2"
+                      href="/connect"
+                      className={`block py-2 ${isActive("/connect") ? "font-semibold text-primary" : ""}`}
                       onClick={() => setIsMenuOpen(false)}
                     >
                       Connect

@@ -1,28 +1,16 @@
 "use client"
 import { motion } from "framer-motion"
-import Grainient from "@/components/Grainient"
 import LogoLoop from "@/components/logoloop"
-import { Button } from "@/components/ui/button"
-import { ArrowRight, Award, Badge, ChevronRight } from "lucide-react"
+import { ChevronRight } from "lucide-react"
 import Image from "next/image"
 import { useEffect, useState, useRef } from "react"
 import { getCollectionData } from "../admin/actions"
 import CountdownTimer from "@/components/countdown"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import { moscaLaroke, sora } from "@/components/prospace/fonts"
+import { sora } from "@/components/prospace/fonts"
 import Link from "next/link"
 import { Show } from "@clerk/nextjs"
 import { WebMode } from "../types"
 import ColorBends from "@/components/ColorBends"
-import DividerComponent from "@/components/divider"
-import { div } from "three/src/nodes/math/OperatorNode.js"
 import EventScheduleComponent from "@/components/prospace/event-schedule"
 import EventMapComponent from "@/components/prospace/event-map"
 
@@ -32,16 +20,18 @@ type Logo = {
   href: string
 }
 
-type CompanyPartner = {
+export type CompanyPartner = {
   _id?: string
-  imageUrl?: string
-  logoUrl?: string
-  name?: string
+  imageUrl: string
+  logoUrl: string
+  name: string
   description?: string
   socialLinks?: Array<{
     platform?: string
     url?: string
   }>
+  platform?: string
+  link?: string
   companyEmail?: string
 }
 
@@ -235,7 +225,7 @@ export default function Page() {
   const mode = process.env.NEXT_PUBLIC_MODE as WebMode
   const [animateHover, setAnimateHover] = useState(false)
   const carouselRef = useRef<HTMLDivElement | null>(null)
-  const [companies, setCompanies] = useState<CompanyPartner[]>(IndustryPartners)
+  const [companies, setCompanies] = useState<CompanyPartner[]>([])
   const [logos, setLogos] = useState<Logo[]>([
     {
       node: (
@@ -273,22 +263,22 @@ export default function Page() {
     })
   }, [])
 
-  // useEffect(() => {
-  //   getCollectionData("companies").then((res) => {
-  //     const data = Array.isArray(res?.data) ? res.data : []
-  //     const fetchedCompanies = data.map((item: CompanyPartner) => ({
-  //       _id: item._id,
-  //       imageUrl: item.imageUrl,
-  //       logoUrl: item.logoUrl,
-  //       name: item.name,
-  //       description: item.description,
-  //       socialLinks: Array.isArray(item.socialLinks) ? item.socialLinks : [],
-  //       companyEmail: item.companyEmail,
-  //     }))
+  useEffect(() => {
+    getCollectionData("companies").then((res) => {
+      const data = Array.isArray(res?.data) ? res.data : []
+      const fetchedCompanies = data.map((item: CompanyPartner) => ({
+        _id: item._id,
+        imageUrl: item.imageUrl,
+        logoUrl: item.logoUrl,
+        name: item.name,
+        description: item.description,
+        socialLinks: Array.isArray(item.socialLinks) ? item.socialLinks : [],
+        companyEmail: item.companyEmail,
+      }))
 
-  //     setCompanies(fetchedCompanies)
-  //   })
-  // }, [])
+      setCompanies(fetchedCompanies)
+    })
+  }, [])
 
   // keep the carousel edge-to-edge without extra start/end spacing
   useEffect(() => {
@@ -499,7 +489,7 @@ export default function Page() {
                 initial={{ opacity: 0, scale: 0, y: -200 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 transition={{ duration: 1.6, ease: "easeOut", delay: 0.8 }}
-                className="absolute top-35 right-10 lg:right-30 2xl:right-40 2xl:top-40"
+                className="absolute top-35 right-10 lg:right-30 2xl:top-40 2xl:right-40"
               >
                 <Image
                   src={"/images/HeroStarTopRight.png"}
@@ -520,7 +510,7 @@ export default function Page() {
                   alt={"Hero Star Bottom"}
                   width={60}
                   height={60}
-                  className="animate-spin animate-duration-100000 animate-reverse animate-infinite lg:size-60"
+                  className="animate-spin animate-duration-100000 animate-infinite animate-reverse lg:size-60"
                 />
               </motion.div>
             </div>
@@ -703,49 +693,43 @@ export default function Page() {
           role="region"
           aria-label="Career sessions carousel"
         >
-          {mode === "registration" ? (
-            <p className="mt-8 text-center tracking-[0.3rem]">COMING SOON</p>
-          ) : (
-            CareerSessions.map((session, index) => (
-              <div
-                key={index}
-                className="flex w-sm shrink-0 snap-center snap-always flex-row overflow-hidden rounded-lg border border-white/40 bg-linear-to-r from-[#7B4DFF]/22 to-[#7B4DFF]/0 text-sm ml-2"
-              >
-                <Image
-                  src={`${session?.imageUrl}`}
-                  alt="Career Session"
-                  width={100}
-                  height={300}
-                  className="border-r object-cover opacity-30"
-                />
-                <div className="col-span-2 flex flex-col gap-2 p-2 leading-[1.1em]">
-                  <h1 className="text-xs leading-[1.1em] tracking-widest">
-                    {session?.title}
-                  </h1>
-                  <div className="mt-1 flex flex-col gap-1">
-                    <p className="text-[0.65rem] leading-0 font-thin tracking-widest">
-                      {session?.time}
-                    </p>
-                    <p className="text-[0.65rem] font-thin">{session?.date}</p>
-                  </div>
-                  <div className="w-fit rounded-full border border-white/40 px-6 py-0.5 text-[0.65rem] font-thin">
-                    {session?.tag}
-                  </div>
+          {CareerSessions.map((session, index) => (
+            <div
+              key={index}
+              className="ml-2 flex w-sm shrink-0 snap-center snap-always flex-row overflow-hidden rounded-lg border border-white/40 bg-linear-to-r from-[#7B4DFF]/22 to-[#7B4DFF]/0 text-sm"
+            >
+              <Image
+                src={`${session?.imageUrl}`}
+                alt="Career Session"
+                width={100}
+                height={300}
+                className="border-r object-cover opacity-30"
+              />
+              <div className="col-span-2 flex flex-col gap-2 p-2 leading-[1.1em]">
+                <h1 className="text-xs leading-[1.1em] tracking-widest">
+                  {session?.title}
+                </h1>
+                <div className="mt-1 flex flex-col gap-1">
+                  <p className="text-[0.65rem] leading-0 font-thin tracking-widest">
+                    {session?.time}
+                  </p>
+                  <p className="text-[0.65rem] font-thin">{session?.date}</p>
+                </div>
+                <div className="w-fit rounded-full border border-white/40 px-6 py-0.5 text-[0.65rem] font-thin">
+                  {session?.tag}
                 </div>
               </div>
-            ))
-          )}
-        </div>
-        {mode === "production" && (
-          <Link
-            href={"/career"}
-            className="mr-4 ml-auto flex h-fit flex-row items-center gap-2 text-white/60 transition-all duration-300 hover:text-white"
-          >
-            <div className="flex flex-row items-center text-sm">
-              View All <ChevronRight className="size-5" />
             </div>
-          </Link>
-        )}
+          ))}
+        </div>
+        <Link
+          href={"/sessions"}
+          className="mr-4 ml-auto flex h-fit flex-row items-center gap-2 text-white/60 transition-all duration-300 hover:text-white"
+        >
+          <div className="flex flex-row items-center text-sm">
+            View All <ChevronRight className="size-5" />
+          </div>
+        </Link>
       </section>
 
       <div className="relative h-1 w-full">
@@ -780,68 +764,62 @@ export default function Page() {
         >
           Meet the organizations shaping the technology landscape.
         </p>
-        {mode === "registration" ? (
-          <p className="mt-8 text-left tracking-[0.3rem]">COMING SOON</p>
-        ) : (
-          <div className="partner-carousel w-full snap-x snap-mandatory overflow-x-auto overflow-y-hidden scroll-smooth pb-4">
-            <div className="grid auto-cols-[minmax(16rem,16rem)] grid-flow-col grid-rows-2 gap-4 px-2">
-              {companies.length ? (
-                companies.map((partner, index) => (
-                  <div
-                    key={partner._id || `${partner.name}-${index}`}
-                    className="flex h-full snap-center flex-col gap-1 rounded-2xl border border-white/40 bg-linear-to-r from-[#7B4DFF]/22 to-[#7B4DFF]/0 p-3"
-                  >
-                    <Image
-                      src={
-                        partner.logoUrl ||
-                        partner.imageUrl ||
-                        "/images/ProspaceMinimalLogo-2.png"
-                      }
-                      alt={partner.name || "Company logo"}
-                      width={200}
-                      height={100}
-                      className="aspect-square h-16 w-fit rounded-lg object-contain opacity-80"
-                    />
-                    <p className="font-semibold tracking-widest text-white/80">
-                      {partner.name || "Unnamed Company"}
-                    </p>
-                    <p className="mb-3 text-sm font-light tracking-widest text-white/50">
-                      {partner.description || "No description available"}
-                    </p>
-                  </div>
-                ))
-              ) : (
-                <div className="col-span-full row-span-3 flex min-h-40 snap-center items-center justify-center rounded-2xl border border-white/40 bg-linear-to-r from-[#7B4DFF]/22 to-[#7B4DFF]/0 px-6 text-center tracking-[0.3rem] text-white/70">
-                  LOADING COMPANIES
+        <div className="partner-carousel w-full snap-x snap-mandatory overflow-x-auto overflow-y-hidden scroll-smooth pb-4">
+          <div className="grid auto-cols-[minmax(16rem,16rem)] grid-flow-col grid-rows-2 gap-4 px-2">
+            {companies.length ? (
+              companies.map((partner, index) => (
+                <div
+                  key={partner._id || `${partner.name}-${index}`}
+                  className="flex h-full snap-center flex-col gap-1 rounded-2xl border border-white/40 bg-linear-to-r from-[#7B4DFF]/22 to-[#7B4DFF]/0 p-3"
+                >
+                  <Image
+                    src={
+                      partner.logoUrl ||
+                      partner.imageUrl ||
+                      "/images/ProspaceMinimalLogo-2.png"
+                    }
+                    alt={partner.name || "Company logo"}
+                    width={200}
+                    height={100}
+                    className="aspect-square h-16 w-fit rounded-lg object-contain opacity-80"
+                  />
+                  <p className="font-semibold tracking-widest text-white/80">
+                    {partner.name || "Unnamed Company"}
+                  </p>
+                  <p className="mb-3 text-sm font-light tracking-widest text-white/50">
+                    {partner.description || "No description available"}
+                  </p>
                 </div>
-              )}
-            </div>
+              ))
+            ) : (
+              <div className="col-span-full row-span-3 flex min-h-40 snap-center items-center justify-center rounded-2xl border border-white/40 bg-linear-to-r from-[#7B4DFF]/22 to-[#7B4DFF]/0 px-6 text-center tracking-[0.3rem] text-white/70">
+                LOADING COMPANIES
+              </div>
+            )}
           </div>
-        )}
-        {mode === "production" && (
-          <Link
-            href={"/partners"}
-            className="mr-4 ml-auto flex h-fit flex-row items-center gap-2 text-white/60 transition-all duration-300 hover:text-white"
-          >
-            <div className="flex flex-row items-center text-sm">
-              View All <ChevronRight className="size-5" />
-            </div>
-          </Link>
-        )}
+        </div>
+        <Link
+          href={"/industry-partners"}
+          className="mr-4 ml-auto flex h-fit flex-row items-center gap-2 text-white/60 transition-all duration-300 hover:text-white"
+        >
+          <div className="flex flex-row items-center text-sm">
+            View All <ChevronRight className="size-5" />
+          </div>
+        </Link>
       </div>
 
       {/* NAVIGATE */}
       <div className="relative mx-8 my-8 flex flex-col gap-3">
-        <div className="absolute top-1/2 left-1/2 z-10 h-[calc(140%)] w-[calc(100vw+30%)] -translate-1/2 rounded-[50%] bg-[#BCA4FF]/20 blur-[100px]" />
+        <div className="absolute top-1/2 left-1/2 h-[calc(140%)] w-[calc(100vw+30%)] -translate-1/2 rounded-[50%] bg-[#BCA4FF]/20 blur-[100px]" />
         <h1 className="text-center text-lg font-thin tracking-[0.2rem] lg:text-2xl">
           NAVIGATE
         </h1>
-        {/* <EventMapComponent /> */}
-        <div className="aspect-video rounded-xl max-w-200 w-full mx-auto border border-white/40 bg-linear-to-r from-[#7B4DFF]/22"></div>
+        <EventMapComponent />
+        {/* <div className="aspect-video rounded-xl max-w-200 w-full mx-auto border border-white/40 bg-linear-to-r from-[#7B4DFF]/22"></div> */}
       </div>
 
       {/* EVENT MISSIONS */}
-      <div className="my-8 flex flex-col gap-3 max-w-5xl mx-auto">
+      <div className="relative z-10 mx-auto my-8 flex max-w-5xl flex-col gap-3">
         <h1 className="text-center text-lg font-thin tracking-[0.2rem] lg:text-2xl">
           EVENT MISSIONS
         </h1>
@@ -849,7 +827,7 @@ export default function Page() {
           <p className="mt-8 text-center tracking-[0.3rem]">COMING SOON</p>
         ) : (
           <>
-            <div className="mx-6 flex flex-col gap-10">
+            <div className="mx-6 flex flex-col gap-4 lg:gap-10">
               <div className="mt-4 flex flex-row items-center gap-4">
                 <div className="size-6 shrink-0 rounded-full border border-white/40 bg-[#6598F3]/20" />
                 <p className="tracking-[0.2rem]">Connect with 10 Companies</p>
@@ -870,7 +848,7 @@ export default function Page() {
 
             <Link
               href={"/missions"}
-              className="ml-auto mt-4 flex cursor-pointer flex-row items-center justify-center gap-2 rounded-full border border-white/80 bg-linear-to-t from-white/10 to-white/0 to-30% px-14 py-1 text-lg text-white transition-all duration-300 hover:bg-linear-to-t hover:to-50%"
+              className="mt-4 mr-2 ml-auto flex cursor-pointer flex-row items-center justify-center gap-2 rounded-full border border-white/80 bg-linear-to-t from-white/10 to-white/0 to-30% px-5 py-1 text-white transition-all duration-300 hover:bg-linear-to-t hover:to-50% lg:px-14 lg:text-lg"
             >
               View Missions
             </Link>

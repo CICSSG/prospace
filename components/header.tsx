@@ -31,24 +31,23 @@ export default function Header() {
 
   return (
     <>
-      <div className="fixed top-5 z-20 flex w-full items-center justify-center px-5 text-lg lg:justify-around">
+      <div className="fixed top-5 z-20 grid w-full grid-cols-2 items-center justify-center px-5 text-lg lg:max-w-400 lg:grid-cols-5 lg:justify-around">
         <button
           className="mr-auto lg:hidden"
           onClick={() => setIsMenuOpen(true)}
         >
           <Menu size={36} />
         </button>
-        <Link href={"/"}>
+        <Link href={"/"} className="hidden lg:block">
           <Image
             src={"/images/ProspaceMinimalLogo.png"}
             alt="ProSpace Logo"
             width={80}
             height={80}
-            className="hidden lg:block"
           />
         </Link>
 
-        <div className="hidden lg:flex flex-row gap-2 xl:gap-4">
+        <div className="col-span-3 mx-auto hidden flex-row gap-2 lg:flex xl:gap-4">
           <Link
             href="/"
             className={`block h-fit rounded-full px-6 py-1 ${isActive("/") ? "bg-linear-to-b to-primary/50 outline outline-white/60" : "hover:outline hover:outline-white/60"}`}
@@ -56,38 +55,36 @@ export default function Header() {
           >
             Home
           </Link>
-          {mode === "production" && (
-            <>
-              <Link
-                href="/about"
-                className={`block h-fit rounded-full px-6 py-1 ${isActive("/about") ? "bg-linear-to-b to-primary/50 outline outline-white/60" : "hover:outline hover:outline-white/60"}`}
-                onClick={() => setIsMenuOpen(false)}
-              >
-                About
-              </Link>
-              <Link
-                href="/job-fair"
-                className={`block h-fit rounded-full px-6 py-1 ${isActive("/job-fair") ? "bg-linear-to-b to-primary/50 outline outline-white/60" : "hover:outline hover:outline-white/60"}`}
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Job Fair
-              </Link>
-              <Link
-                href="/sessions"
-                className={`block h-fit rounded-full px-6 py-1 ${isActive("/sessions") ? "bg-linear-to-b to-primary/50 outline outline-white/60" : "hover:outline hover:outline-white/60"}`}
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Sessions
-              </Link>
-              <Link
-                href="/apply"
-                className={`block h-fit rounded-full px-6 py-1 ${isActive("/apply") ? "bg-linear-to-b to-primary/50 outline outline-white/60" : "hover:outline hover:outline-white/60"}`}
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Apply
-              </Link>
-            </>
-          )}
+          <>
+            <Link
+              href="/about"
+              className={`block h-fit rounded-full px-6 py-1 ${isActive("/about") ? "bg-linear-to-b to-primary/50 outline outline-white/60" : "hover:outline hover:outline-white/60"}`}
+              onClick={() => setIsMenuOpen(false)}
+            >
+              About
+            </Link>
+            <Link
+              href="/job-fair"
+              className={`block h-fit rounded-full px-6 py-1 ${isActive("/job-fair") ? "bg-linear-to-b to-primary/50 outline outline-white/60" : "text-nowrap hover:outline hover:outline-white/60"}`}
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Job Fair
+            </Link>
+            <Link
+              href="/sessions"
+              className={`block h-fit rounded-full px-6 py-1 ${isActive("/sessions") ? "bg-linear-to-b to-primary/50 outline outline-white/60" : "hover:outline hover:outline-white/60"}`}
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Sessions
+            </Link>
+            <Link
+              href="/apply"
+              className={`block h-fit rounded-full px-6 py-1 ${isActive("/apply") ? "bg-linear-to-b to-primary/50 outline outline-white/60" : "hover:outline hover:outline-white/60"}`}
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Apply
+            </Link>
+          </>
           <Show when="signed-in">
             <Link
               href="/profile"
@@ -113,7 +110,7 @@ export default function Header() {
           </Show>
         </div>
 
-        <div className="flex flex-row items-center gap-4">
+        <div className="ml-auto flex flex-row items-center gap-4">
           <Show when="signed-out">
             {mode === "production" ? (
               <>
@@ -131,12 +128,14 @@ export default function Header() {
                     height={40}
                     borderRadius={50}
                     blur={10}
-                    className="cursor-pointer  p-0 *:p-0"
+                    className="cursor-pointer p-0 *:p-0"
                   >
-                    <span className="hover:bg-[#FF5FA2]/20 transition-colors w-[calc(400%)] h-full text-center flex flex-row items-center justify-center">Sign In</span>
+                    <span className="flex h-full w-[calc(400%)] flex-row items-center justify-center text-center transition-colors hover:bg-[#FF5FA2]/20">
+                      Sign In
+                    </span>
                   </GlassSurface>
                 </Link>
-                <Link href={"/signup"} className="hidden lg:block">
+                <Link href={"/signup"} className="hidden xl:block">
                   <GlassSurface
                     displace={4}
                     distortionScale={-20}
@@ -152,7 +151,9 @@ export default function Header() {
                     blur={10}
                     className="cursor-pointer p-0 *:p-0"
                   >
-                   <span className="bg-[#FF5FA2]/20 hover:bg-[#FF5FA2]/40 transition-colors w-[calc(400%)] h-full text-center flex flex-row items-center justify-center">Sign Up</span>
+                    <span className="flex h-full w-[calc(400%)] flex-row items-center justify-center bg-[#FF5FA2]/20 text-center transition-colors hover:bg-[#FF5FA2]/40">
+                      Sign Up
+                    </span>
                   </GlassSurface>
                 </Link>
               </>
@@ -240,8 +241,7 @@ export default function Header() {
                   >
                     Home
                   </Link>
-                  {mode === "production" && (
-                    <>
+                  <>
                       <Link
                         href="/about"
                         className={`block py-2 ${isActive("/about") ? "font-semibold text-primary" : ""}`}
@@ -271,7 +271,6 @@ export default function Header() {
                         Apply
                       </Link>
                     </>
-                  )}
                   <Show when="signed-in">
                     <Link
                       href="/profile"

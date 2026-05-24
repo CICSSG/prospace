@@ -1,9 +1,10 @@
 "use client"
 import { motion } from "framer-motion"
-import { moscaLaroke } from "@/components/prospace/fonts"
+import { moscaLaroke, sora } from "@/components/prospace/fonts"
 import { ChevronLeft, ExternalLink } from "lucide-react"
 import React from "react"
 import Image from "next/image"
+import Link from "next/link"
 
 const Sessions = () => {
   return (
@@ -49,22 +50,68 @@ const Sessions = () => {
           Explore specialized tracks designed to build your technical and
           professional identity.
         </p>
-        <div className="flex flex-row flex-wrap gap-4 items-center justify-center bg-linear-to-l to-[#7B4DFF]/22 rounded-lg border border-white/40 px-4 py-6 w-full">
+        <div className="flex w-full flex-row flex-wrap items-center justify-center gap-4 rounded-lg border border-white/40 bg-linear-to-l to-[#7B4DFF]/22 px-4 py-6">
           <div className="relative">
-            <h1 className={`text-6xl md:text-7xl font-bold ${moscaLaroke.className}`}>06</h1>
-            <h1 className={`absolute top-0 left-0 blur-xs text-6xl md:text-7xl font-bold ${moscaLaroke.className}`}>06</h1>
+            <h1
+              className={`text-6xl font-bold md:text-7xl ${moscaLaroke.className}`}
+            >
+              06
+            </h1>
+            <h1
+              className={`absolute top-0 left-0 text-6xl font-bold blur-xs md:text-7xl ${moscaLaroke.className}`}
+            >
+              06
+            </h1>
           </div>
           <div>
             <p className="font-light">JUNE • SATURDAY</p>
             <p className="font-bold">Online Career Sessions</p>
             <p className="font-light">Microsoft Teams and Facebook Live</p>
           </div>
-          <div className="bg-linear-to-b w-full text-center md:w-fit md:ml-10 to-[#7B4DFF]/22 text-white px-4 py-1 rounded-full border border-white/60">
+          <div className="w-full rounded-full border border-white/60 bg-linear-to-b to-[#7B4DFF]/22 px-4 py-1 text-center text-white md:ml-10 md:w-fit">
             Open to All
           </div>
         </div>
       </div>
 
+      <div className={`z-10 flex w-full max-w-4xl flex-col items-center gap-8`}>
+        <h1
+          className={`text-2xl md:text-3xl ${sora.className} font-light tracking-widest`}
+        >
+          SCHEDULE & LINKS
+        </h1>
+        <div className="grid w-full max-w-4xl grid-cols-2">
+          <div>
+            <p className="text-center text-xl font-light tracking-[0.3rem]">
+              SET 1
+            </p>
+            <div className="flex flex-col gap-2">
+              <p>
+                Microsoft Teams:{" "}
+                <Link
+                  href="https://teams.microsoft.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline"
+                >
+                  ProSpaceSessionSet1
+                </Link>
+              </p>
+              <p>
+                Microsoft Teams:{" "}
+                <Link
+                  href="https://teams.microsoft.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline"
+                >
+                  ProSpaceSessionSet1
+                </Link>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
       <div className="z-10 mx-auto grid w-fit gap-4 p-4 md:grid-cols-2 lg:grid-cols-3"></div>
     </div>
   )

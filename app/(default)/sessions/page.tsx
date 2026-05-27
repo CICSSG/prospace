@@ -1,7 +1,7 @@
 "use client"
 import { motion } from "framer-motion"
 import { moscaLaroke, sora } from "@/components/prospace/fonts"
-import { ChevronLeft, ExternalLink } from "lucide-react"
+import { ChevronLeft, Clock, ExternalLink } from "lucide-react"
 import React from "react"
 import Image from "next/image"
 import Link from "next/link"
@@ -30,7 +30,7 @@ const Sessions = () => {
             className="rotate-30 animate-spin select-none animate-duration-25000 animate-infinite lg:size-40"
           />
         </motion.div>
-        <motion.div className="absolute bottom-25 left-15 select-none lg:bottom-25 lg:left-20 2xl:bottom-30 2xl:left-80">
+        {/* <motion.div className="absolute bottom-25 left-15 select-none lg:bottom-25 lg:left-20 2xl:bottom-30 2xl:left-80">
           <Image
             src={"/images/HeroStarBottom.png"}
             alt={"Hero Star Bottom"}
@@ -38,7 +38,7 @@ const Sessions = () => {
             height={60}
             className="animate-spin select-none animate-duration-100000 animate-infinite animate-reverse lg:size-60"
           />
-        </motion.div>
+        </motion.div> */}
       </div>
       <div className={`z-10 flex w-full max-w-4xl flex-col items-center gap-8`}>
         <div
@@ -80,17 +80,18 @@ const Sessions = () => {
         >
           SCHEDULE & LINKS
         </h1>
-        <div className="grid w-full max-w-4xl grid-cols-2">
-          <div>
+        <div className="grid w-full max-w-4xl gap-4 md:grid-cols-2 lg:gap-8">
+          <div className="space-y-2">
             <p className="text-center text-xl font-light tracking-[0.3rem]">
               SET 1
             </p>
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-3 text-center *:w-full *:rounded-lg *:border *:border-white/20 *:bg-linear-to-r *:from-[#5F92ED]/20 *:to-[#5F92ED]/5 *:py-2 lg:text-lg">
               <p>
                 Microsoft Teams:{" "}
                 <Link
-                  href="https://teams.microsoft.com"
-                  target="_blank"
+                  // href="https://cicssg.com/ProSpaceSessionSet1"
+                  href="#"
+                  // target="_blank"
                   rel="noopener noreferrer"
                   className="underline"
                 >
@@ -98,21 +99,66 @@ const Sessions = () => {
                 </Link>
               </p>
               <p>
-                Microsoft Teams:{" "}
+                Facebook Live:{" "}
                 <Link
-                  href="https://teams.microsoft.com"
+                  href="https://www.facebook.com/DLSUD.CICSSG"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="underline"
                 >
-                  ProSpaceSessionSet1
+                  facebook.com/DLSUD.CICSSG
+                </Link>
+              </p>
+            </div>
+          </div>
+          <div className="space-y-2">
+            <p className="text-center text-xl font-light tracking-[0.3rem]">
+              SET 2
+            </p>
+            <div className="flex flex-col gap-3 text-center *:w-full *:rounded-lg *:border *:border-white/20 *:bg-linear-to-r *:from-[#5F92ED]/20 *:to-[#5F92ED]/5 *:py-2 lg:text-lg">
+              <p>
+                Microsoft Teams:{" "}
+                <Link
+                  // href="https://cicssg.com/ProSpaceSessionSet2"
+                  href="#"
+                  // target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline"
+                >
+                  ProSpaceSessionSet2
+                </Link>
+              </p>
+              <p>
+                Facebook Live:{" "}
+                <Link
+                  href="https://www.facebook.com/SIKAPTala"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline"
+                >
+                  facebook.com/SIKAPTala
                 </Link>
               </p>
             </div>
           </div>
         </div>
       </div>
-      <div className="z-10 mx-auto grid w-fit gap-4 p-4 md:grid-cols-2 lg:grid-cols-3"></div>
+
+      <div className={`z-10 flex w-full max-w-5xl flex-col items-center gap-8`}>
+        <div className="h-0.5 w-full bg-white/30 xl:w-[calc(100%+4rem)]" />
+        <div className="z-10 grid w-full gap-4 md:grid-cols-1 lg:grid-cols-1">
+          <div className="w-full">
+            <div className="flex flex-row flex-nowrap items-center gap-1 text-[#BBA4FF]">
+              <Clock size={20} strokeWidth={1} className="shrink-0" />
+              <p className="text-sm text-nowrap">00:00 - 00:00</p>
+              <div className="h-0.5 w-full bg-[#BBA4FF]/30" />
+            </div>
+            <div>
+              <p className="mt-4 text-center text-xl text-white/70">Coming Soon</p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

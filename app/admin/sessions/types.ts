@@ -7,5 +7,5 @@ export type Session = {
   endTime: string
   sessionDate: string
   company: string
-  sessionLinks: string[]
+  sessionSet?: string
 }

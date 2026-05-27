@@ -13,6 +13,7 @@ export async function POST(req: Request) {
       sessionDate,
       company,
       sessionLinks,
+      sessionSet,
     } = await req.json()
 
     const client = await clientPromise
@@ -28,6 +29,7 @@ export async function POST(req: Request) {
       sessionDate,
       company,
       sessionLinks: Array.isArray(sessionLinks) ? sessionLinks : [],
+      sessionSet: sessionSet || null,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     })

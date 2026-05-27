@@ -114,27 +114,14 @@ export default function Header() {
           <Show when="signed-out">
             {mode === "production" ? (
               <>
-                <Link href={"/signin"}>
-                  <GlassSurface
-                    displace={4}
-                    distortionScale={-20}
-                    redOffset={3}
-                    greenOffset={3}
-                    blueOffset={3}
-                    brightness={50}
-                    opacity={0.1}
-                    mixBlendMode="screen"
-                    width={120}
-                    height={40}
-                    borderRadius={50}
-                    blur={10}
-                    className="cursor-pointer p-0 *:p-0"
-                  >
-                    <span className="flex h-full w-[calc(400%)] flex-row items-center justify-center text-center transition-colors hover:bg-[#FF5FA2]/20">
-                      Sign In
-                    </span>
-                  </GlassSurface>
-                </Link>
+                <SignInButton>
+                  <span className="flex h-full border border-white/60 rounded-full px-6 py-1 flex-row items-center justify-center text-center transition-colors hover:bg-[#FF5FA2]/20 cursor-pointer">
+                    Sign In
+                  </span>
+                </SignInButton>
+                {/* <Link href={"/signin"}>
+                  
+                </Link> */}
                 <Link href={"/signup"} className="hidden xl:block">
                   <GlassSurface
                     displace={4}
@@ -242,35 +229,35 @@ export default function Header() {
                     Home
                   </Link>
                   <>
-                      <Link
-                        href="/about"
-                        className={`block py-2 ${isActive("/about") ? "font-semibold text-primary" : ""}`}
-                        onClick={() => setIsMenuOpen(false)}
-                      >
-                        About
-                      </Link>
-                      <Link
-                        href="/job-fair"
-                        className={`block py-2 ${isActive("/job-fair") ? "font-semibold text-primary" : ""}`}
-                        onClick={() => setIsMenuOpen(false)}
-                      >
-                        Job Fair
-                      </Link>
-                      <Link
-                        href="/sessions"
-                        className={`block py-2 ${isActive("/sessions") ? "font-semibold text-primary" : ""}`}
-                        onClick={() => setIsMenuOpen(false)}
-                      >
-                        Sessions
-                      </Link>
-                      <Link
-                        href="/apply"
-                        className={`block py-2 ${isActive("/apply") ? "font-semibold text-primary" : ""}`}
-                        onClick={() => setIsMenuOpen(false)}
-                      >
-                        Apply
-                      </Link>
-                    </>
+                    <Link
+                      href="/about"
+                      className={`block py-2 ${isActive("/about") ? "font-semibold text-primary" : ""}`}
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      About
+                    </Link>
+                    <Link
+                      href="/job-fair"
+                      className={`block py-2 ${isActive("/job-fair") ? "font-semibold text-primary" : ""}`}
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Job Fair
+                    </Link>
+                    <Link
+                      href="/sessions"
+                      className={`block py-2 ${isActive("/sessions") ? "font-semibold text-primary" : ""}`}
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Sessions
+                    </Link>
+                    <Link
+                      href="/apply"
+                      className={`block py-2 ${isActive("/apply") ? "font-semibold text-primary" : ""}`}
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      Apply
+                    </Link>
+                  </>
                   <Show when="signed-in">
                     <Link
                       href="/profile"

@@ -23,7 +23,8 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: "Prospace 2026: The DLSU-D Tech and Career Expo",
-  description: "Prospace is an event held by the College of Information and Computer Studies Student Government (CICSSG) of De La Salle University Dasmariñas. We are dedicated to providing a platform for students to explore and develop their skills in the field of technology, fostering a community of innovation and collaboration.",
+  description:
+    "Prospace is an event held by the College of Information and Computer Studies Student Government (CICSSG) of De La Salle University Dasmariñas. We are dedicated to providing a platform for students to explore and develop their skills in the field of technology, fostering a community of innovation and collaboration.",
 }
 
 export default function RootLayout({
@@ -43,7 +44,9 @@ export default function RootLayout({
       )}
     >
       <body>
-        <ClerkProvider><ThemeProvider>{children}</ThemeProvider></ClerkProvider>
+        <ClerkProvider>
+          <ThemeProvider>{children}</ThemeProvider>
+        </ClerkProvider>
       </body>
     </html>
   )

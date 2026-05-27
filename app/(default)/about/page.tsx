@@ -128,14 +128,15 @@ const AboutPage = () => {
           height={400}
           className="absolute -right-50 -bottom-50 z-1 animate-spin blur-2xl select-none animate-duration-150000 animate-infinite"
         />
-        <h1 className="z-10 text-center text-lg font-thin tracking-[0.2rem] lg:text-2xl">
+        {/* <h1 className="z-10 text-center text-lg font-thin tracking-[0.2rem] lg:text-2xl">
           NAVIGATE
-        </h1>
+        </h1> */}
         <h1 className="z-10 text-center text-2xl font-thin tracking-[0.25rem]">
           EVENT MAP
         </h1>
         {/* <EventMapComponent /> */}
-        <div className="z-10 mx-auto aspect-video w-full max-w-200 rounded-xl border border-white/40 bg-linear-to-r from-[#7B4DFF]/22"></div>
+        <p className="z-10 text-center text-white/80 font-light text-lg">Coming Soon</p>
+        {/* <div className="z-10 mx-auto aspect-video w-full max-w-200 rounded-xl border border-white/40 bg-linear-to-r from-[#7B4DFF]/22"></div> */}
       </div>
 
       <h1 className="z-10 text-center text-xl font-thin tracking-[0.25rem]">

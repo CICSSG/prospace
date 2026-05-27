@@ -50,7 +50,7 @@ export default function Header() {
         <div className="col-span-3 mx-auto hidden flex-row gap-2 lg:flex xl:gap-4">
           <Link
             href="/"
-            className={`block h-fit rounded-full px-6 py-1 ${isActive("/") ? "bg-linear-to-b to-primary/50 outline outline-white/60" : "hover:outline hover:outline-white/60"}`}
+            className={`block h-fit rounded-full px-6 py-1 ${isActive("/") ? "bg-linear-to-b to-primary/50 outline outline-white/60 backdrop-blur-sm" : "hover:outline hover:outline-white/60"}`}
             onClick={() => setIsMenuOpen(false)}
           >
             Home
@@ -58,21 +58,21 @@ export default function Header() {
           <>
             <Link
               href="/about"
-              className={`block h-fit rounded-full px-6 py-1 ${isActive("/about") ? "bg-linear-to-b to-primary/50 outline outline-white/60" : "hover:outline hover:outline-white/60"}`}
+              className={`block h-fit rounded-full px-6 py-1 ${isActive("/about") ? "bg-linear-to-b to-primary/50 outline outline-white/60 backdrop-blur-sm" : "hover:outline hover:outline-white/60"}`}
               onClick={() => setIsMenuOpen(false)}
             >
               About
             </Link>
             <Link
               href="/job-fair"
-              className={`block h-fit rounded-full px-6 py-1 ${isActive("/job-fair") ? "bg-linear-to-b to-primary/50 outline outline-white/60" : "text-nowrap hover:outline hover:outline-white/60"}`}
+              className={`block h-fit rounded-full px-6 py-1 ${isActive("/job-fair") ? "bg-linear-to-b to-primary/50 outline outline-white/60 backdrop-blur-sm" : "text-nowrap hover:outline hover:outline-white/60"}`}
               onClick={() => setIsMenuOpen(false)}
             >
               Job Fair
             </Link>
             <Link
               href="/sessions"
-              className={`block h-fit rounded-full px-6 py-1 ${isActive("/sessions") ? "bg-linear-to-b to-primary/50 outline outline-white/60" : "hover:outline hover:outline-white/60"}`}
+              className={`block h-fit rounded-full px-6 py-1 ${isActive("/sessions") ? "bg-linear-to-b to-primary/50 outline outline-white/60 backdrop-blur-sm" : "hover:outline hover:outline-white/60"}`}
               onClick={() => setIsMenuOpen(false)}
             >
               Sessions
@@ -115,7 +115,7 @@ export default function Header() {
             {mode === "production" ? (
               <>
                 <SignInButton>
-                  <span className="flex h-full border border-white/60 rounded-full px-6 py-1 flex-row items-center justify-center text-center transition-colors hover:bg-[#FF5FA2]/20 cursor-pointer">
+                  <span className="flex h-full border border-white/60 rounded-full px-6 py-1 flex-row items-center justify-center text-center transition-colors hover:bg-[#FF5FA2]/20 cursor-pointer  backdrop-blur-sm">
                     Sign In
                   </span>
                 </SignInButton>

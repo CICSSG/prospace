@@ -77,13 +77,13 @@ export default function Header() {
             >
               Sessions
             </Link>
-            <Link
+            {/* <Link
               href="/apply"
               className={`block h-fit rounded-full px-6 py-1 ${isActive("/apply") ? "bg-linear-to-b to-primary/50 outline outline-white/60" : "hover:outline hover:outline-white/60"}`}
               onClick={() => setIsMenuOpen(false)}
             >
               Apply
-            </Link>
+            </Link> */}
           </>
           <Show when="signed-in">
             <Link
@@ -250,13 +250,13 @@ export default function Header() {
                     >
                       Sessions
                     </Link>
-                    <Link
+                    {/* <Link
                       href="/apply"
                       className={`block py-2 ${isActive("/apply") ? "font-semibold text-primary" : ""}`}
                       onClick={() => setIsMenuOpen(false)}
                     >
                       Apply
-                    </Link>
+                    </Link> */}
                   </>
                   <Show when="signed-in">
                     <Link

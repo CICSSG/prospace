@@ -1,9 +1,10 @@
+'use client'
 import Image from "next/image"
 import { sora } from "@/components/prospace/fonts"
 
 export default function Footer() {
   return (
-    <footer className="relative w-full overflow-x-clip bg-linear-to-t pt-15 pb-10 bg-[#05091D]">
+    <footer className="relative w-full overflow-x-clip bg-linear-to-t pt-15 pb-10 bg-[#05091D] min-h-[45vh]">
       <Image 
         src={"/images/HalfCircle.png"}
         width={2520}
@@ -23,6 +24,7 @@ export default function Footer() {
         <div className="absolute -bottom-1/2 left-1/2 h-[calc(110%)] w-[calc(100vw+50%)] -translate-x-1/2 rounded-[50%] bg-[#05091D] blur-[50px] z-5" />
       </div>
 
+      {}
       <div className="relative z-10 mx-15 flex flex-col items-center justify-center gap-8">
         <Image
           src={"/images/Prospace-DLSU-D.png"}

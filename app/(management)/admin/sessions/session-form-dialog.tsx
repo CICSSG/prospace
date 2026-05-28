@@ -1,6 +1,11 @@
 "use client"
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Session } from "./types"
 import { getCollectionData } from "../actions"
 import { useRef, useState, useEffect } from "react"
@@ -77,7 +82,9 @@ export default function SessionFormDialog({
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState(() => createInitialForm(session))
   const [errors, setErrors] = useState<string[]>([])
-  const [companies, setCompanies] = useState<Array<{ id: string; name: string }>>([])
+  const [companies, setCompanies] = useState<
+    Array<{ id: string; name: string }>
+  >([])
 
   useEffect(() => {
     // Fetch companies for the dropdown
@@ -105,7 +112,8 @@ export default function SessionFormDialog({
     const nextErrors: string[] = []
 
     if (!form.sessionTitle.trim()) nextErrors.push("Session title is required")
-    if (!form.topicPictureUrl.trim()) nextErrors.push("Topic picture is required")
+    if (!form.topicPictureUrl.trim())
+      nextErrors.push("Topic picture is required")
     if (!form.logoUrl.trim()) nextErrors.push("Logo is required")
     if (!form.startTime.trim()) nextErrors.push("Start time is required")
     if (!form.endTime.trim()) nextErrors.push("End time is required")
@@ -116,17 +124,20 @@ export default function SessionFormDialog({
     return nextErrors.length === 0
   }
 
-
-
   // sessionSet picker replaces session links
 
-  const handleTopicImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleTopicImageUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = e.target.files?.[0]
     if (!file) return
 
     setIsUploadingTopic(true)
     try {
-      const blob = await uploadImageToBlobStorage(file, `session-topic-${Date.now()}`)
+      const blob = await uploadImageToBlobStorage(
+        file,
+        `session-topic-${Date.now()}`
+      )
       setForm((current) => ({
         ...current,
         topicPictureUrl: blob.url,
@@ -146,7 +157,10 @@ export default function SessionFormDialog({
 
     setIsUploadingLogo(true)
     try {
-      const blob = await uploadImageToBlobStorage(file, `session-logo-${Date.now()}`)
+      const blob = await uploadImageToBlobStorage(
+        file,
+        `session-logo-${Date.now()}`
+      )
       setForm((current) => ({
         ...current,
         logoUrl: blob.url,
@@ -167,13 +181,14 @@ export default function SessionFormDialog({
 
     setSaving(true)
     try {
-      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || window.location.origin
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL
       const url =
         mode === "add"
           ? `${baseUrl}/api/addSession`
           : `${baseUrl}/api/updateSession?id=${session?.id}`
       const method = mode === "add" ? "POST" : "PUT"
 
+      
       const response = await fetch(url, {
         method,
         headers: {
@@ -192,14 +207,21 @@ export default function SessionFormDialog({
       })
 
       if (!response.ok) {
-        throw new Error(`Failed to ${mode === "add" ? "create" : "update"} session`)
+        throw new Error(
+          `Failed to ${mode === "add" ? "create" : "update"} session`
+        )
       }
 
-      toast.success(`Session ${mode === "add" ? "created" : "updated"} successfully`)
+      toast.success(
+        `Session ${mode === "add" ? "created" : "updated"} successfully`
+      )
       onOpenChange(false)
       onSaved()
     } catch (error) {
-      console.error(`Error ${mode === "add" ? "creating" : "updating"} session:`, error)
+      console.error(
+        `Error ${mode === "add" ? "creating" : "updating"} session:`,
+        error
+      )
       toast.error(`Failed to ${mode === "add" ? "create" : "update"} session`)
     } finally {
       setSaving(false)
@@ -208,7 +230,7 @@ export default function SessionFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl bg-primary/40">
+      <DialogContent className="max-h-[90vh] overflow-y-auto bg-primary/40 sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>
             {mode === "add" ? "Create New Session" : "Edit Session"}
@@ -301,7 +323,9 @@ export default function SessionFormDialog({
 
           {/* Company Combobox */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Assigned Company (optional)</label>
+            <label className="text-sm font-medium">
+              Assigned Company (optional)
+            </label>
             <Combobox
               options={companies.map((company) => ({
                 id: company.id,
@@ -328,7 +352,9 @@ export default function SessionFormDialog({
                   name="sessionSet"
                   value="set1"
                   checked={form.sessionSet === "set1"}
-                  onChange={() => setForm((current) => ({ ...current, sessionSet: "set1" }))}
+                  onChange={() =>
+                    setForm((current) => ({ ...current, sessionSet: "set1" }))
+                  }
                 />
                 <span>Set 1</span>
               </label>
@@ -339,7 +365,9 @@ export default function SessionFormDialog({
                   name="sessionSet"
                   value="set2"
                   checked={form.sessionSet === "set2"}
-                  onChange={() => setForm((current) => ({ ...current, sessionSet: "set2" }))}
+                  onChange={() =>
+                    setForm((current) => ({ ...current, sessionSet: "set2" }))
+                  }
                 />
                 <span>Set 2</span>
               </label>
@@ -426,7 +454,11 @@ export default function SessionFormDialog({
               disabled={saving}
               className="inline-flex items-center rounded-lg bg-primary px-3 py-2 text-sm text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
             >
-              {saving ? "Saving..." : mode === "add" ? "Create Session" : "Update Session"}
+              {saving
+                ? "Saving..."
+                : mode === "add"
+                  ? "Create Session"
+                  : "Update Session"}
             </button>
           </div>
         </form>

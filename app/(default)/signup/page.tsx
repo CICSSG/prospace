@@ -1,7 +1,7 @@
 "use client"
 import { motion } from "framer-motion"
 import { sendOTP, verifyOTP, completeSignup } from "@/app/actions"
-import { UploadImageToBlobStorage } from "@/app/admin/actions"
+import { UploadImageToBlobStorage } from "@/app/(management)/admin/actions"
 import { useForm } from "@tanstack/react-form"
 import clsx from "clsx"
 import { isRedirectError } from "next/dist/client/components/redirect-error"

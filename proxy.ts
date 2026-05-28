@@ -7,6 +7,9 @@ const isAdminRoutes = createRouteMatcher(["/admin(.*)"])
 const isLogoLoopUploadRoute = createRouteMatcher(["/api/logo-loop/upload(.*)"])
 const isLoggedInRoute = createRouteMatcher(["/connect(.*)", "/profile(.*)"])
 const isSignupRoute = createRouteMatcher(["/signup(.*)"])
+const isAdminRoute = createRouteMatcher(["/admin(.*)"])
+const isDataRoute = createRouteMatcher(["/data(.*)"])
+const isCompanyRoute = createRouteMatcher(["/company(.*)"])
 
 export default clerkMiddleware(async (auth, req) => {
   const { sessionClaims, userId, isAuthenticated } = await auth()

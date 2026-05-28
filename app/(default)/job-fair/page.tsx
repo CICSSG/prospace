@@ -5,9 +5,9 @@ import Image from "next/image"
 import Link from "next/link"
 import { ExternalLink } from "lucide-react"
 import { ChevronRight } from "lucide-react"
-import { useEffect, useState } from "react";
-import { CompanyPartner } from "../page";
-import { getCollectionData } from "@/app/admin/actions";
+import { useEffect, useState } from "react"
+import { CompanyPartner } from "../page"
+import { getCollectionData } from "@/app/(management)/admin/actions"
 
 const IndustryPartners = [
   {
@@ -123,7 +123,7 @@ const JobFair = () => {
       setCompanies(fetchedCompanies)
     })
   }, [])
-  
+
   return (
     <div
       className={`mt-30 mb-10 flex w-full flex-col items-center gap-4 px-4 lg:gap-10`}
@@ -244,12 +244,20 @@ const JobFair = () => {
             </div>
           ))}
 
-          <Link
-            href="industry-partners"
-            className="ml-auto flex flex-row gap-0.5 font-thin tracking-widest md:col-span-2 lg:col-span-3"
-          >
-            View All <ChevronRight strokeWidth={0.8} />
-          </Link>
+          {companies.length > 6 && (
+            <Link
+              href="industry-partners"
+              className="ml-auto flex flex-row gap-0.5 font-thin tracking-widest md:col-span-2 lg:col-span-3"
+            >
+              View All <ChevronRight strokeWidth={0.8} />
+            </Link>
+          )}
+
+          {companies.length === 0 && (
+            <p className="col-span-full text-center text-lg font-light text-white/80">
+              No industry partners available at the moment.
+            </p>
+          )}
         </div>
       </div>
     </div>

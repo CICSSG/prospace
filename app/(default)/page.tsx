@@ -4,7 +4,7 @@ import LogoLoop from "@/components/logoloop"
 import { ChevronRight } from "lucide-react"
 import Image from "next/image"
 import { useEffect, useState, useRef } from "react"
-import { getCollectionData } from "../admin/actions"
+import { getCollectionData } from "../(management)/admin/actions"
 import CountdownTimer from "@/components/countdown"
 import { sora } from "@/components/prospace/fonts"
 import Link from "next/link"
@@ -18,6 +18,18 @@ type Logo = {
   node: React.ReactNode
   title: string
   href: string
+}
+
+type SessionCard = {
+  _id: string
+  topicPictureUrl: string
+  logoUrl: string
+  sessionTitle: string
+  startTime: string
+  endTime: string
+  sessionDate: string
+  company: string
+  sessionSet?: string
 }
 
 export type CompanyPartner = {
@@ -71,66 +83,6 @@ const SDGLogos = [
   "/images/SDG9.jpg",
   "/images/SDG10.png",
   "/images/SDG17.png",
-]
-
-const CareerSessions = [
-  {
-    title:
-      "Engineering the Experience: Building Secure, Scalable Web and Mobile Platforms",
-    time: "8:30 AM - 10:30 AM",
-    date: "JUNE 6",
-    tag: "Filipino Web Development Peers",
-    imageUrl: "https://placehold.co/400/png",
-  },
-  ,
-  {
-    title:
-      "Engineering the Experience: Building Secure, Scalable Web and Mobile Platforms",
-    time: "8:30 AM - 10:30 AM",
-    date: "JUNE 6",
-    tag: "Filipino Web Development Peers",
-    imageUrl: "https://placehold.co/400/png",
-  },
-  {
-    title:
-      "Engineering the Experience: Building Secure, Scalable Web and Mobile Platforms",
-    time: "8:30 AM - 10:30 AM",
-    date: "JUNE 6",
-    tag: "Filipino Web Development Peers",
-    imageUrl: "https://placehold.co/400/png",
-  },
-  {
-    title:
-      "Engineering the Experience: Building Secure, Scalable Web and Mobile Platforms",
-    time: "8:30 AM - 10:30 AM",
-    date: "JUNE 6",
-    tag: "Filipino Web Development Peers",
-    imageUrl: "https://placehold.co/400/png",
-  },
-  {
-    title:
-      "Engineering the Experience: Building Secure, Scalable Web and Mobile Platforms",
-    time: "8:30 AM - 10:30 AM",
-    date: "JUNE 6",
-    tag: "Filipino Web Development Peers",
-    imageUrl: "https://placehold.co/400/png",
-  },
-  {
-    title:
-      "Engineering the Experience: Building Secure, Scalable Web and Mobile Platforms",
-    time: "8:30 AM - 10:30 AM",
-    date: "JUNE 6",
-    tag: "Filipino Web Development Peers",
-    imageUrl: "https://placehold.co/400/png",
-  },
-  {
-    title:
-      "Engineering the Experience: Building Secure, Scalable Web and Mobile Platforms",
-    time: "8:30 AM - 10:30 AM",
-    date: "JUNE 6",
-    tag: "Filipino Web Development Peers",
-    imageUrl: "https://placehold.co/400/png",
-  },
 ]
 
 const IndustryPartners = [
@@ -226,6 +178,9 @@ export default function Page() {
   const [animateHover, setAnimateHover] = useState(false)
   const carouselRef = useRef<HTMLDivElement | null>(null)
   const [companies, setCompanies] = useState<CompanyPartner[]>([])
+  const [companiesLoaded, setCompaniesLoaded] = useState(false)
+  const [sessions, setSessions] = useState<SessionCard[]>([])
+  const [sessionsLoaded, setSessionsLoaded] = useState(false)
   const [logos, setLogos] = useState<Logo[]>([
     {
       node: (
@@ -277,6 +232,36 @@ export default function Page() {
       }))
 
       setCompanies(fetchedCompanies)
+      setCompaniesLoaded(true)
+    })
+    .catch(() => {
+      setCompanies([])
+      setCompaniesLoaded(true)
+    })
+  }, [])
+
+  useEffect(() => {
+    getCollectionData("sessions").then((res) => {
+      const data = Array.isArray(res?.data) ? res.data : []
+      const fetchedSessions = data.map((item: SessionCard) => ({
+        _id: item._id,
+        topicPictureUrl:
+          item.topicPictureUrl || item.logoUrl || "/images/ProspaceMinimalLogo-2.png",
+        logoUrl: item.logoUrl || "",
+        sessionTitle: item.sessionTitle || "Untitled session",
+        startTime: item.startTime || "",
+        endTime: item.endTime || "",
+        sessionDate: item.sessionDate || "",
+        company: item.company || "",
+        sessionSet: item.sessionSet || "",
+      }))
+
+      setSessions(fetchedSessions)
+      setSessionsLoaded(true)
+    })
+    .catch(() => {
+      setSessions([])
+      setSessionsLoaded(true)
     })
   }, [])
 
@@ -323,6 +308,46 @@ export default function Page() {
     window.addEventListener("resize", compute)
     return () => window.removeEventListener("resize", compute)
   }, [carouselRef.current])
+
+  const formatSessionDate = (sessionDate: string) => {
+    if (!sessionDate) return "DATE TBA"
+
+    const parsedDate = new Date(sessionDate)
+    if (Number.isNaN(parsedDate.getTime())) return sessionDate.toUpperCase()
+
+    return parsedDate
+      .toLocaleDateString("en-US", {
+        month: "long",
+        day: "numeric",
+      })
+      .toUpperCase()
+  }
+
+  const formatSessionTime = (startTime: string, endTime: string) => {
+    const formatTime = (time: string) => {
+      if (!time) return ""
+
+      const parsedTime = new Date(`1970-01-01T${time}`)
+      if (Number.isNaN(parsedTime.getTime())) return time
+
+      return parsedTime
+        .toLocaleTimeString("en-US", {
+          hour: "numeric",
+          minute: "2-digit",
+          hour12: true,
+        })
+        .toUpperCase()
+    }
+
+    const formattedStartTime = formatTime(startTime)
+    const formattedEndTime = formatTime(endTime)
+
+    if (formattedStartTime && formattedEndTime) {
+      return `${formattedStartTime} - ${formattedEndTime}`
+    }
+
+    return formattedStartTime || formattedEndTime || "TIME TBA"
+  }
 
   // programmatic snap on scroll end to avoid browser creating multiple snap points
   useEffect(() => {
@@ -664,7 +689,7 @@ export default function Page() {
               direction="left"
               logoHeight={60}
               scaleOnHover
-              gap={60}
+              gap={20}
               ariaLabel="Technology partners"
             />
           </div>
@@ -693,34 +718,42 @@ export default function Page() {
           role="region"
           aria-label="Career sessions carousel"
         >
-          {CareerSessions.map((session, index) => (
-            <div
-              key={index}
-              className="ml-2 flex w-sm shrink-0 snap-center snap-always flex-row overflow-hidden rounded-lg border border-white/40 bg-linear-to-r from-[#7B4DFF]/22 to-[#7B4DFF]/0 text-sm"
-            >
-              <Image
-                src={`${session?.imageUrl}`}
-                alt="Career Session"
-                width={100}
-                height={300}
-                className="border-r object-cover opacity-30"
-              />
-              <div className="col-span-2 flex flex-col gap-2 p-2 leading-[1.1em]">
-                <h1 className="text-xs leading-[1.1em] tracking-widest">
-                  {session?.title}
-                </h1>
-                <div className="mt-1 flex flex-col gap-1">
-                  <p className="text-[0.65rem] leading-0 font-thin tracking-widest">
-                    {session?.time}
-                  </p>
-                  <p className="text-[0.65rem] font-thin">{session?.date}</p>
-                </div>
-                <div className="w-fit rounded-full border border-white/40 px-6 py-0.5 text-[0.65rem] font-thin">
-                  {session?.tag}
+          {sessions.length ? (
+            sessions.map((session, index) => (
+              <div
+                key={session._id || index}
+                className="ml-2 flex w-sm shrink-0 snap-center snap-always flex-row overflow-hidden rounded-lg border border-white/40 bg-linear-to-r from-[#7B4DFF]/22 to-[#7B4DFF]/0 text-sm"
+              >
+                <Image
+                  src={session.topicPictureUrl}
+                  alt={session.sessionTitle}
+                  width={100}
+                  height={300}
+                  className="border-r object-cover opacity-70"
+                />
+                <div className="col-span-2 flex flex-col gap-2 p-2 leading-[1.1em]">
+                  <h1 className={`leading-[1.1em] tracking-widest ${sora.className}`}>
+                    {session.sessionTitle}
+                  </h1>
+                  <div className="mt-1 flex flex-col gap-1">
+                    <p className={`text-xs leading-1 font-thin tracking-widest ${sora.className}`}>
+                      {formatSessionTime(session.startTime, session.endTime)}
+                    </p>
+                    <p className={`text-xs font-thin ${sora.className}`}>
+                      {formatSessionDate(session.sessionDate)}
+                    </p>
+                  </div>
+                  <div className={`w-fit rounded-full border border-white/40 px-6 py-0.5 text-xs font-thin ${sora.className}`}>
+                    {session.company || "Career Session"}
+                  </div>
                 </div>
               </div>
+            ))
+          ) : (
+            <div className="ml-2 flex min-h-40 w-[calc(100%-1rem)] shrink-0 items-center justify-center rounded-lg border border-white/40 bg-linear-to-r from-[#7B4DFF]/22 to-[#7B4DFF]/0 px-6 text-center text-sm tracking-[0.3rem] text-white/70">
+              {sessionsLoaded ? "COMING SOON" : "LOADING SESSIONS"}
             </div>
-          ))}
+          )}
         </div>
         <Link
           href={"/sessions"}
@@ -793,7 +826,7 @@ export default function Page() {
               ))
             ) : (
               <div className="col-span-full row-span-3 flex min-h-40 snap-center items-center justify-center rounded-2xl border border-white/40 bg-linear-to-r from-[#7B4DFF]/22 to-[#7B4DFF]/0 px-6 text-center tracking-[0.3rem] text-white/70">
-                LOADING COMPANIES
+                {companiesLoaded ? "COMING SOON" : "LOADING COMPANIES"}
               </div>
             )}
           </div>

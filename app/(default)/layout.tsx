@@ -1,21 +1,28 @@
+"use client"
 import { ThemeProvider } from "@/components/theme-provider"
 import ScannerComponent from "@/components/scanner"
 import Footer from "@/components/footer"
 import Header from "@/components/header"
 import { Toaster } from "sonner"
+import { usePathname } from "next/navigation"
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const pathname = usePathname()
+  console.log("pathname", pathname)
   return (
     <>
       <ScannerComponent />
-      <div className="flex w-full min-h-screen flex-col items-center">
+      <div className="flex min-h-screen w-full flex-col items-center">
         <Header />
-        <div className="grow flex flex-col w-full max-w-svw overflow-hidden items-center">{children}</div>
-        <Footer />
+        <div className="flex w-full max-w-svw grow flex-col items-center overflow-hidden">
+          {children}
+        </div>
+        {pathname == "/signup" ? null : <Footer />}
+        <div className="z-10 w-full overflow-visible"></div>
         <Toaster />
       </div>
     </>

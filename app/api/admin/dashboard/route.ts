@@ -28,6 +28,7 @@ type MongoSessionRecord = {
   sessionDate?: string
   company?: string
   sessionLinks?: string[]
+  sessionSet?: string
   createdAt?: string
 }
 
@@ -159,6 +160,7 @@ export async function GET() {
       date: session.sessionDate || "",
       companyId: session.company || "",
       linkCount: Array.isArray(session.sessionLinks) ? session.sessionLinks.length : 0,
+      sessionSet: (session as any).sessionSet || null,
     }))
 
     const recentCompanies = mongoCompanies.slice(0, 5).map((company) => ({

@@ -12,6 +12,7 @@ export async function PUT(req: Request) {
       sessionDate,
       company,
       sessionLinks,
+      sessionSet,
     } = await req.json()
 
     const { searchParams } = new URL(req.url)
@@ -40,6 +41,7 @@ export async function PUT(req: Request) {
           sessionDate,
           company,
           sessionLinks: Array.isArray(sessionLinks) ? sessionLinks : [],
+          sessionSet: sessionSet || null,
           updatedAt: new Date().toISOString(),
         },
       }

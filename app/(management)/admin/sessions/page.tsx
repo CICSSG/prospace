@@ -41,7 +41,7 @@ export default function SessionsList() {
     endTime?: string
     sessionDate?: string
     company?: string
-    sessionLinks?: string[]
+    sessionSet?: string
   }
 
   const getData = useCallback(() => {
@@ -57,7 +57,7 @@ export default function SessionsList() {
             endTime: item.endTime || "",
             sessionDate: item.sessionDate || "",
             company: item.company || "",
-            sessionLinks: Array.isArray(item.sessionLinks) ? item.sessionLinks : [],
+            sessionSet: item.sessionSet || "",
           }))
 
           setSessions(mappedSessions)

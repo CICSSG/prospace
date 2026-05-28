@@ -1,6 +1,7 @@
 "use client"
+import { motion } from "framer-motion"
 import { sendOTP, verifyOTP, completeSignup } from "@/app/actions"
-import { UploadImageToBlobStorage } from "@/app/admin/actions"
+import { UploadImageToBlobStorage } from "@/app/(management)/admin/actions"
 import { useForm } from "@tanstack/react-form"
 import clsx from "clsx"
 import { isRedirectError } from "next/dist/client/components/redirect-error"
@@ -11,6 +12,8 @@ import { toast } from "sonner"
 import z from "zod"
 import { X } from "lucide-react"
 import { moscaLaroke, sora } from "@/components/prospace/fonts"
+import Image from "next/image"
+import { Jacquard_12 } from "next/font/google";
 
 const SignUpPage = () => {
   const portfolioInputRef = useRef<HTMLInputElement>(null)
@@ -79,7 +82,9 @@ const SignUpPage = () => {
         .then((response: any) => {
           setIsSending(false)
           if (!response.success) {
-            toast.error(response.error || "Failed to send OTP. Please try again.")
+            toast.error(
+              response.error || "Failed to send OTP. Please try again."
+            )
             return
           }
 
@@ -107,7 +112,11 @@ const SignUpPage = () => {
     },
   })
 
-  const { Field: Field2, Subscribe: Subscribe2, handleSubmit: handleSubmit2 } = useForm({
+  const {
+    Field: Field2,
+    Subscribe: Subscribe2,
+    handleSubmit: handleSubmit2,
+  } = useForm({
     validators: {
       onMount: step2Schema,
       onChange: step2Schema,
@@ -161,7 +170,9 @@ const SignUpPage = () => {
         .then((response: any) => {
           setIsCompleting(false)
           if (!response.success) {
-            toast.error(response.error || "Registration failed. Please try again.")
+            toast.error(
+              response.error || "Registration failed. Please try again."
+            )
             return
           }
 
@@ -202,657 +213,839 @@ const SignUpPage = () => {
   }, [step])
 
   return (
-    <div className="w-full p-6">
-      <div className="mx-auto mt-30 mb-10 w-full max-w-md rounded-lg border-2 border-white/70 bg-linear-to-r from-primary/22 p-6 shadow-2xl">
-        <h1
-          className={`mb-2 text-center text-3xl font-bold tracking-widest ${moscaLaroke.className}`}
-        >
-          REGISTRATION
-        </h1>
-        <p className="mb-2 text-center text-sm font-thin tracking-[0.2rem] text-white/90">
-          Step {step} of 3
-        </p>
+    <div className="h-screen w-full overflow-y-clip p-6">
+      <div className="absolute w-[97vw] animate-pulse select-none animate-duration-4000 animate-ease-in-out animate-infinite">
+        <motion.div className="absolute top-65 left-10 z-10 select-none lg:left-20 2xl:top-70 2xl:left-40">
+          <Image
+            src={"/images/HeroStarTopLeft.png"}
+            alt={"Hero Star Top Left"}
+            width={45}
+            height={45}
+            className="rotate-15 animate-spin animate-duration-8000 animate-infinite lg:size-20"
+          />
+        </motion.div>
+        <motion.div className="absolute top-35 right-10 select-none lg:right-30 2xl:top-40 2xl:right-40">
+          <Image
+            src={"/images/HeroStarTopRight.png"}
+            alt={"Hero Star Top Right"}
+            width={40}
+            height={40}
+            className="rotate-30 animate-spin select-none animate-duration-25000 animate-infinite lg:size-40"
+          />
+        </motion.div>
+        <motion.div className="absolute bottom-25 left-15 select-none lg:bottom-25 lg:left-20 2xl:bottom-30 2xl:left-80">
+          <Image
+            src={"/images/HeroStarBottom.png"}
+            alt={"Hero Star Bottom"}
+            width={60}
+            height={60}
+            className="animate-spin select-none animate-duration-100000 animate-infinite animate-reverse lg:size-60"
+          />
+        </motion.div>
+      </div>
 
-        <div className="mb-6 flex flex-row justify-center gap-2">
-          {[...Array(3)].map((_, index) => (
-            <div
-              key={index}
-              className={`h-2 w-8 rounded-full border border-white/30 ${index < step - 1 ? "bg-green-500/30" : index === step - 1 ? "bg-blue-500/30" : "bg-gray-300/10"}`}
+      <div className="grid lg:grid-cols-2 h-full items-center justify-center z-10 relative lg:mx-auto">
+        <div className="hidden lg:block">
+          <div className="relative z-10 mx-15 flex flex-col items-center justify-center gap-8">
+            <div className="relative">
+              <Image
+              src={"/images/Prospace-DLSU-D.png"}
+              width={520}
+              height={128}
+              alt="ProSpace"
+              className="z-2"
             />
-          ))}
+            <Image
+              src={"/images/Prospace-DLSU-D.png"}
+              width={520}
+              height={128}
+              alt="ProSpace"
+              className="blur absolute top-0 left-0 z-1 opacity-80"
+            />
+            </div>
+
+            <p
+              className={`text-light max-w-2xl text-center text-lg tracking-[0.3rem] text-white/80`}
+            >
+              Explore sessions, connect with partners, and start your
+              professional journey.
+            </p>
+          </div>
+
+          <div className="relative z-10 mx-10 mt-15 flex flex-col items-center justify-center gap-4 space-y-5">
+            <div className="flex flex-row flex-wrap items-center justify-center gap-4 lg:gap-8">
+              <Image
+                src={"/images/Footer DLSUD.png"}
+                width={120}
+                height={50}
+                alt="DLSUD Logo"
+                className="w-fit object-contain"
+              />
+              <Image
+                src={"/images/Footer AARO.png"}
+                width={120}
+                height={50}
+                alt="AARO Logo"
+                className="w-fit object-contain"
+              />
+              <Image
+                src={"/images/Footer CICSSG.png"}
+                width={120}
+                height={50}
+                alt="CICSSG Logo"
+                className="w-fit object-contain"
+              />
+              <Image
+                src={"/images/Footer Impact.png"}
+                width={120}
+                height={50}
+                alt="Impact Logo"
+                className="w-fit object-contain"
+              />
+              <Image
+                src={"/images/Footer Prospace.png"}
+                width={120}
+                height={50}
+                alt="Prospace Logo"
+                className="w-fit object-contain"
+              />
+            </div>
+
+            <p className={`font-light text-center tracking-[0.15em] text-white ${sora.className}`}>
+              &copy; {new Date().getFullYear()} DLSU-D CICSSG. All rights
+              reserved.
+            </p>
+          </div>
         </div>
 
-        {/* Step 1: Basic Information */}
-        {step === 1 && (
-          <form
-            className="flex flex-col gap-4"
-            onSubmit={(e) => {
-              e.preventDefault()
-              handleSubmit1()
-            }}
+        {/* FORM */}
+        <div className="mx-auto w-full max-w-md rounded-lg border-2 border-white/70 bg-linear-to-r from-primary/22 p-6 shadow-2xl">
+          <h1
+            className={`mb-2 text-center text-3xl font-bold tracking-widest ${moscaLaroke.className}`}
           >
-            <div className="flex flex-row gap-4">
-              <Field1 name="firstName">
-                {(field) => {
-                  const { errors, isTouched } = field.state.meta
-                  const uniqueErrorMessages = [
-                    ...new Set(
-                      errors
-                        .map((validationError) => validationError?.message)
-                        .filter((message): message is string =>
-                          Boolean(message)
-                        )
-                    ),
-                  ]
+            REGISTRATION
+          </h1>
+          <p className="mb-2 text-center text-sm font-thin tracking-[0.2rem] text-white/90">
+            Step {step} of 3
+          </p>
 
-                  return (
-                    <div>
-                      <label className="mb-1 block text-sm font-normal text-primary-foreground">
-                        First Name <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="ex. Juan"
-                        className={clsx(
-                          "w-full rounded-lg border border-[#ADADAD] bg-white/80 px-3 py-2 text-sm text-background/70 placeholder-[#808080] transition-all focus:bg-white focus:text-background focus:ring-2 focus:ring-[#1976D2] focus:outline-none",
-                          isTouched &&
-                            errors.length > 0 &&
-                            "border-red-500 focus:ring-red-500"
-                        )}
-                        value={field.state.value}
-                        onChange={(e) => {
-                          field.handleChange(e.target.value)
-                        }}
-                        onBlur={field.handleBlur}
-                        ref={focusRef}
-                      />
-                      {isTouched &&
-                        uniqueErrorMessages.length > 0 &&
-                        uniqueErrorMessages.map((message, index) => (
-                          <p key={index} className="mt-2 text-xs text-red-500">
-                            {message}
-                          </p>
-                        ))}
-                    </div>
-                  )
-                }}
-              </Field1>
+          <div className="mb-6 flex flex-row justify-center gap-2">
+            {[...Array(3)].map((_, index) => (
+              <div
+                key={index}
+                className={`h-2 w-8 rounded-full border border-white/30 ${index < step - 1 ? "bg-green-500/30" : index === step - 1 ? "bg-blue-500/30" : "bg-gray-300/10"}`}
+              />
+            ))}
+          </div>
 
-              <Field1 name="lastName">
-                {(field) => {
-                  const { errors, isTouched } = field.state.meta
-                  const uniqueErrorMessages = [
-                    ...new Set(
-                      errors
-                        .map((validationError) => validationError?.message)
-                        .filter((message): message is string =>
-                          Boolean(message)
-                        )
-                    ),
-                  ]
-
-                  return (
-                    <div>
-                      <label className="mb-1 block text-sm font-normal text-primary-foreground">
-                        Last Name <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        placeholder="ex. Dela Cruz"
-                        className={clsx(
-                          "w-full rounded-lg border border-[#ADADAD] bg-white/80 px-3 py-2 text-sm text-background/70 placeholder-[#808080] transition-all focus:bg-white focus:text-background focus:ring-2 focus:ring-[#1976D2] focus:outline-none",
-                          isTouched &&
-                            errors.length > 0 &&
-                            "border-red-500 focus:ring-red-500"
-                        )}
-                        value={field.state.value}
-                        onChange={(e) => {
-                          field.handleChange(e.target.value)
-                        }}
-                        onBlur={field.handleBlur}
-                      />
-                      {isTouched &&
-                        uniqueErrorMessages.length > 0 &&
-                        uniqueErrorMessages.map((message, index) => (
-                          <p key={index} className="mt-2 text-xs text-red-500">
-                            {message}
-                          </p>
-                        ))}
-                    </div>
-                  )
-                }}
-              </Field1>
-            </div>
-
-            <Field1 name="email">
-              {(field) => {
-                const { errors, isTouched } = field.state.meta
-                const uniqueErrorMessages = [
-                  ...new Set(
-                    errors
-                      .map((validationError) => validationError?.message)
-                      .filter((message): message is string => Boolean(message))
-                  ),
-                ]
-
-                return (
-                  <div>
-                    <label className="mb-1 block text-sm font-normal text-primary-foreground">
-                      Email <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="email"
-                      placeholder="ex. juandelacruz@dlsud.edu.ph"
-                      className={clsx(
-                        "w-full rounded-lg border border-[#ADADAD] bg-white/80 px-3 py-2 text-sm text-background/70 placeholder-[#808080] transition-all focus:bg-white focus:text-background focus:ring-2 focus:ring-[#1976D2] focus:outline-none",
-                        isTouched &&
-                          errors.length > 0 &&
-                          "border-red-500 focus:ring-red-500"
-                      )}
-                      value={field.state.value}
-                      onChange={(e) => {
-                        field.handleChange(e.target.value)
-                      }}
-                      onBlur={field.handleBlur}
-                    />
-                    <p className="mt-1 text-xs text-white/70">
-                      * Please use your school email if applicable.
-                    </p>
-                    {isTouched &&
-                      uniqueErrorMessages.length > 0 &&
-                      uniqueErrorMessages.map((message, index) => (
-                        <p key={index} className="mt-2 text-xs text-red-500">
-                          {message}
-                        </p>
-                      ))}
-                  </div>
-                )
+          {/* Step 1: Basic Information */}
+          {step === 1 && (
+            <form
+              className="flex flex-col gap-4"
+              onSubmit={(e) => {
+                e.preventDefault()
+                handleSubmit1()
               }}
-            </Field1>
+            >
+              <div className="flex flex-row gap-4 justify-between">
+                <Field1 name="firstName">
+                  {(field) => {
+                    const { errors, isTouched } = field.state.meta
+                    const uniqueErrorMessages = [
+                      ...new Set(
+                        errors
+                          .map((validationError) => validationError?.message)
+                          .filter((message): message is string =>
+                            Boolean(message)
+                          )
+                      ),
+                    ]
 
-            <Field1 name="course">
-              {(field) => {
-                const { errors, isTouched } = field.state.meta
-                const uniqueErrorMessages = [
-                  ...new Set(
-                    errors
-                      .map((validationError) => validationError?.message)
-                      .filter((message): message is string => Boolean(message))
-                  ),
-                ]
-
-                return (
-                  <div>
-                    <label className="mb-1 block text-sm font-normal text-primary-foreground">
-                      Course <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="ex. Bachelor of Science in Computer Science"
-                      className={clsx(
-                        "w-full rounded-lg border border-[#ADADAD] bg-white/80 px-3 py-2 text-sm text-background/70 placeholder-[#808080] transition-all focus:bg-white focus:text-background focus:ring-2 focus:ring-[#1976D2] focus:outline-none",
-                        isTouched &&
-                          errors.length > 0 &&
-                          "border-red-500 focus:ring-red-500"
-                      )}
-                      value={field.state.value}
-                      onChange={(e) => {
-                        field.handleChange(e.target.value)
-                      }}
-                      onBlur={field.handleBlur}
-                    />
-                    {isTouched &&
-                      uniqueErrorMessages.length > 0 &&
-                      uniqueErrorMessages.map((message, index) => (
-                        <p key={index} className="mt-2 text-xs text-red-500">
-                          {message}
-                        </p>
-                      ))}
-                  </div>
-                )
-              }}
-            </Field1>
-
-            <Subscribe1 selector={(state) => ({ isValid: state.isValid, fieldMeta: state.fieldMeta })}>
-              {({ isValid, fieldMeta }) => {
-                const requiredFields = ["firstName", "lastName", "email", "course"]
-                const allTouched = requiredFields.every((f) => !!(fieldMeta as any)[f]?.isTouched)
-                const enable = isValid && allTouched
-                return (
-                  <button
-                    type="submit"
-                    className="mx-auto mt-4 w-40 cursor-pointer rounded-full border border-white/20 from-primary to-primary/0 px-4 py-2 text-sm font-medium transition-all not-disabled:bg-linear-to-l not-disabled:text-white/90 not-disabled:hover:text-white not-disabled:hover:bg-primary not-disabled:hover:scale-102 focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:bg-primary/0 disabled:text-white/50"
-                    disabled={isSending || !enable}
-                  >
-                    {isSending ? (
-                      <div className="flex flex-row items-center justify-center gap-2">
-                        Sending OTP
-                        <ClipLoader size={16} color="#FFFFFF" />
+                    return (
+                      <div>
+                        <label className="mb-1 block text-sm font-normal text-primary-foreground">
+                          First Name <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="ex. Juan"
+                          className={clsx(
+                            "w-full rounded-lg border border-[#ADADAD] bg-white/80 px-3 py-2 text-sm text-background/70 placeholder-[#808080] transition-all focus:bg-white focus:text-background focus:ring-2 focus:ring-[#1976D2] focus:outline-none",
+                            isTouched &&
+                              errors.length > 0 &&
+                              "border-red-500 focus:ring-red-500"
+                          )}
+                          value={field.state.value}
+                          onChange={(e) => {
+                            field.handleChange(e.target.value)
+                          }}
+                          onBlur={field.handleBlur}
+                          ref={focusRef}
+                        />
+                        {isTouched &&
+                          uniqueErrorMessages.length > 0 &&
+                          uniqueErrorMessages.map((message, index) => (
+                            <p
+                              key={index}
+                              className="mt-2 text-xs text-red-500"
+                            >
+                              {message}
+                            </p>
+                          ))}
                       </div>
-                    ) : (
-                      "Continue"
-                    )}
-                  </button>
-                )
-              }}
-            </Subscribe1>
-          </form>
-        )}
+                    )
+                  }}
+                </Field1>
 
-        {/* Step 2: OTP Verification */}
-        {step === 2 && (
-          <form
-            className="flex flex-col gap-4"
-            onSubmit={(e) => {
-              e.preventDefault()
-              handleSubmit2()
-            }}
-          >
-            <p className="mb-4 text-center text-sm text-muted-foreground">
-              Enter the 6-digit OTP sent to{" "}
-              <strong>{getFieldValue1("email")}</strong>
-            </p>
+                <Field1 name="lastName">
+                  {(field) => {
+                    const { errors, isTouched } = field.state.meta
+                    const uniqueErrorMessages = [
+                      ...new Set(
+                        errors
+                          .map((validationError) => validationError?.message)
+                          .filter((message): message is string =>
+                            Boolean(message)
+                          )
+                      ),
+                    ]
 
-            <Field2 name="otp">
-              {(field) => {
-                const { errors, isTouched } = field.state.meta
-                const uniqueErrorMessages = [
-                  ...new Set(
-                    errors
-                      .map((validationError) => validationError?.message)
-                      .filter((message): message is string => Boolean(message))
-                  ),
-                ]
+                    return (
+                      <div>
+                        <label className="mb-1 block text-sm font-normal text-primary-foreground">
+                          Last Name <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="ex. Dela Cruz"
+                          className={clsx(
+                            "w-full rounded-lg border border-[#ADADAD] bg-white/80 px-3 py-2 text-sm text-background/70 placeholder-[#808080] transition-all focus:bg-white focus:text-background focus:ring-2 focus:ring-[#1976D2] focus:outline-none",
+                            isTouched &&
+                              errors.length > 0 &&
+                              "border-red-500 focus:ring-red-500"
+                          )}
+                          value={field.state.value}
+                          onChange={(e) => {
+                            field.handleChange(e.target.value)
+                          }}
+                          onBlur={field.handleBlur}
+                        />
+                        {isTouched &&
+                          uniqueErrorMessages.length > 0 &&
+                          uniqueErrorMessages.map((message, index) => (
+                            <p
+                              key={index}
+                              className="mt-2 text-xs text-red-500"
+                            >
+                              {message}
+                            </p>
+                          ))}
+                      </div>
+                    )
+                  }}
+                </Field1>
+              </div>
 
-                return (
-                  <div>
-                    <label className="mb-1 block text-sm font-normal text-primary-foreground">
-                      OTP <span className="text-red-500">*</span>
-                    </label>
-                    <div className="flex justify-center gap-3">
-                      {[...Array(6)].map((_, i) => {
-                        const digit = (field.state.value || "").charAt(i) || ""
-                        return (
-                          <input
-                            key={i}
-                            ref={(el) => {
-                              otpInputRefs.current[i] = el
-                              if (i === 0) focusRef.current = el
-                            }}
-                            type="text"
-                            inputMode="numeric"
-                            pattern="[0-9]*"
-                            maxLength={1}
-                            value={digit}
-                            onChange={(e) => {
-                              const v = e.target.value.replace(/\D/g, "").slice(-1)
-                              const current = (field.state.value || "")
-                              const chars = current.split("").slice(0, 6)
-                              while (chars.length < 6) chars.push("")
-                              chars[i] = v || ""
-                              const newOtp = chars.join("")
-                              field.handleChange(newOtp)
-                              if (v && i < 5) {
-                                otpInputRefs.current[i + 1]?.focus()
-                              }
-                            }}
-                            onKeyDown={(e) => {
-                              if (e.key === "Backspace") {
-                                const current = (field.state.value || "")
-                                const chars = current.split("").slice(0, 6)
-                                while (chars.length < 6) chars.push("")
-                                if (chars[i]) {
-                                  chars[i] = ""
-                                  field.handleChange(chars.join(""))
-                                } else if (i > 0) {
-                                  otpInputRefs.current[i - 1]?.focus()
-                                  chars[i - 1] = ""
-                                  field.handleChange(chars.join(""))
-                                }
-                              } else if (e.key === "ArrowLeft" && i > 0) {
-                                otpInputRefs.current[i - 1]?.focus()
-                              } else if (e.key === "ArrowRight" && i < 5) {
-                                otpInputRefs.current[i + 1]?.focus()
-                              }
-                            }}
-                            onBlur={field.handleBlur}
-                            onPaste={(e) => {
-                              e.preventDefault()
-                              const paste = e.clipboardData.getData("text").replace(/\D/g, "").slice(0, 6)
-                              const chars = paste.split("")
-                              while (chars.length < 6) chars.push("")
-                              field.handleChange(chars.join(""))
-                              const nextIndex = chars.findIndex((c) => c === "")
-                              const focusIndex = nextIndex === -1 ? 5 : nextIndex
-                              otpInputRefs.current[focusIndex]?.focus()
-                            }}
-                            className={clsx(
-                              "h-12 w-12 rounded-md border border-[#ADADAD] bg-white/90 text-black/70 text-thin text-center text-xl font-semibold leading-10 transition-shadow focus:border-[#1976D2] focus:shadow-md",
-                              isTouched && errors.length > 0 && "border-red-500"
-                            )}
-                          />
+              <Field1 name="email">
+                {(field) => {
+                  const { errors, isTouched } = field.state.meta
+                  const uniqueErrorMessages = [
+                    ...new Set(
+                      errors
+                        .map((validationError) => validationError?.message)
+                        .filter((message): message is string =>
+                          Boolean(message)
                         )
-                      })}
+                    ),
+                  ]
+
+                  return (
+                    <div>
+                      <label className="mb-1 block text-sm font-normal text-primary-foreground">
+                        Email <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="email"
+                        placeholder="ex. juandelacruz@dlsud.edu.ph"
+                        className={clsx(
+                          "w-full rounded-lg border border-[#ADADAD] bg-white/80 px-3 py-2 text-sm text-background/70 placeholder-[#808080] transition-all focus:bg-white focus:text-background focus:ring-2 focus:ring-[#1976D2] focus:outline-none",
+                          isTouched &&
+                            errors.length > 0 &&
+                            "border-red-500 focus:ring-red-500"
+                        )}
+                        value={field.state.value}
+                        onChange={(e) => {
+                          field.handleChange(e.target.value)
+                        }}
+                        onBlur={field.handleBlur}
+                      />
+                      <p className="mt-1 text-xs text-white/70">
+                        * Please use your school email if applicable.
+                      </p>
+                      {isTouched &&
+                        uniqueErrorMessages.length > 0 &&
+                        uniqueErrorMessages.map((message, index) => (
+                          <p key={index} className="mt-2 text-xs text-red-500">
+                            {message}
+                          </p>
+                        ))}
                     </div>
-                    {isTouched &&
-                      uniqueErrorMessages.length > 0 &&
-                      uniqueErrorMessages.map((message, index) => (
-                        <p key={index} className="mt-2 text-xs text-red-500">
-                          {message}
-                        </p>
-                      ))}
-                  </div>
-                )
-              }}
-            </Field2>
-
-            <div className="flex flex-row justify-between">
-              <p className="text-xs text-muted-foreground">
-              OTP expires in:{" "}
-              <strong>
-                {Math.floor(otpTimer / 60)}:
-                {(otpTimer % 60).toString().padStart(2, "0")}
-              </strong>
-            </p>
-
-            {otpTimer === 0 && (
-              <button
-                type="button"
-                onClick={() => {
-                  setIsSending(true)
-                  sendOTP(
-                    getFieldValue1("email"),
-                    getFieldValue1("firstName"),
-                    getFieldValue1("lastName"),
-                    getFieldValue1("course"),
-                    true
                   )
-                    .then((response: any) => {
-                      setIsSending(false)
-                      setOtpTimer(60)
-                      setOtpSent(true)
-                      toast.success("New OTP sent!")
-                    })
-                    .catch((error) => {
-                      setIsSending(false)
-                      toast.error("Failed to resend OTP")
-                    })
                 }}
-                className="text-sm text-[#BBA4FF] hover:underline"
-              >
-                Resend OTP
-              </button>
-            )}
-            </div>
+              </Field1>
 
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => setStep(1)}
-                className="flex-1 mt-4 rounded-full border border-white/80 text-white/80 px-4 py-2 text-sm font-medium cursor-pointer hover:bg-primary/10 focus:outline-none"
+              <Field1 name="course">
+                {(field) => {
+                  const { errors, isTouched } = field.state.meta
+                  const uniqueErrorMessages = [
+                    ...new Set(
+                      errors
+                        .map((validationError) => validationError?.message)
+                        .filter((message): message is string =>
+                          Boolean(message)
+                        )
+                    ),
+                  ]
+
+                  return (
+                    <div>
+                      <label className="mb-1 block text-sm font-normal text-primary-foreground">
+                        Course <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="ex. Bachelor of Science in Computer Science"
+                        className={clsx(
+                          "w-full rounded-lg border border-[#ADADAD] bg-white/80 px-3 py-2 text-sm text-background/70 placeholder-[#808080] transition-all focus:bg-white focus:text-background focus:ring-2 focus:ring-[#1976D2] focus:outline-none",
+                          isTouched &&
+                            errors.length > 0 &&
+                            "border-red-500 focus:ring-red-500"
+                        )}
+                        value={field.state.value}
+                        onChange={(e) => {
+                          field.handleChange(e.target.value)
+                        }}
+                        onBlur={field.handleBlur}
+                      />
+                      {isTouched &&
+                        uniqueErrorMessages.length > 0 &&
+                        uniqueErrorMessages.map((message, index) => (
+                          <p key={index} className="mt-2 text-xs text-red-500">
+                            {message}
+                          </p>
+                        ))}
+                    </div>
+                  )
+                }}
+              </Field1>
+
+              <Subscribe1
+                selector={(state) => ({
+                  isValid: state.isValid,
+                  fieldMeta: state.fieldMeta,
+                })}
               >
-                Back
-              </button>
-              <Subscribe2 selector={(state) => ({ isValid: state.isValid, fieldMeta: state.fieldMeta })}>
                 {({ isValid, fieldMeta }) => {
-                  const otpTouched = !!(fieldMeta as any)["otp"]?.isTouched
-                  const enable = isValid && otpTouched
+                  const requiredFields = [
+                    "firstName",
+                    "lastName",
+                    "email",
+                    "course",
+                  ]
+                  const allTouched = requiredFields.every(
+                    (f) => !!(fieldMeta as any)[f]?.isTouched
+                  )
+                  const enable = isValid && allTouched
                   return (
                     <button
                       type="submit"
-                      className="flex-1 mx-auto mt-4 cursor-pointer rounded-full border border-white/20 from-primary to-primary/0 px-4 py-2 text-sm font-medium transition-all not-disabled:bg-linear-to-l not-disabled:text-white/90 not-disabled:hover:text-white not-disabled:hover:bg-primary not-disabled:hover:scale-102 focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:bg-primary/0 disabled:text-white/50"
-                      disabled={isVerifying || !enable}
+                      className="mx-auto mt-4 w-40 cursor-pointer rounded-full border border-white/20 from-primary to-primary/0 px-4 py-2 text-sm font-medium transition-all not-disabled:bg-linear-to-l not-disabled:text-white/90 not-disabled:hover:scale-102 not-disabled:hover:bg-primary not-disabled:hover:text-white focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:bg-primary/0 disabled:text-white/50"
+                      disabled={isSending || !enable}
                     >
-                      {isVerifying ? (
+                      {isSending ? (
                         <div className="flex flex-row items-center justify-center gap-2">
-                          Verifying
+                          Sending OTP
                           <ClipLoader size={16} color="#FFFFFF" />
                         </div>
                       ) : (
-                        "Verify"
+                        "Continue"
                       )}
                     </button>
                   )
                 }}
-              </Subscribe2>
-            </div>
-          </form>
-        )}
+              </Subscribe1>
+            </form>
+          )}
 
-        {/* Step 3: Optional Information */}
-        {step === 3 && (
-          <form
-            className="flex flex-col gap-4"
-            onSubmit={(e) => {
-              e.preventDefault()
-              handleSubmit3()
-            }}
-          >
-            <p className="mb-4 text-center text-sm text-muted-foreground">
-              The following fields are optional. Click{" "}
-              <strong>Complete Registration</strong> to finish.
-            </p>
-
-            <Field3 name="shortBio">
-              {(field) => {
-                const { errors, isTouched } = field.state.meta
-                const uniqueErrorMessages = [
-                  ...new Set(
-                    errors
-                      .map((validationError) => validationError?.message)
-                      .filter((message): message is string => Boolean(message))
-                  ),
-                ]
-
-                return (
-                  <div>
-                    <label className="mb-1 flex w-full flex-row items-center text-sm font-normal text-primary-foreground">
-                      Short Bio
-                      <span className="mr-2 ml-auto text-xs text-muted-foreground">
-                        (optional)
-                      </span>
-                    </label>
-                    <textarea
-                      placeholder="ex. I am passionate about...."
-                      className={clsx(
-                        "w-full rounded-lg border border-[#ADADAD] bg-white px-3 py-3 text-sm text-black/70 placeholder-[#808080] transition-all focus:bg-white focus:text-black focus:ring-2 focus:ring-[#1976D2] focus:outline-none",
-                        isTouched &&
-                          errors.length > 0 &&
-                          "border-red-500 focus:ring-red-500"
-                      )}
-                      rows={4}
-                      value={field.state.value}
-                      onChange={(e) => {
-                        field.handleChange(e.target.value)
-                      }}
-                      onBlur={field.handleBlur}
-                    />
-                    {isTouched &&
-                      uniqueErrorMessages.length > 0 &&
-                      uniqueErrorMessages.map((message, index) => (
-                        <p key={index} className="mt-2 text-xs text-red-500">
-                          {message}
-                        </p>
-                      ))}
-                  </div>
-                )
+          {/* Step 2: OTP Verification */}
+          {step === 2 && (
+            <form
+              className="flex flex-col gap-4"
+              onSubmit={(e) => {
+                e.preventDefault()
+                handleSubmit2()
               }}
-            </Field3>
+            >
+              <p className="mb-4 text-center text-sm text-muted-foreground">
+                Enter the 6-digit OTP sent to{" "}
+                <strong>{getFieldValue1("email")}</strong>
+              </p>
 
-            {/* Social Links Dynamic Field */}
-            <div>
-              <label className="mb-1 flex w-full flex-row items-center text-sm font-normal text-primary-foreground">
-                Social Links
-                <span className="mr-2 ml-auto text-xs text-muted-foreground">
-                  (optional)
-                </span>
-              </label>
-              <div className="space-y-2">
-                {socialLinksData.map((link) => (
-                  <div key={link.id} className="flex rounded-lg border-2 border-[#5555AA]/40 bg-[#3D3D6B] transition-all has-focus:border-primary has-focus:border-2">
-                    <input
-                      type="url"
-                      placeholder="https://example.com/profile"
-                      className="flex-1 rounded-lg pl-3 py-2 text-sm text-white/60 focus:text-white/90 placeholder-white/40 bg-transparent focus:outline-none"
-                      value={link.url}
-                      onChange={(e) => {
-                        setSocialLinksData((prev) =>
-                          prev.map((l) =>
-                            l.id === link.id ? { ...l, url: e.target.value } : l
+              <Field2 name="otp">
+                {(field) => {
+                  const { errors, isTouched } = field.state.meta
+                  const uniqueErrorMessages = [
+                    ...new Set(
+                      errors
+                        .map((validationError) => validationError?.message)
+                        .filter((message): message is string =>
+                          Boolean(message)
+                        )
+                    ),
+                  ]
+
+                  return (
+                    <div>
+                      <label className="mb-1 block text-sm font-normal text-primary-foreground">
+                        OTP <span className="text-red-500">*</span>
+                      </label>
+                      <div className="flex justify-center gap-3">
+                        {[...Array(6)].map((_, i) => {
+                          const digit =
+                            (field.state.value || "").charAt(i) || ""
+                          return (
+                            <input
+                              key={i}
+                              ref={(el) => {
+                                otpInputRefs.current[i] = el
+                                if (i === 0) focusRef.current = el
+                              }}
+                              type="text"
+                              inputMode="numeric"
+                              pattern="[0-9]*"
+                              maxLength={1}
+                              value={digit}
+                              onChange={(e) => {
+                                const v = e.target.value
+                                  .replace(/\D/g, "")
+                                  .slice(-1)
+                                const current = field.state.value || ""
+                                const chars = current.split("").slice(0, 6)
+                                while (chars.length < 6) chars.push("")
+                                chars[i] = v || ""
+                                const newOtp = chars.join("")
+                                field.handleChange(newOtp)
+                                if (v && i < 5) {
+                                  otpInputRefs.current[i + 1]?.focus()
+                                }
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === "Backspace") {
+                                  const current = field.state.value || ""
+                                  const chars = current.split("").slice(0, 6)
+                                  while (chars.length < 6) chars.push("")
+                                  if (chars[i]) {
+                                    chars[i] = ""
+                                    field.handleChange(chars.join(""))
+                                  } else if (i > 0) {
+                                    otpInputRefs.current[i - 1]?.focus()
+                                    chars[i - 1] = ""
+                                    field.handleChange(chars.join(""))
+                                  }
+                                } else if (e.key === "ArrowLeft" && i > 0) {
+                                  otpInputRefs.current[i - 1]?.focus()
+                                } else if (e.key === "ArrowRight" && i < 5) {
+                                  otpInputRefs.current[i + 1]?.focus()
+                                }
+                              }}
+                              onBlur={field.handleBlur}
+                              onPaste={(e) => {
+                                e.preventDefault()
+                                const paste = e.clipboardData
+                                  .getData("text")
+                                  .replace(/\D/g, "")
+                                  .slice(0, 6)
+                                const chars = paste.split("")
+                                while (chars.length < 6) chars.push("")
+                                field.handleChange(chars.join(""))
+                                const nextIndex = chars.findIndex(
+                                  (c) => c === ""
+                                )
+                                const focusIndex =
+                                  nextIndex === -1 ? 5 : nextIndex
+                                otpInputRefs.current[focusIndex]?.focus()
+                              }}
+                              className={clsx(
+                                "text-thin h-12 w-12 rounded-md border border-[#ADADAD] bg-white/90 text-center text-xl leading-10 font-semibold text-black/70 transition-shadow focus:border-[#1976D2] focus:shadow-md",
+                                isTouched &&
+                                  errors.length > 0 &&
+                                  "border-red-500"
+                              )}
+                            />
                           )
-                        )
-                      }}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSocialLinksData((prev) =>
-                          prev.filter((l) => l.id !== link.id)
-                        )
-                      }}
-                      className="rounded-lg p-2 text-white/50 hover:text-white/80"
-                    >
-                      <X size={18} />
-                    </button>
-                  </div>
-                ))}
-                {socialLinksData.length < 5 && (
+                        })}
+                      </div>
+                      {isTouched &&
+                        uniqueErrorMessages.length > 0 &&
+                        uniqueErrorMessages.map((message, index) => (
+                          <p key={index} className="mt-2 text-xs text-red-500">
+                            {message}
+                          </p>
+                        ))}
+                    </div>
+                  )
+                }}
+              </Field2>
+
+              <div className="flex flex-row justify-between">
+                <p className="text-xs text-muted-foreground">
+                  OTP expires in:{" "}
+                  <strong>
+                    {Math.floor(otpTimer / 60)}:
+                    {(otpTimer % 60).toString().padStart(2, "0")}
+                  </strong>
+                </p>
+
+                {otpTimer === 0 && (
                   <button
                     type="button"
                     onClick={() => {
-                      setSocialLinksData((prev) => [
-                        ...prev,
-                        { id: Date.now().toString(), url: "" },
-                      ])
+                      setIsSending(true)
+                      sendOTP(
+                        getFieldValue1("email"),
+                        getFieldValue1("firstName"),
+                        getFieldValue1("lastName"),
+                        getFieldValue1("course"),
+                        true
+                      )
+                        .then((response: any) => {
+                          setIsSending(false)
+                          setOtpTimer(60)
+                          setOtpSent(true)
+                          toast.success("New OTP sent!")
+                        })
+                        .catch((error) => {
+                          setIsSending(false)
+                          toast.error("Failed to resend OTP")
+                        })
                     }}
-                    className="w-full rounded-lg border border-dashed border-primary px-3 py-2 text-sm text-primary hover:bg-primary/10"
+                    className="text-sm text-[#BBA4FF] hover:underline"
                   >
-                    + Add Social Link
+                    Resend OTP
                   </button>
                 )}
               </div>
-            </div>
 
-            <Field3 name="portfolioLink">
-              {(field) => {
-                const { errors, isTouched } = field.state.meta
-                const uniqueErrorMessages = [
-                  ...new Set(
-                    errors
-                      .map((validationError) => validationError?.message)
-                      .filter((message): message is string => Boolean(message))
-                  ),
-                ]
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setStep(1)}
+                  className="mt-4 flex-1 cursor-pointer rounded-full border border-white/80 px-4 py-2 text-sm font-medium text-white/80 hover:bg-primary/10 focus:outline-none"
+                >
+                  Back
+                </button>
+                <Subscribe2
+                  selector={(state) => ({
+                    isValid: state.isValid,
+                    fieldMeta: state.fieldMeta,
+                  })}
+                >
+                  {({ isValid, fieldMeta }) => {
+                    const otpTouched = !!(fieldMeta as any)["otp"]?.isTouched
+                    const enable = isValid && otpTouched
+                    return (
+                      <button
+                        type="submit"
+                        className="mx-auto mt-4 flex-1 cursor-pointer rounded-full border border-white/20 from-primary to-primary/0 px-4 py-2 text-sm font-medium transition-all not-disabled:bg-linear-to-l not-disabled:text-white/90 not-disabled:hover:scale-102 not-disabled:hover:bg-primary not-disabled:hover:text-white focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:bg-primary/0 disabled:text-white/50"
+                        disabled={isVerifying || !enable}
+                      >
+                        {isVerifying ? (
+                          <div className="flex flex-row items-center justify-center gap-2">
+                            Verifying
+                            <ClipLoader size={16} color="#FFFFFF" />
+                          </div>
+                        ) : (
+                          "Verify"
+                        )}
+                      </button>
+                    )
+                  }}
+                </Subscribe2>
+              </div>
+            </form>
+          )}
 
-                return (
-                  <div>
-                    <label className="mb-1 flex w-full flex-row items-center text-sm font-normal text-primary-foreground">
-                      <div>
-                        Resume{" "}
-                        <span className="text-xs text-primary-foreground/50">
-                          (pdf, doc, docx, max: 4.5MB)
+          {/* Step 3: Optional Information */}
+          {step === 3 && (
+            <form
+              className="flex flex-col gap-4"
+              onSubmit={(e) => {
+                e.preventDefault()
+                handleSubmit3()
+              }}
+            >
+              <p className="mb-4 text-center text-sm text-muted-foreground">
+                The following fields are optional. Click{" "}
+                <strong>Complete Registration</strong> to finish.
+              </p>
+
+              <Field3 name="shortBio">
+                {(field) => {
+                  const { errors, isTouched } = field.state.meta
+                  const uniqueErrorMessages = [
+                    ...new Set(
+                      errors
+                        .map((validationError) => validationError?.message)
+                        .filter((message): message is string =>
+                          Boolean(message)
+                        )
+                    ),
+                  ]
+
+                  return (
+                    <div>
+                      <label className="mb-1 flex w-full flex-row items-center text-sm font-normal text-primary-foreground">
+                        Short Bio
+                        <span className="mr-2 ml-auto text-xs text-muted-foreground">
+                          (optional)
                         </span>
-                      </div>
-                      <span className="mr-2 ml-auto text-xs text-muted-foreground">
-                        (optional)
-                      </span>
-                    </label>
-                    <input
-                      ref={portfolioInputRef}
-                      type="file"
-                      accept=".pdf,.doc,.docx"
-                      className="mb-2 w-full rounded-lg border border-[#ADADAD] bg-white/80 px-3 py-2 text-sm text-background/70 placeholder-[#808080] transition-all focus:ring-2 focus:ring-[#1976D2] focus:outline-none text-center"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0]
-                        if (file) {
-                          // Clear any previous errors when new file is selected
-                          setUploadError(null)
-                          
-                          // Check file size (max 4.5MB)
-                          const maxSizeInBytes = 4.5 * 1024 * 1024 // 4.5MB
-                          if (file.size > maxSizeInBytes) {
-                            const fileSizeInMB = (file.size / (1024 * 1024)).toFixed(2)
-                            setUploadError(
-                              `File size (${fileSizeInMB}MB) exceeds the maximum allowed size of 4.5MB`
-                            )
-                            if (portfolioInputRef.current) {
-                              portfolioInputRef.current.value = ""
-                            }
-                            field.handleChange("")
-                            return
-                          }
+                      </label>
+                      <textarea
+                        placeholder="ex. I am passionate about...."
+                        className={clsx(
+                          "w-full rounded-lg border border-[#ADADAD] bg-white px-3 py-3 text-sm text-black/70 placeholder-[#808080] transition-all focus:bg-white focus:text-black focus:ring-2 focus:ring-[#1976D2] focus:outline-none",
+                          isTouched &&
+                            errors.length > 0 &&
+                            "border-red-500 focus:ring-red-500"
+                        )}
+                        rows={4}
+                        value={field.state.value}
+                        onChange={(e) => {
+                          field.handleChange(e.target.value)
+                        }}
+                        onBlur={field.handleBlur}
+                      />
+                      {isTouched &&
+                        uniqueErrorMessages.length > 0 &&
+                        uniqueErrorMessages.map((message, index) => (
+                          <p key={index} className="mt-2 text-xs text-red-500">
+                            {message}
+                          </p>
+                        ))}
+                    </div>
+                  )
+                }}
+              </Field3>
 
-                          setIsUploading(true)
-                          UploadImageToBlobStorage(
-                            file,
-                            `resume/${getFieldValue1("firstName")}-Resume`
+              {/* Social Links Dynamic Field */}
+              <div>
+                <label className="mb-1 flex w-full flex-row items-center text-sm font-normal text-primary-foreground">
+                  Social Links
+                  <span className="mr-2 ml-auto text-xs text-muted-foreground">
+                    (optional)
+                  </span>
+                </label>
+                <div className="space-y-2">
+                  {socialLinksData.map((link) => (
+                    <div
+                      key={link.id}
+                      className="flex rounded-lg border-2 border-[#5555AA]/40 bg-[#3D3D6B] transition-all has-focus:border-2 has-focus:border-primary"
+                    >
+                      <input
+                        type="url"
+                        placeholder="https://example.com/profile"
+                        className="flex-1 rounded-lg bg-transparent py-2 pl-3 text-sm text-white/60 placeholder-white/40 focus:text-white/90 focus:outline-none"
+                        value={link.url}
+                        onChange={(e) => {
+                          setSocialLinksData((prev) =>
+                            prev.map((l) =>
+                              l.id === link.id
+                                ? { ...l, url: e.target.value }
+                                : l
+                            )
                           )
-                            .then((blob) => {
-                              const fileUrl = blob.url
-                              field.handleChange(fileUrl)
-                              setIsUploading(false)
-                              setUploadError(null)
-                            })
-                            .catch((error) => {
-                              console.error("Error uploading file:", error)
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSocialLinksData((prev) =>
+                            prev.filter((l) => l.id !== link.id)
+                          )
+                        }}
+                        className="rounded-lg p-2 text-white/50 hover:text-white/80"
+                      >
+                        <X size={18} />
+                      </button>
+                    </div>
+                  ))}
+                  {socialLinksData.length < 5 && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSocialLinksData((prev) => [
+                          ...prev,
+                          { id: Date.now().toString(), url: "" },
+                        ])
+                      }}
+                      className="w-full rounded-lg border border-dashed border-primary px-3 py-2 text-sm text-primary hover:bg-primary/10"
+                    >
+                      + Add Social Link
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <Field3 name="portfolioLink">
+                {(field) => {
+                  const { errors, isTouched } = field.state.meta
+                  const uniqueErrorMessages = [
+                    ...new Set(
+                      errors
+                        .map((validationError) => validationError?.message)
+                        .filter((message): message is string =>
+                          Boolean(message)
+                        )
+                    ),
+                  ]
+
+                  return (
+                    <div>
+                      <label className="mb-1 flex w-full flex-row items-center text-sm font-normal text-primary-foreground">
+                        <div>
+                          Resume{" "}
+                          <span className="text-xs text-primary-foreground/50">
+                            (pdf, doc, docx, max: 4.5MB)
+                          </span>
+                        </div>
+                        <span className="mr-2 ml-auto text-xs text-muted-foreground">
+                          (optional)
+                        </span>
+                      </label>
+                      <input
+                        ref={portfolioInputRef}
+                        type="file"
+                        accept=".pdf,.doc,.docx"
+                        className="mb-2 w-full rounded-lg border border-[#ADADAD] bg-white/80 px-3 py-2 text-center text-sm text-background/70 placeholder-[#808080] transition-all focus:ring-2 focus:ring-[#1976D2] focus:outline-none"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0]
+                          if (file) {
+                            // Clear any previous errors when new file is selected
+                            setUploadError(null)
+
+                            // Check file size (max 4.5MB)
+                            const maxSizeInBytes = 4.5 * 1024 * 1024 // 4.5MB
+                            if (file.size > maxSizeInBytes) {
+                              const fileSizeInMB = (
+                                file.size /
+                                (1024 * 1024)
+                              ).toFixed(2)
+                              setUploadError(
+                                `File size (${fileSizeInMB}MB) exceeds the maximum allowed size of 4.5MB`
+                              )
                               if (portfolioInputRef.current) {
                                 portfolioInputRef.current.value = ""
                               }
                               field.handleChange("")
-                              setIsUploading(false)
-                              setUploadError(
-                                error instanceof Error
-                                  ? error.message
-                                  : "Unknown error occurred during upload"
-                              )
-                            })
-                        }
-                      }}
-                    />
-                    {isUploading && (
-                      <div className="flex flex-row items-center gap-2 text-xs text-primary-foreground">
-                        Uploading <ClipLoader size={16} color="#FFFFFF" />
-                      </div>
-                    )}
-                    {uploadError && (
-                      <p className="text-xs text-red-500">{uploadError}</p>
-                    )}
-                    {field.state.value && portfolioInputRef.current?.files?.[0] && (
-                      <div className="mt-2 flex items-center gap-2 rounded-lg border border-white/20 bg-white/10 px-3 py-2">
-                        <div className="text-sm text-white/80">📄 {portfolioInputRef.current.files[0].name}</div>
-                      </div>
-                    )}
-                  </div>
-                )
-              }}
-            </Field3>
+                              return
+                            }
 
-            <div className="flex gap-3">
-              <button
-                type="button"
-                onClick={() => setStep(2)}
-                className="flex-1 mt-4 rounded-full border border-primary px-4 py-2 font-medium text-white/90 hover:bg-primary/10 focus:outline-none"
-              >
-                Back
-              </button>
-              <button
-                type="submit"
-                className="flex-1 mx-auto mt-4 cursor-pointer rounded-full border border-white/20 from-primary to-primary/0 px-4 py-2 text-sm font-medium transition-all not-disabled:bg-linear-to-l not-disabled:text-white/90 not-disabled:hover:text-white not-disabled:hover:bg-primary not-disabled:hover:scale-102 focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:bg-primary/0 disabled:text-white/50"
-                disabled={isUploading || isCompleting}
-              >
-                {isCompleting ? (
-                  <div className="flex flex-row items-center justify-center gap-2">
-                    Completing
-                    <ClipLoader size={16} color="#FFFFFF" />
-                  </div>
-                ) : (
-                  "Complete Registration"
-                )}
-              </button>
-            </div>
-          </form>
-        )}
+                            setIsUploading(true)
+                            UploadImageToBlobStorage(
+                              file,
+                              `resume/${getFieldValue1("firstName")}-Resume`
+                            )
+                              .then((blob) => {
+                                const fileUrl = blob.url
+                                field.handleChange(fileUrl)
+                                setIsUploading(false)
+                                setUploadError(null)
+                              })
+                              .catch((error) => {
+                                console.error("Error uploading file:", error)
+                                if (portfolioInputRef.current) {
+                                  portfolioInputRef.current.value = ""
+                                }
+                                field.handleChange("")
+                                setIsUploading(false)
+                                setUploadError(
+                                  error instanceof Error
+                                    ? error.message
+                                    : "Unknown error occurred during upload"
+                                )
+                              })
+                          }
+                        }}
+                      />
+                      {isUploading && (
+                        <div className="flex flex-row items-center gap-2 text-xs text-primary-foreground">
+                          Uploading <ClipLoader size={16} color="#FFFFFF" />
+                        </div>
+                      )}
+                      {uploadError && (
+                        <p className="text-xs text-red-500">{uploadError}</p>
+                      )}
+                      {field.state.value &&
+                        portfolioInputRef.current?.files?.[0] && (
+                          <div className="mt-2 flex items-center gap-2 rounded-lg border border-white/20 bg-white/10 px-3 py-2">
+                            <div className="text-sm text-white/80">
+                              📄 {portfolioInputRef.current.files[0].name}
+                            </div>
+                          </div>
+                        )}
+                    </div>
+                  )
+                }}
+              </Field3>
+
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setStep(2)}
+                  className="mt-4 flex-1 rounded-full border border-primary px-4 py-2 font-medium text-white/90 hover:bg-primary/10 focus:outline-none"
+                >
+                  Back
+                </button>
+                <button
+                  type="submit"
+                  className="mx-auto mt-4 flex-1 cursor-pointer rounded-full border border-white/20 from-primary to-primary/0 px-4 py-2 text-sm font-medium transition-all not-disabled:bg-linear-to-l not-disabled:text-white/90 not-disabled:hover:scale-102 not-disabled:hover:bg-primary not-disabled:hover:text-white focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:bg-primary/0 disabled:text-white/50"
+                  disabled={isUploading || isCompleting}
+                >
+                  {isCompleting ? (
+                    <div className="flex flex-row items-center justify-center gap-2">
+                      Completing
+                      <ClipLoader size={16} color="#FFFFFF" />
+                    </div>
+                  ) : (
+                    "Complete Registration"
+                  )}
+                </button>
+              </div>
+            </form>
+          )}
+        </div>
       </div>
+
+      <footer className="relative -m-6 min-h-[45vh] w-screen overflow-x-clip bg-[#05091D] bg-linear-to-t -mt-100 pt-15 pb-10">
+        <Image
+          src={"/images/HalfCircle.png"}
+          width={2520}
+          height={1000}
+          alt="Half Circle Background"
+          className="absolute -top-4/6 left-1/2 w-[calc(150vw)] -translate-x-1/2 opacity-80 select-none lg:-top-full"
+        />
+        <div className="absolute -top-1/2 left-1/2 h-[calc(110%)] w-[calc(100vw+30%)] -translate-x-1/2 rounded-[50%] bg-[#BCA4FF]/20 blur-[100px]" />
+        <div className="absolute bottom-10 z-1 h-full w-full overflow-clip">
+          <Image
+            src={"/images/FooterBuildingsBG.png"}
+            width={1920}
+            height={400}
+            alt="Footer Background"
+            className="z-1 h-[calc(110%)] w-full object-cover object-top opacity-30 select-none"
+          />
+          <div className="absolute -bottom-1/2 left-1/2 z-5 h-[calc(110%)] w-[calc(100vw+50%)] -translate-x-1/2 rounded-[50%] bg-[#05091D] blur-[50px]" />
+        </div>
+      </footer>
     </div>
   )
 }

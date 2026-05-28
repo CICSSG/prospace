@@ -7,7 +7,7 @@ import Link from "next/link"
 import Image from "next/image"
 import React, { useEffect, useState } from "react"
 import { CompanyPartner } from "../page"
-import { getCollectionData } from "@/app/admin/actions"
+import { getCollectionData } from "@/app/(management)/admin/actions"
 
 const IndustryPartners = () => {
   const [companies, setCompanies] = useState<CompanyPartner[]>([])

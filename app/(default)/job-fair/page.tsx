@@ -198,7 +198,7 @@ const JobFair = () => {
       </div>
 
       <h1 className="z-10 text-2xl">
-        Registration until <span className="font-bold">May 30</span>
+        Registration until <span className="font-bold">June 01</span>
       </h1>
       <Link
         href={"/signup"}

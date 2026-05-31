@@ -12,6 +12,7 @@ import {
   UserProfile,
   UserAvatar,
   UserButton,
+  useUser,
 } from "@clerk/nextjs"
 import { useState } from "react"
 import { usePathname } from "next/navigation"
@@ -19,6 +20,7 @@ import { WebMode } from "@/app/types"
 import { sora } from "@/components/prospace/fonts"
 
 export default function Header() {
+  const { user } = useUser()
   const mode = process.env.NEXT_PUBLIC_MODE as WebMode
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const pathname = usePathname()
@@ -88,14 +90,14 @@ export default function Header() {
           <Show when="signed-in">
             <Link
               href="/profile"
-              className={`block py-2 ${isActive("/profile") ? "font-semibold text-primary" : ""}`}
+              className={`block h-fit rounded-full px-6 py-1 ${isActive("/profile") ? "bg-linear-to-b to-primary/50 outline outline-white/60 backdrop-blur-sm" : "hover:outline hover:outline-white/60"}`}
               onClick={() => setIsMenuOpen(false)}
             >
               Profile
             </Link>
             <Link
               href="/connect"
-              className={`block py-2 ${isActive("/connect") ? "font-semibold text-primary" : ""}`}
+              className={`block h-fit rounded-full px-6 py-1 ${isActive("/connect") ? "bg-linear-to-b to-primary/50 outline outline-white/60 backdrop-blur-sm" : "hover:outline hover:outline-white/60"}`}
               onClick={() => setIsMenuOpen(false)}
             >
               Connect
@@ -167,7 +169,7 @@ export default function Header() {
           </Show>
 
           <Show when="signed-in">
-            <Link href={"/profile"}>
+            <Link href={"/profile"} className={`flex flex-row items-center gap-2 outline rounded-full pl-1.5 pr-2.5 py-1.5 backdrop-blur-md hover:outline-white/60 ${sora.className} font-light text-sm`}>
               <UserAvatar
                 appearance={{
                   elements: {
@@ -176,6 +178,7 @@ export default function Header() {
                   },
                 }}
               />
+              {user?.firstName}
             </Link>
           </Show>
           <Image

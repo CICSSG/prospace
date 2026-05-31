@@ -33,7 +33,7 @@ export default function Profile() {
 
   const link = mongoUserId
     ? `${process.env.NEXT_PUBLIC_BASE_URL}/connect?id=${mongoUserId}&type=user`
-    : ""
+    : "https://prospace.cicssg.com/connect?id=10000&type=user"
 
   const handleDownload = () => {
     QRRef.current?.download({

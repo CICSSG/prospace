@@ -5,7 +5,7 @@ import { Mail } from "lucide-react"
 
 const SignupSuccess = () => {
   return (
-    <div className="mt-30 mb-10">
+    <div className="mt-30 mb-10 relative z-10">
       <div className="mx-2 flex max-w-xl flex-col rounded-2xl border-2 border-white/50 bg-linear-to-r from-primary/30 px-5 py-8">
         <div className="mx-auto mb-10 flex w-fit flex-row items-center gap-5">
           <img

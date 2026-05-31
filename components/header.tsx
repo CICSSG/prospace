@@ -1,5 +1,5 @@
 "use client"
-import { ChevronLeft, Menu } from "lucide-react"
+import { ChevronDown, ChevronLeft, Menu } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import GlassSurface from "./GlassSurface"
 import Link from "next/link"
@@ -8,19 +8,23 @@ import {
   Show,
   SignInButton,
   SignOutButton,
-  SignUpButton,
-  UserProfile,
   UserAvatar,
-  UserButton,
   useUser,
 } from "@clerk/nextjs"
 import { useState } from "react"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { WebMode } from "@/app/types"
 import { sora } from "@/components/prospace/fonts"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 export default function Header() {
   const { user } = useUser()
+  const router = useRouter()
   const mode = process.env.NEXT_PUBLIC_MODE as WebMode
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const pathname = usePathname()
@@ -87,29 +91,6 @@ export default function Header() {
               Apply
             </Link> */}
           </>
-          <Show when="signed-in">
-            <Link
-              href="/profile"
-              className={`block h-fit rounded-full px-6 py-1 ${isActive("/profile") ? "bg-linear-to-b to-primary/50 outline outline-white/60 backdrop-blur-sm" : "hover:outline hover:outline-white/60"}`}
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Profile
-            </Link>
-            <Link
-              href="/connect"
-              className={`block h-fit rounded-full px-6 py-1 ${isActive("/connect") ? "bg-linear-to-b to-primary/50 outline outline-white/60 backdrop-blur-sm" : "hover:outline hover:outline-white/60"}`}
-              onClick={() => setIsMenuOpen(false)}
-            >
-              Connect
-            </Link>
-            {/* <Link
-                      href={"/missions"}                      
-                      className="block py-2"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      Missions
-                    </Link> */}
-          </Show>
         </div>
 
         <div className="ml-auto flex flex-row items-center gap-4">
@@ -169,17 +150,51 @@ export default function Header() {
           </Show>
 
           <Show when="signed-in">
-            <Link href={"/profile"} className={`flex flex-row items-center gap-2 outline rounded-full pl-1.5 pr-2.5 py-1.5 backdrop-blur-md hover:outline-white/60 ${sora.className} font-light text-sm`}>
-              <UserAvatar
-                appearance={{
-                  elements: {
-                    userButtonAvatarBox: "w-10 h-10",
-                    userButtonAvatarImage: "w-10 h-10",
-                  },
-                }}
-              />
-              {user?.firstName}
-            </Link>
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <button
+                    type="button"
+                    className={`flex h-fit items-center gap-2 rounded-full border border-white/15 pl-1.5 pr-2.5 py-1.5 text-sm font-light text-white/90 backdrop-blur-xl transition-all duration-200 hover:border-white/30 hover:bg-white/10 hover:shadow-lg hover:shadow-black/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 ${sora.className}`}
+                  />
+                }
+              >
+                <UserAvatar
+                  appearance={{
+                    elements: {
+                      userButtonAvatarBox: "w-10 h-10",
+                      userButtonAvatarImage: "w-10 h-10",
+                    },
+                  }}
+                />
+                <span className="max-w-28 truncate">{user?.firstName}</span>
+                <ChevronDown className="size-4 text-white/70" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                sideOffset={10}
+                className="min-w-56 overflow-hidden rounded-2xl border border-white/10 bg-linear-to-r from-[#2f204b] to-[#090d25] p-2 text-white shadow-2xl shadow-black/30 backdrop-blur-xl data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-open:slide-in-from-top-2 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95"
+              >
+                <DropdownMenuItem
+                  className="rounded-xl px-3 py-2.5 text-sm text-white/85 outline-none transition-colors focus:bg-white/10 focus:text-white hover:bg-white/10 hover:text-white"
+                  onSelect={() => router.push("/profile")}
+                >
+                  Profile
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="rounded-xl px-3 py-2.5 text-sm text-white/85 outline-none transition-colors focus:bg-white/10 focus:text-white hover:bg-white/10 hover:text-white"
+                  onSelect={() => router.push("/connect")}
+                >
+                  Connect
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="rounded-xl px-3 py-2.5 text-sm text-white/85 outline-none transition-colors focus:bg-white/10 focus:text-white hover:bg-white/10 hover:text-white"
+                  onSelect={() => router.push("/missions")}
+                >
+                  Missions
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </Show>
           <Image
             src={"/images/ProspaceMinimalLogo.png"}

@@ -13,7 +13,7 @@ type MongoUserRecord = {
   resumeLink?: string
   createdAt?: string
   updatedAt?: string
-  role?: "admin" | "data" | "user" | null
+  role?: "admin" | "user" | null
   adminRole?: "superadmin" | "admin" | null
   isAdmin?: boolean
 }
@@ -135,7 +135,7 @@ export async function GET() {
     })
 
     const adminUsers = mongoUsers.filter((mongoUser) => mongoUser.role === "admin")
-    const dataUsers = mongoUsers.filter((mongoUser) => mongoUser.role === "data")
+    const userUsers = mongoUsers.filter((mongoUser) => mongoUser.role === "user")
 
     const upcomingSessions = mongoSessions.filter((session) => {
       const sessionDate = toDate(session.sessionDate)
@@ -176,7 +176,7 @@ export async function GET() {
         registeredUsers: registeredUsers.length,
         totalUsers: mongoUsers.length,
         adminUsers: adminUsers.length,
-        dataUsers: dataUsers.length,
+        userUsers: userUsers.length,
         companies: mongoCompanies.length,
         sessions: mongoSessions.length,
         upcomingSessions: upcomingSessions.length,

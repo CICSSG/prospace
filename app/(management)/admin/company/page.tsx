@@ -1,5 +1,6 @@
 "use client"
 
+import { useUser } from "@clerk/nextjs"
 import { PaginationComponent } from "@/components/pagination"
 import {
   Table,
@@ -19,10 +20,15 @@ import CompanyFormDialog from "./company-form-dialog"
 import DeleteCompanyDialog from "./delete-company-dialog"
 import ViewQRDialog from "./view-qr-dialog"
 import { Company } from "./types"
+import {
+  getManagementPageAccessState,
+  type ManagementAccessMetadata,
+} from "@/lib/management-access"
 
 const emptyList: Company[] = []
 
 export default function CompanyList() {
+  const { user } = useUser()
   const [companies, setCompanies] = useState<Company[]>(emptyList)
   const [page, setPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(10)
@@ -32,6 +38,9 @@ export default function CompanyList() {
   const [editCompany, setEditCompany] = useState<Company | null>(null)
   const [deleteCompany, setDeleteCompany] = useState<Company | null>(null)
   const [viewQrCompany, setViewQrCompany] = useState<Company | null>(null)
+
+  const metadata = user?.publicMetadata as ManagementAccessMetadata | undefined
+  const { canEdit } = getManagementPageAccessState(metadata, "manage", ["/company", "/companies", "company", "companies"])
 
   type CompanyCollectionItem = {
     _id: string
@@ -163,13 +172,15 @@ export default function CompanyList() {
         </div>
 
         <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => setAddOpen(true)}
-            className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm text-primary-foreground hover:bg-primary/90"
-          >
-            <Plus size={16} /> Add Company
-          </button>
+          {canEdit ? (
+            <button
+              type="button"
+              onClick={() => setAddOpen(true)}
+              className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm text-primary-foreground hover:bg-primary/90"
+            >
+              <Plus size={16} /> Add Company
+            </button>
+          ) : null}
           <button
             type="button"
             onClick={getData}
@@ -290,22 +301,26 @@ export default function CompanyList() {
                       >
                         <QrCode size={16} />
                       </button>
-                      <button
-                        type="button"
-                        onClick={() => setEditCompany(company)}
-                        className="inline-flex items-center rounded-lg border px-3 py-2 text-sm hover:bg-muted"
-                        title="Edit company"
-                      >
-                        <PencilLine size={16} />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setDeleteCompany(company)}
-                        className="inline-flex items-center rounded-lg border border-destructive/40 px-3 py-2 text-sm text-destructive hover:bg-destructive hover:text-white"
-                        title="Delete company"
-                      >
-                        <Trash2 size={16} />
-                      </button>
+                      {canEdit ? (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => setEditCompany(company)}
+                            className="inline-flex items-center rounded-lg border px-3 py-2 text-sm hover:bg-muted"
+                            title="Edit company"
+                          >
+                            <PencilLine size={16} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setDeleteCompany(company)}
+                            className="inline-flex items-center rounded-lg border border-destructive/40 px-3 py-2 text-sm text-destructive hover:bg-destructive hover:text-white"
+                            title="Delete company"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </>
+                      ) : null}
                     </div>
                   </TableCell>
                 </TableRow>
@@ -333,7 +348,7 @@ export default function CompanyList() {
         </Table>
       </section>
 
-      {addOpen && (
+      {canEdit && addOpen && (
         <CompanyFormDialog
           key="add-company"
           open={addOpen}
@@ -343,7 +358,7 @@ export default function CompanyList() {
         />
       )}
 
-      {editCompany && (
+      {canEdit && editCompany && (
         <CompanyFormDialog
           key={editCompany.id}
           open={Boolean(editCompany)}
@@ -358,7 +373,7 @@ export default function CompanyList() {
         />
       )}
 
-      {deleteCompany && (
+      {canEdit && deleteCompany && (
         <DeleteCompanyDialog
           company={deleteCompany}
           open={Boolean(deleteCompany)}

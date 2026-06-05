@@ -11,6 +11,10 @@ import DeleteMissionCategoryDialog from "./delete-mission-category-dialog"
 import MissionCategoryFormDialog from "./mission-category-form-dialog"
 import { MissionCategory } from "./types"
 
+type MissionCategoriesSectionProps = {
+  canEdit?: boolean
+}
+
 const emptyList: MissionCategory[] = []
 
 type MissionCategoryCollectionItem = {
@@ -35,7 +39,7 @@ function formatDateTime(value?: string) {
   })
 }
 
-export default function MissionCategoriesSection() {
+export default function MissionCategoriesSection({ canEdit = true }: MissionCategoriesSectionProps) {
   const [categories, setCategories] = useState<MissionCategory[]>(emptyList)
   const [search, setSearch] = useState("")
   const [addOpen, setAddOpen] = useState(false)
@@ -84,13 +88,15 @@ export default function MissionCategoriesSection() {
         </div>
 
         <div className="flex flex-nowrap gap-2">
-          <button
-            type="button"
-            onClick={() => setAddOpen(true)}
-            className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm text-primary-foreground hover:bg-primary/90 text-nowrap"
-          >
-            <Plus size={16} /> Add Category
-          </button>
+          {canEdit ? (
+            <button
+              type="button"
+              onClick={() => setAddOpen(true)}
+              className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm text-primary-foreground hover:bg-primary/90 text-nowrap"
+            >
+              <Plus size={16} /> Add Category
+            </button>
+          ) : null}
           <button
             type="button"
             onClick={getData}
@@ -134,22 +140,26 @@ export default function MissionCategoriesSection() {
                 </TableCell>
                 <TableCell>
                   <div className="ml-auto flex justify-end gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setEditCategory(category)}
-                      className="inline-flex items-center rounded-lg border px-3 py-2 text-sm hover:bg-muted"
-                      title="Edit category"
-                    >
-                      <PencilLine size={16} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setDeleteCategory(category)}
-                      className="inline-flex items-center rounded-lg border border-destructive/40 px-3 py-2 text-sm text-destructive hover:bg-destructive hover:text-white"
-                      title="Delete category"
-                    >
-                      <Trash2 size={16} />
-                    </button>
+                    {canEdit ? (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => setEditCategory(category)}
+                          className="inline-flex items-center rounded-lg border px-3 py-2 text-sm hover:bg-muted"
+                          title="Edit category"
+                        >
+                          <PencilLine size={16} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setDeleteCategory(category)}
+                          className="inline-flex items-center rounded-lg border border-destructive/40 px-3 py-2 text-sm text-destructive hover:bg-destructive hover:text-white"
+                          title="Delete category"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </>
+                    ) : null}
                   </div>
                 </TableCell>
               </TableRow>
@@ -164,7 +174,7 @@ export default function MissionCategoriesSection() {
         </TableBody>
       </Table>
 
-      {addOpen && (
+      {canEdit && addOpen && (
         <MissionCategoryFormDialog
           key="add-mission-category"
           open={addOpen}
@@ -174,7 +184,7 @@ export default function MissionCategoriesSection() {
         />
       )}
 
-      {editCategory && (
+      {canEdit && editCategory && (
         <MissionCategoryFormDialog
           key={editCategory.id}
           open={Boolean(editCategory)}
@@ -189,7 +199,7 @@ export default function MissionCategoriesSection() {
         />
       )}
 
-      {deleteCategory && (
+      {canEdit && deleteCategory && (
         <DeleteMissionCategoryDialog
           category={deleteCategory}
           setDeleteCategory={setDeleteCategory}

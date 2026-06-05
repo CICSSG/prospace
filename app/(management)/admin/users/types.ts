@@ -1,3 +1,5 @@
+import type { PageAccess } from "./permissions"
+
 export type User = {
   id: string
   clerkId: string
@@ -9,7 +11,8 @@ export type User = {
   resumeLink: string
   createdAt: string
   updatedAt: string
-  role?: "admin" | "data" | null
+  role?: "admin" | "user" | null
   adminRole?: "superadmin" | "admin" | null
   isAdmin?: boolean
+  pageAccess?: PageAccess | null
 }

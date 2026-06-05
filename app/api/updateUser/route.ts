@@ -10,6 +10,7 @@ export async function PUT(req: Request) {
       role,
       adminRole,
       isAdmin,
+      pageAccess,
       update,
     } = body
 
@@ -63,9 +64,10 @@ export async function PUT(req: Request) {
       {
         $set: {
           updatedAt: new Date().toISOString(),
-          role: role || null,
-          adminRole: adminRole || null,
-          isAdmin: isAdmin || false,
+          role: role === "admin" ? "admin" : "user",
+          adminRole: role === "admin" ? adminRole || "admin" : null,
+          isAdmin: role === "admin",
+          pageAccess: role === "admin" ? pageAccess || null : null,
         },
       }
     )
@@ -76,19 +78,19 @@ export async function PUT(req: Request) {
         isAdmin: boolean
         role: string | null
         adminRole: string | null
+        pageAccess: unknown
       } = {
-        isAdmin: isAdmin || false,
+        isAdmin: role === "admin",
         role: null,
         adminRole: null,
+        pageAccess: role === "admin" ? pageAccess || null : null,
       }
 
       if (role === "admin") {
         publicMetadata.role = "admin"
         publicMetadata.adminRole = adminRole || "admin"
-      } else if (role === "data") {
-        publicMetadata.role = "data"
       } else {
-        publicMetadata.role = null
+        publicMetadata.role = "user"
         publicMetadata.adminRole = null
       }
 

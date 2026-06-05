@@ -1,5 +1,6 @@
 "use client"
 
+import { useUser } from "@clerk/nextjs"
 import { PaginationComponent } from "@/components/pagination"
 import {
   Table,
@@ -18,10 +19,15 @@ import { getCollectionData } from "../actions"
 import SessionFormDialog from "./session-form-dialog"
 import DeleteSessionDialog from "./delete-session-dialog"
 import { Session } from "./types"
+import {
+  getManagementPageAccessState,
+  type ManagementAccessMetadata,
+} from "@/lib/management-access"
 
 const emptyList: Session[] = []
 
 export default function SessionsList() {
+  const { user } = useUser()
   const [sessions, setSessions] = useState<Session[]>(emptyList)
   const [page, setPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(10)
@@ -31,6 +37,9 @@ export default function SessionsList() {
   const [editSession, setEditSession] = useState<Session | null>(null)
   const [deleteSession, setDeleteSession] = useState<Session | null>(null)
   const [companies, setCompanies] = useState<Map<string, string>>(new Map())
+
+  const metadata = user?.publicMetadata as ManagementAccessMetadata | undefined
+  const { canEdit } = getManagementPageAccessState(metadata, "manage", ["/sessions", "sessions"])
 
   type SessionCollectionItem = {
     _id: string
@@ -156,13 +165,15 @@ export default function SessionsList() {
         </div>
 
         <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => setAddOpen(true)}
-            className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm text-primary-foreground hover:bg-primary/90"
-          >
-            <Plus size={16} /> Add Session
-          </button>
+          {canEdit ? (
+            <button
+              type="button"
+              onClick={() => setAddOpen(true)}
+              className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm text-primary-foreground hover:bg-primary/90"
+            >
+              <Plus size={16} /> Add Session
+            </button>
+          ) : null}
           <button
             type="button"
             onClick={getData}
@@ -267,22 +278,26 @@ export default function SessionsList() {
                   </TableCell>
                   <TableCell>
                     <div className="ml-auto flex justify-end gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setEditSession(session)}
-                        className="inline-flex items-center rounded-lg border px-3 py-2 text-sm hover:bg-muted"
-                        title="Edit session"
-                      >
-                        <PencilLine size={16} />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setDeleteSession(session)}
-                        className="inline-flex items-center rounded-lg border border-destructive/40 px-3 py-2 text-sm text-destructive hover:bg-destructive hover:text-white"
-                        title="Delete session"
-                      >
-                        <Trash2 size={16} />
-                      </button>
+                      {canEdit ? (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => setEditSession(session)}
+                            className="inline-flex items-center rounded-lg border px-3 py-2 text-sm hover:bg-muted"
+                            title="Edit session"
+                          >
+                            <PencilLine size={16} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setDeleteSession(session)}
+                            className="inline-flex items-center rounded-lg border border-destructive/40 px-3 py-2 text-sm text-destructive hover:bg-destructive hover:text-white"
+                            title="Delete session"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </>
+                      ) : null}
                     </div>
                   </TableCell>
                 </TableRow>
@@ -310,7 +325,7 @@ export default function SessionsList() {
         </Table>
       </section>
 
-      {addOpen && (
+      {canEdit && addOpen && (
         <SessionFormDialog
           key="add-session"
           open={addOpen}
@@ -320,7 +335,7 @@ export default function SessionsList() {
         />
       )}
 
-      {editSession && (
+      {canEdit && editSession && (
         <SessionFormDialog
           key={editSession.id}
           open={Boolean(editSession)}
@@ -335,7 +350,7 @@ export default function SessionsList() {
         />
       )}
 
-      {deleteSession && (
+      {canEdit && deleteSession && (
         <DeleteSessionDialog
           session={deleteSession}
           setDeleteSession={setDeleteSession}

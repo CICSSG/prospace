@@ -1,11 +1,19 @@
 "use client"
 
+import { useEffect, useState } from "react"
+
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { User } from "./types"
-import { useEffect, useState } from "react"
-import { toast } from "sonner"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
+import { toast } from "sonner"
+
+import {
+  managementPageSections,
+  hasAnyManagementPageAccess,
+  type PageAccess,
+  type PageAccessSection,
+} from "./permissions"
+import { User } from "./types"
 
 type UserFormDialogProps = {
   open: boolean
@@ -24,6 +32,19 @@ type UserFormState = {
   resumeLink: string
 }
 
+type PermissionValue = "view" | "edit" | "false"
+
+function createEmptyAccess(): PageAccess {
+  return managementPageSections.reduce<PageAccess>((sectionAccumulator, section) => {
+    sectionAccumulator[section.key] = section.items.reduce<PageAccessSection>((pageAccumulator, page) => {
+      pageAccumulator[page.accessKeys[0] ?? page.url] = "false"
+      return pageAccumulator
+    }, {})
+
+    return sectionAccumulator
+  }, {})
+}
+
 const emptyForm = (): UserFormState => ({
   firstName: "",
   lastName: "",
@@ -33,29 +54,37 @@ const emptyForm = (): UserFormState => ({
   resumeLink: "",
 })
 
-export default function UserFormDialog({
-  open,
-  user,
-  mode,
-  onOpenChange,
-  onSaved,
-}: UserFormDialogProps) {
+export default function UserFormDialog({ open, user, mode, onOpenChange, onSaved }: UserFormDialogProps) {
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState<UserFormState>(() => emptyForm())
-  const [role, setRole] = useState<"admin" | "data" | "none">("none")
+  const [role, setRole] = useState<"admin" | "user">("user")
   const [adminRole, setAdminRole] = useState<"superadmin" | "admin" | "none">("none")
+  const [pageAccess, setPageAccess] = useState<PageAccess>(() => createEmptyAccess())
   const [errors, setErrors] = useState<string[]>([])
 
   useEffect(() => {
     if (mode === "create") {
       setForm(emptyForm())
-      setRole("none")
+      setRole("user")
       setAdminRole("none")
+      setPageAccess(createEmptyAccess())
       return
     }
 
-    setRole((user?.role as "admin" | "data" | "none") || "none")
+    setRole(user?.role === "admin" ? "admin" : "user")
     setAdminRole((user?.adminRole as "superadmin" | "admin" | "none") || "none")
+    setPageAccess(() => {
+      const nextAccess = createEmptyAccess()
+
+      for (const section of managementPageSections) {
+        nextAccess[section.key] = {
+          ...nextAccess[section.key],
+          ...(user?.pageAccess?.[section.key] ?? {}),
+        }
+      }
+
+      return nextAccess
+    })
     setForm({
       firstName: user?.firstName || "",
       lastName: user?.lastName || "",
@@ -73,8 +102,12 @@ export default function UserFormDialog({
     if (!form.lastName.trim()) nextErrors.push("Last name is required")
     if (!form.email.trim()) nextErrors.push("Email is required")
 
-    if (mode === "create" && role === "admin" && adminRole === "none") {
+    if (role === "admin" && adminRole === "none") {
       nextErrors.push("Select an admin type")
+    }
+
+    if (role === "admin" && !hasAnyManagementPageAccess(pageAccess)) {
+      nextErrors.push("Grant at least one view or edit permission before saving an admin")
     }
 
     setErrors(nextErrors)
@@ -97,12 +130,18 @@ export default function UserFormDialog({
         resumeLink: form.resumeLink.trim(),
       }
 
-      const normalizedRole = role === "admin" ? "admin" : role === "data" ? "data" : "user"
+      const normalizedRole = role === "admin" ? "admin" : "user"
       const normalizedAdminRole =
         normalizedRole === "admin"
           ? adminRole === "superadmin"
             ? "superadmin"
             : "admin"
+          : null
+      const normalizedPageAccess =
+        normalizedRole === "admin"
+          ? {
+              ...pageAccess,
+            }
           : null
 
       const response =
@@ -117,6 +156,7 @@ export default function UserFormDialog({
                 role: normalizedRole,
                 adminRole: normalizedAdminRole,
                 isAdmin: normalizedRole === "admin",
+                pageAccess: normalizedPageAccess,
               }),
             })
           : await fetch(`/api/updateUser?id=${user?.id}`, {
@@ -129,6 +169,7 @@ export default function UserFormDialog({
                 role: normalizedRole === "user" ? null : normalizedRole,
                 adminRole: normalizedAdminRole,
                 isAdmin: normalizedRole === "admin",
+                pageAccess: normalizedPageAccess,
               }),
             })
 
@@ -157,9 +198,7 @@ export default function UserFormDialog({
         <form onSubmit={handleSubmit} className="space-y-6 py-4">
           {errors.length > 0 && (
             <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3">
-              <div className="text-sm font-medium text-destructive">
-                Please fix the following errors:
-              </div>
+              <div className="text-sm font-medium text-destructive">Please fix the following errors:</div>
               <ul className="mt-2 space-y-1 text-xs text-destructive">
                 {errors.map((error, index) => (
                   <li key={index}>• {error}</li>
@@ -249,27 +288,16 @@ export default function UserFormDialog({
             </div>
           )}
 
-          {/* Role Selection */}
           <div className="space-y-3 rounded-lg border bg-muted/20 p-3">
             <div className="text-sm font-medium">User Role</div>
             <RadioGroup value={role} onValueChange={(value: any) => setRole(value)}>
               <div className="space-y-2">
                 <div className="flex items-center gap-3 rounded-lg border bg-background p-3">
-                  <RadioGroupItem value="none" id="role-none" />
-                  <label htmlFor="role-none" className="flex flex-col cursor-pointer flex-1">
-                    <span className="text-sm font-medium">No Role</span>
+                  <RadioGroupItem value="user" id="role-user" />
+                  <label htmlFor="role-user" className="flex flex-col cursor-pointer flex-1">
+                    <span className="text-sm font-medium">User</span>
                     <span className="text-xs text-muted-foreground">
-                      Regular user with no special permissions
-                    </span>
-                  </label>
-                </div>
-
-                <div className="flex items-center gap-3 rounded-lg border bg-background p-3">
-                  <RadioGroupItem value="data" id="role-data" />
-                  <label htmlFor="role-data" className="flex flex-col cursor-pointer flex-1">
-                    <span className="text-sm font-medium">Data Role</span>
-                    <span className="text-xs text-muted-foreground">
-                      Access to data management features
+                      Regular user with page access granted through permissions
                     </span>
                   </label>
                 </div>
@@ -287,7 +315,6 @@ export default function UserFormDialog({
             </RadioGroup>
           </div>
 
-          {/* Admin Type Selection */}
           {role === "admin" && (
             <div className="space-y-3 rounded-lg border bg-muted/20 p-3">
               <div className="text-sm font-medium">Admin Type</div>
@@ -298,7 +325,7 @@ export default function UserFormDialog({
                     <label htmlFor="admin-type-admin" className="flex flex-col cursor-pointer flex-1">
                       <span className="text-sm font-medium">Admin</span>
                       <span className="text-xs text-muted-foreground">
-                        Can manage companies, sessions, missions, and logo loop
+                        Can manage companies, sessions, missions, logo loop, and pages granted below
                       </span>
                     </label>
                   </div>
@@ -317,7 +344,50 @@ export default function UserFormDialog({
             </div>
           )}
 
-          {/* Actions */}
+          {role === "admin" && (
+            <div className="space-y-3 rounded-lg border bg-muted/20 p-3">
+              <div className="text-sm font-medium">Manage Page Access</div>
+              <div className="space-y-4">
+                {managementPageSections.map((section) => (
+                  <div key={section.key} className="space-y-3 rounded-lg border bg-background/60 p-3">
+                    <div className="text-sm font-medium">{section.title}</div>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {section.items.map((page) => {
+                        const pageKey = page.accessKeys[0] ?? page.url
+
+                        return (
+                          <label key={pageKey} className="space-y-2 text-sm">
+                            <span className="font-medium">{page.title}</span>
+                            <select
+                              value={((pageAccess[section.key]?.[pageKey] as PermissionValue) || "false")}
+                              onChange={(event) =>
+                                setPageAccess((current) => ({
+                                  ...current,
+                                  [section.key]: {
+                                    ...(current[section.key] ?? {}),
+                                    [pageKey]: event.target.value as PermissionValue,
+                                  },
+                                }))
+                              }
+                              className="w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary"
+                            >
+                              <option value="false">No access</option>
+                              <option value="view">View</option>
+                              <option value="edit">Edit</option>
+                            </select>
+                          </label>
+                        )
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="text-xs text-muted-foreground">
+                View allows access to the page. Edit allows access plus user changes.
+              </div>
+            </div>
+          )}
+
           <div className="flex gap-2 pt-4">
             <button
               type="button"

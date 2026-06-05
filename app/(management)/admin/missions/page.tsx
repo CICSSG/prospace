@@ -1,5 +1,6 @@
 "use client"
 
+import { useUser } from "@clerk/nextjs"
 import { PaginationComponent } from "@/components/pagination"
 import {
   Table,
@@ -19,10 +20,15 @@ import MissionFormDialog from "./mission-form-dialog"
 import DeleteMissionDialog from "./delete-mission-dialog"
 import ViewQRDialog from "./view-qr-dialog"
 import { Mission, MissionLink } from "./types"
+import {
+  getManagementPageAccessState,
+  type ManagementAccessMetadata,
+} from "@/lib/management-access"
 
 const emptyList: Mission[] = []
 
 export default function MissionsList() {
+  const { user } = useUser()
   const [missions, setMissions] = useState<Mission[]>(emptyList)
   const [page, setPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(10)
@@ -35,6 +41,8 @@ export default function MissionsList() {
   const [categories, setCategories] = useState<{ id: string; categoryName: string }[]>([])
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>("")
   const [selectedCompletionMethod, setSelectedCompletionMethod] = useState<string>("")
+  const metadata = user?.publicMetadata as ManagementAccessMetadata | undefined
+  const { canEdit } = getManagementPageAccessState(metadata, "manage", ["/missions", "missions"])
 
   type MissionCollectionItem = {
     _id: string
@@ -158,13 +166,15 @@ export default function MissionsList() {
         </div>
 
         <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => setAddOpen(true)}
-            className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition hover:bg-primary/90"
-          >
-            <Plus size={16} /> Add Mission
-          </button>
+          {canEdit ? (
+            <button
+              type="button"
+              onClick={() => setAddOpen(true)}
+              className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground shadow-sm transition hover:bg-primary/90"
+            >
+              <Plus size={16} /> Add Mission
+            </button>
+          ) : null}
           <button
             type="button"
             onClick={getData}
@@ -299,22 +309,26 @@ export default function MissionsList() {
                               <QrCode size={16} />
                             </button>
                           ) : null}
-                          <button
-                            type="button"
-                            onClick={() => setEditMission(mission)}
-                            className="inline-flex items-center rounded-lg border px-3 py-2 text-sm transition hover:bg-muted"
-                            title="Edit mission"
-                          >
-                            <PencilLine size={16} />
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setDeleteMission(mission)}
-                            className="inline-flex items-center rounded-lg border border-destructive/40 px-3 py-2 text-sm text-destructive transition hover:bg-destructive hover:text-white"
-                            title="Delete mission"
-                          >
-                            <Trash2 size={16} />
-                          </button>
+                          {canEdit ? (
+                            <>
+                              <button
+                                type="button"
+                                onClick={() => setEditMission(mission)}
+                                className="inline-flex items-center rounded-lg border px-3 py-2 text-sm transition hover:bg-muted"
+                                title="Edit mission"
+                              >
+                                <PencilLine size={16} />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setDeleteMission(mission)}
+                                className="inline-flex items-center rounded-lg border border-destructive/40 px-3 py-2 text-sm text-destructive transition hover:bg-destructive hover:text-white"
+                                title="Delete mission"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </>
+                          ) : null}
                         </div>
                       </TableCell>
                     </TableRow>
@@ -345,12 +359,12 @@ export default function MissionsList() {
 
         <div className="lg:sticky lg:top-6 lg:self-start">
           <div className="max-h-[calc(100vh-3rem)] overflow-y-auto pr-1">
-            <MissionCategoriesSection />
+            <MissionCategoriesSection canEdit={canEdit} />
           </div>
         </div>
       </div>
 
-      {editMission && (
+      {canEdit && editMission && (
         <MissionFormDialog
           key={editMission.id}
           open={Boolean(editMission)}
@@ -365,7 +379,7 @@ export default function MissionsList() {
         />
       )}
 
-      {addOpen && (
+      {canEdit && addOpen && (
         <MissionFormDialog
           key="add-mission"
           open={addOpen}
@@ -381,7 +395,7 @@ export default function MissionsList() {
         />
       )}
 
-      {deleteMission && (
+      {canEdit && deleteMission && (
         <DeleteMissionDialog
           mission={deleteMission}
           setDeleteMission={setDeleteMission}

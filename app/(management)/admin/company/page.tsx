@@ -1,5 +1,6 @@
 "use client"
 
+import { useUser } from "@clerk/nextjs"
 import { PaginationComponent } from "@/components/pagination"
 import {
   Table,
@@ -19,10 +20,15 @@ import CompanyFormDialog from "./company-form-dialog"
 import DeleteCompanyDialog from "./delete-company-dialog"
 import ViewQRDialog from "./view-qr-dialog"
 import { Company } from "./types"
+import {
+  getManagementPageAccessState,
+  type ManagementAccessMetadata,
+} from "@/lib/management-access"
 
 const emptyList: Company[] = []
 
 export default function CompanyList() {
+  const { user } = useUser()
   const [companies, setCompanies] = useState<Company[]>(emptyList)
   const [page, setPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(10)
@@ -32,6 +38,9 @@ export default function CompanyList() {
   const [editCompany, setEditCompany] = useState<Company | null>(null)
   const [deleteCompany, setDeleteCompany] = useState<Company | null>(null)
   const [viewQrCompany, setViewQrCompany] = useState<Company | null>(null)
+
+  const metadata = user?.publicMetadata as ManagementAccessMetadata | undefined
+  const { canEdit } = getManagementPageAccessState(metadata, "manage", ["/company", "/companies", "company", "companies"])
 
   type CompanyCollectionItem = {
     _id: string
@@ -105,9 +114,20 @@ export default function CompanyList() {
     return matchesSearch && matchesFilter
   })
 
-  const totalPages = Math.max(1, Math.ceil(filteredCompanies.length / itemsPerPage))
+  const sortedCompanies = [...filteredCompanies].sort((left, right) => {
+    const leftHasModerators = left.moderatorEmails.some((email) => email.trim().length > 0)
+    const rightHasModerators = right.moderatorEmails.some((email) => email.trim().length > 0)
+
+    if (leftHasModerators !== rightHasModerators) {
+      return leftHasModerators ? 1 : -1
+    }
+
+    return left.name.localeCompare(right.name)
+  })
+
+  const totalPages = Math.max(1, Math.ceil(sortedCompanies.length / itemsPerPage))
   const currentPage = Math.min(page, totalPages)
-  const paginatedCompanies = filteredCompanies.slice(
+  const paginatedCompanies = sortedCompanies.slice(
     (currentPage - 1) * itemsPerPage,
     (currentPage - 1) * itemsPerPage + itemsPerPage
   )
@@ -163,13 +183,15 @@ export default function CompanyList() {
         </div>
 
         <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => setAddOpen(true)}
-            className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm text-primary-foreground hover:bg-primary/90"
-          >
-            <Plus size={16} /> Add Company
-          </button>
+          {canEdit ? (
+            <button
+              type="button"
+              onClick={() => setAddOpen(true)}
+              className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm text-primary-foreground hover:bg-primary/90"
+            >
+              <Plus size={16} /> Add Company
+            </button>
+          ) : null}
           <button
             type="button"
             onClick={getData}
@@ -263,14 +285,23 @@ export default function CompanyList() {
                       </div>
                       <div className="space-y-1">
                         <div className="font-medium">Moderators:</div>
-                        {company.moderatorEmails.length > 0 ? (
-                          company.moderatorEmails.map((email) => (
-                            <div key={email} className="text-xs text-muted-foreground">
-                              {email}
-                            </div>
-                          ))
+                        {company.moderatorEmails.some((email) => email.trim().length > 0) ? (
+                          company.moderatorEmails
+                            .filter((email) => email.trim().length > 0)
+                            .map((email) => (
+                              <div key={email} className="text-xs text-muted-foreground">
+                                {email}
+                              </div>
+                            ))
                         ) : (
-                          <div className="text-xs text-muted-foreground">-</div>
+                          <div className="space-y-1">
+                            <div className="text-xs font-medium text-amber-500">
+                              No moderator assigned yet
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              No one is managing this company yet.
+                            </div>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -290,22 +321,26 @@ export default function CompanyList() {
                       >
                         <QrCode size={16} />
                       </button>
-                      <button
-                        type="button"
-                        onClick={() => setEditCompany(company)}
-                        className="inline-flex items-center rounded-lg border px-3 py-2 text-sm hover:bg-muted"
-                        title="Edit company"
-                      >
-                        <PencilLine size={16} />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setDeleteCompany(company)}
-                        className="inline-flex items-center rounded-lg border border-destructive/40 px-3 py-2 text-sm text-destructive hover:bg-destructive hover:text-white"
-                        title="Delete company"
-                      >
-                        <Trash2 size={16} />
-                      </button>
+                      {canEdit ? (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => setEditCompany(company)}
+                            className="inline-flex items-center rounded-lg border px-3 py-2 text-sm hover:bg-muted"
+                            title="Edit company"
+                          >
+                            <PencilLine size={16} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setDeleteCompany(company)}
+                            className="inline-flex items-center rounded-lg border border-destructive/40 px-3 py-2 text-sm text-destructive hover:bg-destructive hover:text-white"
+                            title="Delete company"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </>
+                      ) : null}
                     </div>
                   </TableCell>
                 </TableRow>
@@ -333,7 +368,7 @@ export default function CompanyList() {
         </Table>
       </section>
 
-      {addOpen && (
+      {canEdit && addOpen && (
         <CompanyFormDialog
           key="add-company"
           open={addOpen}
@@ -343,7 +378,7 @@ export default function CompanyList() {
         />
       )}
 
-      {editCompany && (
+      {canEdit && editCompany && (
         <CompanyFormDialog
           key={editCompany.id}
           open={Boolean(editCompany)}
@@ -358,7 +393,7 @@ export default function CompanyList() {
         />
       )}
 
-      {deleteCompany && (
+      {canEdit && deleteCompany && (
         <DeleteCompanyDialog
           company={deleteCompany}
           open={Boolean(deleteCompany)}

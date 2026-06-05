@@ -1,0 +1,224 @@
+export type PagePermission = "view" | "edit" | "false"
+
+export type PageAccessSection = Record<string, PagePermission | boolean | null | undefined>
+
+export type PageAccess = Partial<Record<"manage" | "data", PageAccessSection>>
+
+export type ManagementSectionKey = keyof PageAccess
+
+export type ManagementPageDefinition = {
+  key: string
+  title: string
+  url: string
+  accessKeys: string[]
+  section: ManagementSectionKey
+  iconKey: "dashboard" | "list" | "building" | "calendar" | "target" | "users"
+}
+
+export type ManagementAccessMetadata = {
+  role?: "user" | "admin" | null
+  adminRole?: "superadmin" | "admin" | null
+  pageAccess?: PageAccess | null
+}
+
+export const managementPageSections: Array<{
+  key: ManagementSectionKey
+  title: string
+  items: ManagementPageDefinition[]
+}> = [
+  {
+    key: "manage",
+    title: "Manage",
+    items: [
+      {
+        key: "dashboard",
+        title: "Dashboard",
+        url: "/admin/dashboard",
+        accessKeys: ["/dashboard", "dashboard"],
+        section: "manage",
+        iconKey: "dashboard",
+      },
+      {
+        key: "logo-loop",
+        title: "Logo Loop",
+        url: "/admin/logo-loop",
+        accessKeys: ["/logo-loop", "logoloop", "logo-loop"],
+        section: "manage",
+        iconKey: "list",
+      },
+      {
+        key: "company",
+        title: "Companies",
+        url: "/admin/company",
+        accessKeys: ["/company", "/companies", "company", "companies"],
+        section: "manage",
+        iconKey: "building",
+      },
+      {
+        key: "sessions",
+        title: "Sessions",
+        url: "/admin/sessions",
+        accessKeys: ["/sessions", "sessions"],
+        section: "manage",
+        iconKey: "calendar",
+      },
+      {
+        key: "missions",
+        title: "Missions",
+        url: "/admin/missions",
+        accessKeys: ["/missions", "missions"],
+        section: "manage",
+        iconKey: "target",
+      },
+      {
+        key: "users",
+        title: "Users",
+        url: "/admin/users",
+        accessKeys: ["/users", "users"],
+        section: "manage",
+        iconKey: "users",
+      },
+    ],
+  },
+  {
+    key: "data",
+    title: "Data",
+    items: [
+      {
+        key: "data-dashboard",
+        title: "Dashboard",
+        url: "/data/dashboard",
+        accessKeys: ["/data/dashboard", "data/dashboard"],
+        section: "data",
+        iconKey: "dashboard",
+      },
+    ],
+  },
+]
+
+export const managePagePermissions = managementPageSections
+  .find((section) => section.key === "manage")
+  ?.items.map((page) => ({
+    key: page.accessKeys[0] ?? page.url,
+    label: page.title,
+  })) ?? []
+
+export function getManagementPageAccessState(
+  metadata: ManagementAccessMetadata | undefined,
+  section: ManagementSectionKey,
+  pageKeys: string[],
+) {
+  const adminRole = metadata?.adminRole
+  const pageAccess = metadata?.pageAccess
+
+  if (adminRole === "superadmin" || !pageAccess?.[section]) {
+    return {
+      canView: true,
+      canEdit: true,
+    }
+  }
+
+  const permission = pageKeys
+    .map((key) => pageAccess[section]?.[key])
+    .find((value) => value === "view" || value === "edit") as PagePermission | undefined
+
+  return {
+    canView: permission === "view" || permission === "edit",
+    canEdit: permission === "edit",
+  }
+}
+
+export function hasAnyManagementPageAccess(pageAccess: PageAccess | undefined) {
+  return managementPageSections.some((section) => {
+    const sectionAccess = pageAccess?.[section.key]
+    return sectionAccess
+      ? section.items.some((page) => hasPagePermission(sectionAccess, page.accessKeys))
+      : false
+  })
+}
+
+export function hasPagePermission(
+  access: PageAccessSection | undefined,
+  pageKeys: string[],
+  allowedValues: Array<"view" | "edit"> = ["view", "edit"],
+) {
+  const permission = pageKeys
+    .map((key) => access?.[key])
+    .find((value) => value !== undefined)
+
+  return allowedValues.includes(permission as "view" | "edit")
+}
+
+export function getPageDefinition(pathname: string) {
+  return managementPageSections
+    .flatMap((section) => section.items)
+    .find((page) => pathname === page.url || page.accessKeys.includes(pathname))
+}
+
+export function canAccessManagementPath(
+  pathname: string,
+  pageAccess: PageAccess | undefined,
+  adminRole: "superadmin" | "admin" | null | undefined,
+) {
+  const page = getPageDefinition(pathname)
+
+  if (!page) {
+    return true
+  }
+
+  if (adminRole === "superadmin") {
+    return true
+  }
+
+  const sectionAccess = pageAccess?.[page.section]
+  if (!sectionAccess) {
+    return true
+  }
+
+  return hasPagePermission(sectionAccess, page.accessKeys)
+}
+
+export function getDefaultManagementRoute(
+  pageAccess: PageAccess | undefined,
+  adminRole: "superadmin" | "admin" | null | undefined,
+) {
+  const visibleSections = managementPageSections
+
+  for (const section of visibleSections) {
+    if (adminRole === "superadmin") {
+      return section.items[0]?.url ?? "/"
+    }
+
+    const sectionAccess = pageAccess?.[section.key]
+    if (!sectionAccess) {
+      return section.items[0]?.url ?? "/"
+    }
+
+    const firstAllowedPage = section.items.find((page) => hasPagePermission(sectionAccess, page.accessKeys))
+    if (firstAllowedPage) {
+      return firstAllowedPage.url
+    }
+  }
+
+  return "/"
+}
+
+export function getVisibleManagementSections(
+  pageAccess: PageAccess | undefined,
+  adminRole: "superadmin" | "admin" | null | undefined,
+) {
+  return managementPageSections
+    .map((section) => {
+      const sectionAccess = pageAccess?.[section.key]
+      const items =
+        adminRole === "superadmin" || !sectionAccess
+          ? section.items
+          : section.items.filter((page) => hasPagePermission(sectionAccess, page.accessKeys))
+
+      return {
+        ...section,
+        items,
+      }
+    })
+    .filter((section) => section.items.length > 0)
+}

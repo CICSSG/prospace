@@ -157,10 +157,6 @@ export default function CompanyFormDialog({
       .map((email) => email.trim())
       .filter(Boolean)
 
-    if (validModeratorEmails.length === 0) {
-      nextErrors.push("At least one moderator email is required")
-    }
-
     validModeratorEmails.forEach((email, index) => {
       if (!isEmail(email)) {
         nextErrors.push(`Moderator email ${index + 1} must be valid`)
@@ -392,7 +388,7 @@ export default function CompanyFormDialog({
               <div className="flex items-center justify-between gap-2">
                 <div>
                   <div className="text-sm font-medium">Moderator Emails</div>
-                  <div className="text-xs text-muted-foreground">Create Clerk accounts for all addresses below</div>
+                  <div className="text-xs text-muted-foreground">Add one or more moderators, or leave this empty for now</div>
                 </div>
                 <button
                   type="button"

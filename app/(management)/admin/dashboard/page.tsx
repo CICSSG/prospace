@@ -1,5 +1,6 @@
 "use client"
 
+import { useUser } from "@clerk/nextjs"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import {
@@ -15,11 +16,16 @@ import {
   Clock3,
 } from "lucide-react"
 
+import {
+  getManagementPageAccessState,
+  type ManagementAccessMetadata,
+} from "@/lib/management-access"
+
 type DashboardStats = {
   registeredUsers: number
   totalUsers: number
   adminUsers: number
-  dataUsers: number
+  userUsers: number
   companies: number
   sessions: number
   upcomingSessions: number
@@ -68,9 +74,13 @@ function formatDateTime(value: string) {
 }
 
 export default function AdminDashboard() {
+  const { user } = useUser()
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  const metadata = user?.publicMetadata as ManagementAccessMetadata | undefined
+  const { canEdit: canEditUsersPage } = getManagementPageAccessState(metadata, "manage", ["/users"])
 
   const loadDashboard = async () => {
     setLoading(true)
@@ -139,7 +149,7 @@ export default function AdminDashboard() {
     {
       label: "Admins",
       value: stats?.adminUsers ?? 0,
-      hint: `${stats?.dataUsers ?? 0} data users`,
+      hint: `${stats?.userUsers ?? 0} users`,
       icon: ShieldCheck,
       accent: "from-rose-400/25 to-rose-400/5",
     },
@@ -170,12 +180,14 @@ export default function AdminDashboard() {
               >
                 <RefreshCw size={16} /> Refresh
               </button>
-              <Link
-                href="/admin/users"
-                className="inline-flex text-nowrap items-center gap-2 rounded-full bg-foreground px-4 py-2 text-sm font-medium text-background transition hover:bg-foreground/90"
-              >
-                Add users <ArrowRight size={16} />
-              </Link>
+              {canEditUsersPage ? (
+                <Link
+                  href="/admin/users"
+                  className="inline-flex text-nowrap items-center gap-2 rounded-full bg-foreground px-4 py-2 text-sm font-medium text-background transition hover:bg-foreground/90"
+                >
+                  Add users <ArrowRight size={16} />
+                </Link>
+              ) : null}
             </div>
           </div>
 

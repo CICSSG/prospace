@@ -24,7 +24,7 @@ export default function DeleteUserDialog({
     setIsDeleting(true)
     try {
       const response = await fetch(
-        `/api/deleteUser?id=${user.id}`,
+        `/api/deleteUser?id=${user.id}&clerkId=${encodeURIComponent(user.clerkId)}`,
         {
           method: "DELETE",
           headers: {

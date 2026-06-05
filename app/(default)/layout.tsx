@@ -12,7 +12,6 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   const pathname = usePathname()
-  console.log("pathname", pathname)
   return (
     <>
       <ScannerComponent />

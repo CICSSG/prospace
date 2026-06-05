@@ -3,6 +3,9 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { AppSidebar } from "@/components/app-sidebar"
 import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
+import { canAccessManagementPath, getDefaultManagementRoute, type PageAccess } from "@/lib/management-access"
+import { usePathname, useRouter } from "next/navigation"
+import { useEffect } from "react"
 import { Toaster } from "sonner"
 import { useUser } from "@clerk/nextjs"
 
@@ -12,7 +15,31 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   const { user } = useUser()
-  // console.log("Auth state:", user)
+  const pathname = usePathname()
+  const router = useRouter()
+
+  const metadata = user?.publicMetadata as
+    | {
+        role?: "user" | "admin" | null
+        adminRole?: "superadmin" | "admin" | null
+        pageAccess?: PageAccess | null
+      }
+    | undefined
+
+  const adminRole = metadata?.adminRole ?? null
+  const pageAccess = metadata?.pageAccess ?? undefined
+
+  useEffect(() => {
+    if (!user || !pathname) {
+      return
+    }
+
+    const canAccessCurrentPage = canAccessManagementPath(pathname, pageAccess, adminRole)
+    if (!canAccessCurrentPage) {
+      router.replace(getDefaultManagementRoute(pageAccess, adminRole))
+    }
+  }, [adminRole, pageAccess, pathname, router, user])
+
   if (!user) {
     return null
   }

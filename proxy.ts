@@ -1,9 +1,11 @@
 import { auth } from "@clerk/nextjs"
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server"
 import { NextResponse } from "next/server"
+import { canAccessManagementPath, getDefaultManagementRoute, type PageAccess } from "@/lib/management-access"
 
 const isTestingRoutes = createRouteMatcher(["/testing(.*)"])
 const isAdminRoutes = createRouteMatcher(["/admin(.*)"])
+const isManagementRoutes = createRouteMatcher(["/admin(.*)", "/data(.*)"])
 const isLogoLoopUploadRoute = createRouteMatcher(["/api/logo-loop/upload(.*)"])
 const isLoggedInRoute = createRouteMatcher(["/connect(.*)", "/profile(.*)"])
 const isSignupRoute = createRouteMatcher(["/signup(.*)"])
@@ -13,15 +15,19 @@ const isCompanyRoute = createRouteMatcher(["/company(.*)"])
 
 export default clerkMiddleware(async (auth, req) => {
   const { sessionClaims, userId, isAuthenticated } = await auth()
-  var metadata = sessionClaims?.publicMetadata as
+  const metadata = sessionClaims?.publicMetadata as
     | {
         isAdmin?: boolean
         adminRole?: string
-        role: string
+        role: "user" | "admin"
+        pageAccess?: PageAccess | null
       }
     | undefined
 
-  const normalizedRole = metadata?.role === "company" ? "data" : metadata?.role
+  const normalizedAdminRole = metadata?.adminRole === "superadmin" || metadata?.adminRole === "admin"
+    ? metadata.adminRole
+    : null
+  const pageAccess = metadata?.pageAccess ?? undefined
 
   // console.log("Session claims:", metadata)
 
@@ -39,16 +45,26 @@ export default clerkMiddleware(async (auth, req) => {
   if (isLogoLoopUploadRoute(req)) {
     return NextResponse.next()
   }
-  if (!req.nextUrl.pathname.startsWith("/api") && !isAdminRoutes(req) && metadata?.isAdmin) {
-    return NextResponse.redirect(new URL("/admin/dashboard", req.url))
+  const isAdminUser = metadata?.isAdmin || metadata?.role === "admin"
+  if (!req.nextUrl.pathname.startsWith("/api") && !isManagementRoutes(req) && isAdminUser) {
+    return NextResponse.redirect(new URL(getDefaultManagementRoute(pageAccess, normalizedAdminRole), req.url))
   }
 
-  if (isAdminRoutes(req)) {
+  if (isManagementRoutes(req)) {
     if (!userId) {
       return NextResponse.redirect(new URL("/", req.url))
     }
-    if (!metadata?.isAdmin || metadata.isAdmin === undefined) {
-      return NextResponse.redirect(new URL("/", req.url))
+
+    const canAccessCurrentPage = canAccessManagementPath(
+      req.nextUrl.pathname,
+      pageAccess,
+      normalizedAdminRole,
+    )
+
+    if (!canAccessCurrentPage) {
+      return NextResponse.redirect(
+        new URL(getDefaultManagementRoute(pageAccess, normalizedAdminRole), req.url),
+      )
     }
   }
 

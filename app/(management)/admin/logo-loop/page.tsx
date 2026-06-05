@@ -1,4 +1,5 @@
 "use client"
+import { useUser } from "@clerk/nextjs"
 import { PaginationComponent } from "@/components/pagination"
 import { Dialog } from "@/components/ui/dialog"
 import {
@@ -20,6 +21,10 @@ import AddLogoDialog from "./add-logo"
 import { getCollectionData } from "../actions"
 import DeleteLogoDialog from "./delete-logo"
 import EditLogoDialog from "./edit-logo"
+import {
+  getManagementPageAccessState,
+  type ManagementAccessMetadata,
+} from "@/lib/management-access"
 
 type Logo = {
   id: string
@@ -29,6 +34,7 @@ type Logo = {
 }
 
 const LogoLoop = () => {
+  const { user } = useUser()
   const [logos, setLogos] = useState<Logo[]>([])
   const [selectedLogoId, setSelectedLogoId] = useState<string | null>(null)
   const [itemsPerPage, setItemsPerPage] = useState(10)
@@ -40,6 +46,9 @@ const LogoLoop = () => {
   const [editLogo, setEditLogo] = useState<Logo | null>(null)
   const [search, setSearch] = useState("")
   const [filter, setFilter] = useState<"all" | "hasUrl" | "noUrl">("all")
+
+  const metadata = user?.publicMetadata as ManagementAccessMetadata | undefined
+  const { canEdit } = getManagementPageAccessState(metadata, "manage", ["/logo-loop", "logoloop", "logo-loop"])
 
   function getData() {
     getCollectionData("logoLoop").then((data) => {
@@ -123,13 +132,15 @@ const LogoLoop = () => {
           <p className="text-sm text-muted-foreground">Manage company logos displayed in the rotation.</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => setAddDialogOpen(true)}
-            className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm text-primary-foreground hover:bg-primary/90"
-          >
-            <Plus size={16} /> Add Logo
-          </button>
+          {canEdit ? (
+            <button
+              type="button"
+              onClick={() => setAddDialogOpen(true)}
+              className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm text-primary-foreground hover:bg-primary/90"
+            >
+              <Plus size={16} /> Add Logo
+            </button>
+          ) : null}
           <button
             type="button"
             onClick={getData}
@@ -173,7 +184,6 @@ const LogoLoop = () => {
           </TableHeader>
           <TableBody>
             {paginatedLogos.map((logo) => { 
-              console.log("Rendering logo:", logo)
               
               return (
               <TableRow key={logo.id}>
@@ -195,22 +205,26 @@ const LogoLoop = () => {
                 <TableCell>{logo.companyUrl}</TableCell>
                 <TableCell>
                   <div className="ml-auto flex justify-end gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setEditLogo(logo)}
-                      className="inline-flex items-center rounded-lg border px-3 py-2 text-sm hover:bg-muted"
-                      title="Edit logo"
-                    >
-                      <Pen size={16} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setDeleteLogo(logo)}
-                      className="inline-flex items-center rounded-lg border border-destructive/40 px-3 py-2 text-sm text-destructive hover:bg-destructive hover:text-white"
-                      title="Delete logo"
-                    >
-                      <Trash2 size={16} />
-                    </button>
+                    {canEdit ? (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => setEditLogo(logo)}
+                          className="inline-flex items-center rounded-lg border px-3 py-2 text-sm hover:bg-muted"
+                          title="Edit logo"
+                        >
+                          <Pen size={16} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setDeleteLogo(logo)}
+                          className="inline-flex items-center rounded-lg border border-destructive/40 px-3 py-2 text-sm text-destructive hover:bg-destructive hover:text-white"
+                          title="Delete logo"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </>
+                    ) : null}
                   </div>
                 </TableCell>
               </TableRow>
@@ -259,15 +273,15 @@ const LogoLoop = () => {
         </Dialog>
       )}
 
-      {addDialogOpen && (
+      {canEdit && addDialogOpen && (
         <AddLogoDialog setAddDialogOpen={setAddDialogOpen} getData={getData} />
       )}
 
-      {deleteLogo && (
+      {canEdit && deleteLogo && (
         <DeleteLogoDialog logo={deleteLogo} setDeleteLogo={setDeleteLogo} getData={getData} />
       )}
 
-      {editLogo && (
+      {canEdit && editLogo && (
         <EditLogoDialog logo={editLogo} setEditLogo={setEditLogo} getData={getData} />
       )}
     </div>

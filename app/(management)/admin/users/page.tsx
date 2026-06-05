@@ -19,6 +19,12 @@ import DeleteUserDialog from "./delete-user-dialog"
 import { User } from "./types"
 import { useUser } from "@clerk/nextjs"
 import { useRouter } from "next/navigation"
+import {
+  getManagementPageAccessState,
+  type ManagementAccessMetadata,
+  type PageAccess,
+  type PageAccessSection,
+} from "./permissions"
 
 const emptyList: User[] = []
 
@@ -26,8 +32,16 @@ export default function UsersList() {
   const { user } = useUser()
   const router = useRouter()
 
-  const userRole = user?.publicMetadata?.role as "admin" | "data" | null
-  const adminRole = user?.publicMetadata?.adminRole as "superadmin" | "admin" | null
+  const metadata = user?.publicMetadata as ManagementAccessMetadata | undefined
+
+  const userRole = metadata?.role ?? null
+  const adminRole = metadata?.adminRole ?? null
+  const pageAccess = metadata?.pageAccess?.manage as PageAccessSection | undefined
+  const { canView: canViewUsersPage, canEdit: canEditUsersPage } = getManagementPageAccessState(
+    metadata,
+    "manage",
+    ["/users"],
+  )
   const [users, setUsers] = useState<User[]>(emptyList)
   const [page, setPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(10)
@@ -38,21 +52,15 @@ export default function UsersList() {
   const [deleteUser, setDeleteUser] = useState<User | null>(null)
   const [availableDomains, setAvailableDomains] = useState<string[]>([])
 
-  // Access control: Only Super Admin can access this page
   useEffect(() => {
-    if (user && userRole !== "admin") {
+    if (user && !canViewUsersPage) {
       toast.error("You don't have permission to access this page")
       router.push("/admin/dashboard")
       return
     }
-    if (user && userRole === "admin" && adminRole !== "superadmin") {
-      toast.error("You don't have permission to access this page")
-      router.push("/admin/dashboard")
-      return
-    }
-  }, [user, userRole, adminRole, router])
+  }, [user, canViewUsersPage, router])
 
-  if (!user || userRole !== "admin" || adminRole !== "superadmin") {
+  if (!user || !canViewUsersPage) {
     return null
   }
 
@@ -67,9 +75,13 @@ export default function UsersList() {
     resumeLink?: string
     createdAt?: string
     updatedAt?: string
-    role?: "admin" | "data" | null
+    role?: "admin" | "user" | null
     adminRole?: "superadmin" | "admin" | null
     isAdmin?: boolean
+    pageAccess?: {
+      manage?: PageAccessSection
+      data?: PageAccessSection
+    } | null
   }
 
   const getData = useCallback(() => {
@@ -90,6 +102,7 @@ export default function UsersList() {
             role: item.role || null,
             adminRole: item.adminRole || null,
             isAdmin: item.isAdmin || false,
+            pageAccess: item.pageAccess || null,
           }))
 
           setUsers(mappedUsers)
@@ -180,7 +193,8 @@ export default function UsersList() {
           <button
             type="button"
             onClick={() => setCreateUserOpen(true)}
-            className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm text-primary-foreground hover:bg-primary/90"
+            disabled={!canEditUsersPage}
+            className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Plus size={16} /> Create Account
           </button>
@@ -284,13 +298,10 @@ export default function UsersList() {
                           <Shield size={12} /> Admin
                         </span>
                       )}
-                      {user.role === "data" && (
+                      {user.role !== "admin" && (
                         <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/10 px-2 py-1 text-xs font-medium text-blue-600">
-                          <Users2 size={12} /> Data
+                          <Users2 size={12} /> User
                         </span>
-                      )}
-                      {!user.role && (
-                        <span className="text-xs text-muted-foreground">User</span>
                       )}
                     </div>
                   </TableCell>
@@ -304,7 +315,8 @@ export default function UsersList() {
                       <button
                         type="button"
                         onClick={() => setEditUser(user)}
-                        className="inline-flex items-center rounded-lg border px-3 py-2 text-sm hover:bg-muted"
+                        disabled={!canEditUsersPage}
+                        className="inline-flex items-center rounded-lg border px-3 py-2 text-sm hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
                         title="Edit user permissions"
                       >
                         <PencilLine size={16} />
@@ -312,7 +324,8 @@ export default function UsersList() {
                       <button
                         type="button"
                         onClick={() => setDeleteUser(user)}
-                        className="inline-flex items-center rounded-lg border border-destructive/40 px-3 py-2 text-sm text-destructive hover:bg-destructive hover:text-white"
+                        disabled={!canEditUsersPage}
+                        className="inline-flex items-center rounded-lg border border-destructive/40 px-3 py-2 text-sm text-destructive hover:bg-destructive hover:text-white disabled:cursor-not-allowed disabled:opacity-50"
                         title="Delete user"
                       >
                         <Trash2 size={16} />

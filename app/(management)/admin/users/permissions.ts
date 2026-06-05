@@ -1,0 +1,16 @@
+export {
+  managePagePermissions,
+  getManagementPageAccessState,
+  getDefaultManagementRoute,
+  getPageDefinition,
+  getVisibleManagementSections,
+  hasAnyManagementPageAccess,
+  hasPagePermission,
+  managementPageSections,
+  type ManagementAccessMetadata,
+  type ManagementPageDefinition,
+  type ManagementSectionKey,
+  type PageAccess,
+  type PageAccessSection,
+  type PagePermission,
+} from "@/lib/management-access"

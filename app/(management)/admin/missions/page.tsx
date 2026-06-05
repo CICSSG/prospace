@@ -243,7 +243,7 @@ export default function MissionsList() {
                 <TableRow>
                   <TableHead>Mission Title</TableHead>
                   <TableHead>Category</TableHead>
-                  <TableHead className="md:hidden xl:block">Completion</TableHead>
+                  <TableHead className="md:hidden xl:table-cell">Completion</TableHead>
                   <TableHead>Description</TableHead>
                   <TableHead>Links</TableHead>
                   <TableHead className="text-right">Actions</TableHead>

@@ -37,6 +37,7 @@ type MongoUserRecord = {
   createdAt?: string
   updatedAt?: string
   userId?: number
+  resumeUpdate?: boolean
 }
 
 type SocialLink = {
@@ -258,12 +259,12 @@ function ProfileOverviewCard({
                             href={getSocialLinkHref(item.value)}
                             target="_blank"
                             rel="noreferrer"
-                            className="mt-1 block max-w-[18rem] truncate text-sm tracking-[0.12em] text-white/88 underline-offset-4 hover:underline sm:max-w-[22rem]"
+                            className="mt-1 block max-w-[18rem] truncate text-sm tracking-[0.12em] text-white/88 underline-offset-4 hover:underline sm:max-w-88"
                           >
                             {item.value}
                           </a>
                         ) : (
-                          <p className="mt-1 max-w-[18rem] truncate text-sm tracking-[0.12em] text-white/88 sm:max-w-[22rem]">
+                          <p className="mt-1 max-w-[18rem] truncate text-sm tracking-[0.12em] text-white/88 sm:max-w-88">
                             {item.value}
                           </p>
                         )}
@@ -418,6 +419,7 @@ function AccountPanel({
           course: course || undefined,
           portfolioLink: resumeDataUrl ?? resumeLink ?? undefined,
           socialLinks: socialLinks.map(normalizeSocialLink).filter(Boolean),
+          resumeUpdate: resumeLink ? true : mongoUser?.resumeUpdate === true ? true : undefined, // if a resume link exists, set resumeUpdate to true. If not, keep existing value or undefined
         },
       }
 

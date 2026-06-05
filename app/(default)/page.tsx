@@ -32,6 +32,14 @@ type SessionCard = {
   sessionSet?: string
 }
 
+type MissionItem = {
+  _id: string
+  missionTitle?: string
+  title?: string
+  name?: string
+  categoryName?: string
+}
+
 export type CompanyPartner = {
   _id?: string
   imageUrl: string
@@ -181,6 +189,8 @@ export default function Page() {
   const [companiesLoaded, setCompaniesLoaded] = useState(false)
   const [sessions, setSessions] = useState<SessionCard[]>([])
   const [sessionsLoaded, setSessionsLoaded] = useState(false)
+  const [uncompletedMissions, setUncompletedMissions] = useState<MissionItem[]>([])
+  const [missionsLoading, setMissionsLoading] = useState(true)
   const [logos, setLogos] = useState<Logo[]>([
     {
       node: (
@@ -263,6 +273,37 @@ export default function Page() {
       setSessions([])
       setSessionsLoaded(true)
     })
+  }, [])
+
+  useEffect(() => {
+    let mounted = true
+    const loadUncompleted = async () => {
+      try {
+        setMissionsLoading(true)
+        const res = await fetch(`/api/uncompleted-missions`)
+        if (!mounted) return
+        if (!res.ok) {
+          setUncompletedMissions([])
+          return
+        }
+        const payload = await res.json()
+        if (payload?.success && Array.isArray(payload.data)) {
+          setUncompletedMissions(payload.data.slice(0, 3))
+        } else {
+          setUncompletedMissions([])
+        }
+      } catch (e) {
+        console.error("Failed to load uncompleted missions:", e)
+        setUncompletedMissions([])
+      } finally {
+        if (mounted) setMissionsLoading(false)
+      }
+    }
+
+    loadUncompleted()
+    return () => {
+      mounted = false
+    }
   }, [])
 
   // keep the carousel edge-to-edge without extra start/end spacing
@@ -856,28 +897,28 @@ export default function Page() {
         <h1 className="text-center text-lg font-thin tracking-[0.2rem] lg:text-2xl">
           EVENT MISSIONS
         </h1>
-        {mode === "registration" || mode === "production" ? (
+        {mode === "registration" ? (
           <p className="mt-8 text-center tracking-[0.3rem]">COMING SOON</p>
         ) : (
           <>
-            <div className="mx-6 flex flex-col gap-4 lg:gap-10">
-              <div className="mt-4 flex flex-row items-center gap-4">
-                <div className="size-6 shrink-0 rounded-full border border-white/40 bg-[#6598F3]/20" />
-                <p className="tracking-[0.2rem]">Connect with 10 Companies</p>
+            {missionsLoading ? (
+              <div className="mx-6 flex flex-col gap-4 lg:gap-10">
+                <div className="mt-4 text-sm text-white/70">Loading missions...</div>
               </div>
-              <div className="mt-4 flex flex-row items-center gap-4">
-                <div className="size-6 shrink-0 rounded-full border border-white/40 bg-[#6598F3]/20" />
-                <p className="tracking-[0.2rem]">
-                  Sign Up to Filipino Web Development Peers
-                </p>
+            ) : uncompletedMissions.length ? (
+              <div className="mx-6 flex flex-col gap-4 lg:gap-10">
+                {uncompletedMissions.map((m) => (
+                  <div key={(m as any)._id} className="mt-4 flex flex-row items-center gap-4">
+                    <div className="size-6 shrink-0 rounded-full border border-white/40 bg-[#6598F3]/20" />
+                    <p className="tracking-[0.2rem]">{(m as any).missionTitle || (m as any).title || (m as any).name || "Mission"}</p>
+                  </div>
+                ))}
               </div>
-              <div className="mt-4 flex flex-row items-center gap-4">
-                <div className="size-6 shrink-0 rounded-full border border-white/40 bg-[#6598F3]/20" />
-                <p className="tracking-[0.2rem]">
-                  Sign Up to Gen AI Philippines
-                </p>
+            ) : (
+              <div className="mx-6 flex flex-col gap-4 lg:gap-10">
+                <div className="mt-4 text-xl text-center text-white/70">All Missions Completed</div>
               </div>
-            </div>
+            )}
 
             <Link
               href={"/missions"}

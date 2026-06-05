@@ -20,7 +20,7 @@ export default function RootLayout({
         <div className="flex w-full max-w-svw grow flex-col items-center overflow-hidden">
           {children}
         </div>
-        {pathname == "/signup" ? null : <Footer />}
+        {pathname == "/signup" || pathname == "/signin" ? null : <Footer />}
         <div className="z-10 w-full overflow-visible"></div>
         <Toaster />
       </div>

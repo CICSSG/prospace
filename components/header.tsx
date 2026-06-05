@@ -96,11 +96,11 @@ export default function Header() {
           <Show when="signed-out">
             {mode === "production" ? (
               <>
-                <SignInButton>
+                <Link href={"/signin"}>
                   <span className="flex h-full border border-white/60 rounded-full px-6 py-1 flex-row items-center justify-center text-center transition-colors hover:bg-[#FF5FA2]/20 cursor-pointer  backdrop-blur-sm">
                     Sign In
                   </span>
-                </SignInButton>
+                </Link>
                 {/* <Link href={"/signin"}>
                   
                 </Link> */}
@@ -207,6 +207,18 @@ export default function Header() {
                     Missions
                   </Link> */}
                 </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="rounded-xl p-0 outline-none"
+                >
+                  <SignOutButton>
+                    <button
+                      className="block w-full rounded-xl px-3 py-2.5 text-sm text-white/85 transition-colors hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white"
+                    >
+                      Sign Out
+                    </button>
+                  </SignOutButton>
+                </DropdownMenuItem>
+                
               </DropdownMenuContent>
             </DropdownMenu>
           </Show>

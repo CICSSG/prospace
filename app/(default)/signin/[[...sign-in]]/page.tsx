@@ -326,7 +326,8 @@ const SignUpPage = () => {
         </div> */}
          <div className="mx-auto w-full max-w-md">
           <SignIn 
-          signUpUrl="/signup"/>
+          signUpUrl="/signup"
+            forceRedirectUrl="/"/>
         </div>
       </div>
 

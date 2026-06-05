@@ -1,90 +1,11 @@
 'use client'
-import {motion} from "framer-motion"
+import { motion } from "framer-motion"
 import { moscaLaroke, sora } from "@/components/prospace/fonts"
 import { CircleCheckBig, ChevronDown, Circle, ExternalLink } from "lucide-react"
 import Image from "next/image"
-import React from 'react'
-import { useState } from "react"
-
-const mockCompletedMissionIds = [
-  'career-sessions-1',
-  'job-fair-1'
-]
-
-const mockMissionGroups = [
-  {
-    group: 'Career Sessions',
-    missions: [
-      {
-        id: 'career-sessions-1',
-        title: 'Attend Session 1 or Session 2',
-        description: 'Engineering the Experience / Building Intelligent Foundations',
-        links: [
-          {
-            title: 'ProSpaceSessionSet1',
-            link: 'https://prospace.cicssg.com/ProSpaceSessionSet1',
-          },
-          {
-            title: 'Facebook Session 1',
-            link: 'https://www.facebook.com/DLSUD.CICSSG',
-          },
-          {
-            title: 'ProSpaceSessionSet2',
-            link: 'https://prospace.cicssg.com/ProSpaceSessionSet2',
-          },
-          {
-            title: 'Facebook Session 2',
-            link: 'https://www.facebook.com/DLSUD.SIKAPTala',
-          },
-        ],
-      },
-      {
-        id: 'career-sessions-2',
-        title: 'Attend Session 3 or Session 4',
-        description: 'Shaping the Future / Thriving Amid Transformation',
-        links: [
-          {
-            title: 'ProSpaceSessionSet1',
-            link: 'https://prospace.cicssg.com/ProSpaceSessionSet1',
-          },
-          {
-            title: 'ProSpaceSessionSet2',
-            link: 'https://prospace.cicssg.com/ProSpaceSessionSet2',
-          }
-        ],
-      },
-    ],
-  },
-  {
-    group: 'Job Fair',
-    missions: [
-      {
-        id: 'job-fair-1',
-        title: 'Attend Job Fair',
-      },
-      {
-        id: 'job-fair-2',
-        title: 'Sign up to Bossjob',
-        links: [
-          {
-            title: 'bossjob.ph',
-            link: 'https://www.bossjob.ph',
-          },
-        ],
-      },
-      {
-        id: 'job-fair-3',
-        title: 'Sign Up to Eskwelabs Innovation Fellowship',
-        links: [
-          {
-            title: 'Google Forms',
-            link: 'forms.gle/qmWUBojbc1caaWUg9',
-          },
-        ],
-      },
-    ],
-  },
-]
+import { useEffect, useMemo, useState } from "react"
+import { useUser } from "@clerk/nextjs"
+import { getCollectionData } from "@/app/(management)/admin/actions"
 
 type MissionLink = {
   title: string
@@ -96,6 +17,8 @@ type Mission = {
   title: string
   description?: string
   links?: MissionLink[]
+  categoryId?: string
+  categoryName?: string
 }
 
 type MissionGroup = {
@@ -103,11 +26,150 @@ type MissionGroup = {
   missions: Mission[]
 }
 
-const MissionsPage = () => {
-  const [openGroups, setOpenGroups] = useState<string[]>(mockMissionGroups.map((group) => group.group))
+type MissionRecord = {
+  _id: string
+  missionTitle?: string
+  title?: string
+  description?: string
+  links?: MissionLink[]
+  missionLinks?: string[]
+  missionLink?: string
+  categoryId?: string
+  categoryName?: string
+}
 
-  const missionGroupStats = mockMissionGroups.map((group) => {
-    const completed = group.missions.filter((mission) => mockCompletedMissionIds.includes(mission.id)).length
+type MissionCategoryRecord = {
+  _id: string
+  categoryName?: string
+}
+
+type MissionCompletionRecord = {
+  userId?: string | number
+  missionId?: string
+}
+
+const normalizeLinks = (mission: MissionRecord): MissionLink[] => {
+  if (Array.isArray(mission.links) && mission.links.length > 0) {
+    return mission.links
+      .map((item) => ({
+        title: item?.title?.trim() || "Visit Link",
+        link: item?.link?.trim() || "",
+      }))
+      .filter((item) => Boolean(item.link))
+  }
+
+  if (Array.isArray(mission.missionLinks) && mission.missionLinks.length > 0) {
+    return mission.missionLinks
+      .map((link, index) => ({ title: `Link ${index + 1}`, link: link?.trim() || "" }))
+      .filter((item) => Boolean(item.link))
+  }
+
+  if (typeof mission.missionLink === "string" && mission.missionLink.trim()) {
+    return [{ title: "Visit Link", link: mission.missionLink.trim() }]
+  }
+
+  return []
+}
+
+const MissionsPage = () => {
+  const { user } = useUser()
+  const [missions, setMissions] = useState<Mission[]>([])
+  const [openGroups, setOpenGroups] = useState<string[]>([])
+  const [completedMissionIds, setCompletedMissionIds] = useState<string[]>([])
+
+  const missionGroups = useMemo(() => {
+    const groups = new Map<string, Mission[]>()
+
+    for (const mission of missions) {
+      const groupName = mission.categoryName?.trim() || "Uncategorized"
+      const current = groups.get(groupName) || []
+      current.push(mission)
+      groups.set(groupName, current)
+    }
+
+    return Array.from(groups.entries())
+      .sort((left, right) => left[0].localeCompare(right[0]))
+      .map(([group, groupedMissions]) => ({
+        group,
+        missions: groupedMissions,
+      }))
+  }, [missions])
+
+  useEffect(() => {
+    let isMounted = true
+
+    const loadMissions = async () => {
+      try {
+        const [missionsRes, categoriesRes, completionsRes, userRes] = await Promise.all([
+          getCollectionData("missions"),
+          getCollectionData("missionCategories"),
+          getCollectionData("missionCompletions"),
+          user?.id
+            ? fetch(`/api/getUserInCollection?user_id=${encodeURIComponent(user.id)}`).then((res) => res.json())
+            : Promise.resolve({ success: false, data: null }),
+        ])
+
+        if (!isMounted) return
+
+        const missionRows = Array.isArray(missionsRes?.data) ? (missionsRes.data as MissionRecord[]) : []
+        const categoryRows = Array.isArray(categoriesRes?.data)
+          ? (categoriesRes.data as MissionCategoryRecord[])
+          : []
+        const completionRows = Array.isArray(completionsRes?.data)
+          ? (completionsRes.data as MissionCompletionRecord[])
+          : []
+
+        const categoryById = new Map<string, string>()
+        for (const category of categoryRows) {
+          if (category?._id) {
+            categoryById.set(String(category._id), category.categoryName?.trim() || "Uncategorized")
+          }
+        }
+
+        const normalizedMissions: Mission[] = missionRows.map((mission) => ({
+          id: mission._id,
+          title: mission.missionTitle || mission.title || "Untitled mission",
+          description: mission.description || "",
+          links: normalizeLinks(mission),
+          categoryId: mission.categoryId,
+          categoryName:
+            mission.categoryName ||
+            (mission.categoryId ? categoryById.get(String(mission.categoryId)) : undefined) ||
+            "Uncategorized",
+        }))
+
+        setMissions(normalizedMissions)
+        setOpenGroups(Array.from(new Set(normalizedMissions.map((mission) => mission.categoryName || "Uncategorized"))))
+
+        const currentUserId = userRes?.success ? userRes?.data?.userId : null
+        if (currentUserId !== null && currentUserId !== undefined) {
+          const completed = completionRows
+            .filter((record) => String(record.userId) === String(currentUserId))
+            .map((record) => record.missionId)
+            .filter((missionId): missionId is string => Boolean(missionId))
+          setCompletedMissionIds(completed)
+        } else {
+          setCompletedMissionIds([])
+        }
+      } catch (error) {
+        console.error("Failed to load missions:", error)
+        if (isMounted) {
+          setMissions([])
+          setCompletedMissionIds([])
+          setOpenGroups([])
+        }
+      }
+    }
+
+    loadMissions()
+
+    return () => {
+      isMounted = false
+    }
+  }, [user?.id])
+
+  const missionGroupStats = missionGroups.map((group) => {
+    const completed = group.missions.filter((mission) => completedMissionIds.includes(mission.id)).length
     const total = group.missions.length
 
     return {
@@ -118,8 +180,8 @@ const MissionsPage = () => {
     }
   })
 
-  const completedMissions = mockCompletedMissionIds.length
-  const totalMissions = missionGroupStats.reduce((total, group) => total + group.total, 0)
+  const completedMissions = missions.filter((mission) => completedMissionIds.includes(mission.id)).length
+  const totalMissions = missions.length
   const progressPercent = totalMissions ? (completedMissions / totalMissions) * 100 : 0
 
   const toggleGroup = (groupName: string) => {
@@ -223,7 +285,7 @@ const MissionsPage = () => {
                     <div className="flex w-full flex-col gap-3">
                       {group.missions.map((mission) => (
                         (() => {
-                          const isCompleted = mockCompletedMissionIds.includes(mission.id)
+                          const isCompleted = completedMissionIds.includes(mission.id)
 
                           return (
                         <div

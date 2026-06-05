@@ -1,9 +1,10 @@
 "use client"
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Mission } from "./types"
-import { useState } from "react"
+import { Mission, MissionLink } from "./types"
+import { useEffect, useState } from "react"
 import { toast } from "sonner"
+import { getCollectionData } from "../actions"
 
 type MissionFormDialogProps = {
   open: boolean
@@ -15,19 +16,39 @@ type MissionFormDialogProps = {
 
 type MissionFormState = {
   missionTitle: string
-  missionLink: string
+  description: string
+  completionMethod: "qr-scanning" | "help-desk"
+  links: MissionLink[]
+  categoryId?: string
 }
 
 const emptyForm = (): MissionFormState => ({
   missionTitle: "",
-  missionLink: "",
+  description: "",
+  completionMethod: "qr-scanning",
+  links: [{ title: "", link: "" }],
+  categoryId: "",
 })
 
 function createInitialForm(mission?: Mission | null): MissionFormState {
+  const initialLinks = Array.isArray(mission?.links) && mission.links.length > 0
+    ? mission.links
+    : Array.isArray(mission?.missionLinks) && mission.missionLinks.length > 0
+      ? mission.missionLinks.map((link, index) => ({
+          title: `Link ${index + 1}`,
+          link,
+        }))
+      : mission?.missionLink
+        ? [{ title: "Visit Link", link: mission.missionLink }]
+        : [{ title: "", link: "" }]
+
   return mission
     ? {
         missionTitle: mission.missionTitle || "",
-        missionLink: mission.missionLink || "",
+        description: mission.description || "",
+        completionMethod: mission.completionMethod || "qr-scanning",
+        links: initialLinks,
+        categoryId: mission.categoryId || "",
       }
     : emptyForm()
 }
@@ -42,6 +63,19 @@ export default function MissionFormDialog({
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState(() => createInitialForm(mission))
   const [errors, setErrors] = useState<string[]>([])
+  const [categories, setCategories] = useState<{ id: string; categoryName: string }[]>([])
+
+  useEffect(() => {
+    if (!open) return
+    getCollectionData("missionCategories")
+      .then((res) => {
+        if (res.success) {
+          const mapped = (res.data || []).map((c: any) => ({ id: c._id, categoryName: c.categoryName || c.name || c.title || "" }))
+          setCategories(mapped)
+        }
+      })
+      .catch((e) => console.error("Failed to load categories", e))
+  }, [open])
 
   const validateForm = () => {
     const nextErrors: string[] = []
@@ -69,7 +103,15 @@ export default function MissionFormDialog({
         },
         body: JSON.stringify({
           missionTitle: form.missionTitle,
-          missionLink: form.missionLink,
+          description: form.description,
+          completionMethod: form.completionMethod,
+          links: form.links
+            .map((item) => ({
+              title: item.title.trim(),
+              link: item.link.trim(),
+            }))
+            .filter((item) => item.link),
+          categoryId: form.categoryId,
         }),
       })
 
@@ -128,21 +170,155 @@ export default function MissionFormDialog({
             />
           </div>
 
-          {/* Mission Link (Optional) */}
+          {/* Mission Description (Optional) */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Mission Link (Optional)</label>
-            <input
-              type="url"
-              value={form.missionLink}
+            <label className="text-sm font-medium">Mission Description (Optional)</label>
+            <textarea
+              value={form.description}
               onChange={(e) =>
                 setForm((current) => ({
                   ...current,
-                  missionLink: e.target.value,
+                  description: e.target.value,
                 }))
               }
-              placeholder="https://example.com"
-              className="w-full rounded-lg border bg-background px-3 py-2 text-sm"
+              placeholder="Add a short mission description"
+              className="min-h-24 w-full rounded-lg border bg-background px-3 py-2 text-sm"
             />
+          </div>
+
+          {/* Completion Method */}
+          <div className="space-y-3">
+            <label className="text-sm font-medium">Completion Method</label>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {[
+                { value: "qr-scanning", label: "QR Scanning" },
+                { value: "help-desk", label: "Help Desk" },
+              ].map((option) => (
+                <label
+                  key={option.value}
+                  className={`flex cursor-pointer items-center gap-3 rounded-lg border px-4 py-3 text-sm transition ${
+                    form.completionMethod === option.value ? "border-primary bg-primary/10" : "bg-background hover:bg-muted"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="completionMethod"
+                    value={option.value}
+                    checked={form.completionMethod === option.value}
+                    onChange={() =>
+                      setForm((current) => ({
+                        ...current,
+                        completionMethod: option.value as "qr-scanning" | "help-desk",
+                      }))
+                    }
+                    className="h-4 w-4"
+                  />
+                  <span className="font-medium">{option.label}</span>
+                </label>
+              ))}
+            </div>
+
+            {form.completionMethod === "qr-scanning" ? (
+              <p className="text-xs text-muted-foreground">
+                QR code actions will be available after the mission is saved.
+              </p>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                This mission will be marked as completed through Help Desk.
+              </p>
+            )}
+          </div>
+
+          {/* Mission Links (Optional, Multiple) */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium">Mission Links (Optional)</label>
+              <button
+                type="button"
+                onClick={() =>
+                  setForm((current) => ({
+                    ...current,
+                    links: [...current.links, { title: "", link: "" }],
+                  }))
+                }
+                className="inline-flex items-center rounded-lg border px-2.5 py-1.5 text-xs hover:bg-muted"
+              >
+                Add Link
+              </button>
+            </div>
+
+            <div className="space-y-2">
+              {form.links.map((item, index) => (
+                <div key={`mission-link-${index}`} className="grid gap-2 sm:grid-cols-[minmax(0,0.8fr)_minmax(0,1.2fr)_auto]">
+                  <input
+                    type="text"
+                    value={item.title}
+                    onChange={(e) =>
+                      setForm((current) => ({
+                        ...current,
+                        links: current.links.map((currentItem, itemIndex) =>
+                          itemIndex === index
+                            ? { ...currentItem, title: e.target.value }
+                            : currentItem
+                        ),
+                      }))
+                    }
+                    placeholder="Link title"
+                    className="w-full rounded-lg border bg-background px-3 py-2 text-sm"
+                  />
+                  <input
+                    type="url"
+                    value={item.link}
+                    onChange={(e) =>
+                      setForm((current) => ({
+                        ...current,
+                        links: current.links.map((currentItem, itemIndex) =>
+                          itemIndex === index
+                            ? { ...currentItem, link: e.target.value }
+                            : currentItem
+                        ),
+                      }))
+                    }
+                    placeholder="https://example.com"
+                    className="w-full rounded-lg border bg-background px-3 py-2 text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setForm((current) => {
+                        if (current.links.length === 1) {
+                          return { ...current, links: [{ title: "", link: "" }] }
+                        }
+                        return {
+                          ...current,
+                          links: current.links.filter((_, itemIndex) => itemIndex !== index),
+                        }
+                      })
+                    }
+                    className="inline-flex items-center rounded-lg border px-2.5 py-2 text-xs hover:bg-muted"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Category */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Category</label>
+            <select
+              value={form.categoryId}
+              onChange={(e) => setForm((current) => ({ ...current, categoryId: e.target.value }))}
+              className="w-full rounded-lg border bg-background px-3 py-2 text-sm"
+            >
+              <option value="">Uncategorized</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.categoryName}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Actions */}

@@ -856,7 +856,7 @@ export default function Page() {
         <h1 className="text-center text-lg font-thin tracking-[0.2rem] lg:text-2xl">
           EVENT MISSIONS
         </h1>
-        {mode === "registration" ? (
+        {mode === "registration" || mode === "production" ? (
           <p className="mt-8 text-center tracking-[0.3rem]">COMING SOON</p>
         ) : (
           <>

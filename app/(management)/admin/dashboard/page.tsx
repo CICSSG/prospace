@@ -162,7 +162,7 @@ export default function AdminDashboard() {
               </p>
             </div>
 
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-nowrap h-fit gap-2">
               <button
                 type="button"
                 onClick={loadDashboard}
@@ -172,7 +172,7 @@ export default function AdminDashboard() {
               </button>
               <Link
                 href="/admin/users"
-                className="inline-flex items-center gap-2 rounded-full bg-foreground px-4 py-2 text-sm font-medium text-background transition hover:bg-foreground/90"
+                className="inline-flex text-nowrap items-center gap-2 rounded-full bg-foreground px-4 py-2 text-sm font-medium text-background transition hover:bg-foreground/90"
               >
                 Add users <ArrowRight size={16} />
               </Link>

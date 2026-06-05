@@ -953,7 +953,7 @@ const SignUpPage = () => {
                             setIsUploading(true)
                             UploadImageToBlobStorage(
                               file,
-                              `resume/${getFieldValue1("firstName")}-Resume`
+                              `resume/${getFieldValue1("firstName")}-${getFieldValue1("lastName")}-Resume`
                             )
                               .then((blob) => {
                                 const fileUrl = blob.url

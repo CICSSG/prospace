@@ -4,15 +4,50 @@ import { clerkClient } from "@clerk/nextjs/server"
 
 export async function PUT(req: Request) {
   try {
+    const body = await req.json()
     const {
       clerkId,
       role,
       adminRole,
       isAdmin,
-    } = await req.json()
+      update,
+    } = body
 
     const { searchParams } = new URL(req.url)
     const id = searchParams.get("id")
+
+    const client = await clientPromise
+    const db = client.db(process.env.MONGODB_DATABASE)
+    const usersCollection = db.collection("users")
+
+    if (update && clerkId) {
+      const filter = id ? { _id: new ObjectId(id) } : { clerkId }
+
+      const updateResult = await usersCollection.findOneAndUpdate(
+        filter,
+        {
+          $set: {
+            firstName: update.firstName ?? null,
+            lastName: update.lastName ?? null,
+            shortBio: update.shortBio ?? null,
+            course: update.course ?? null,
+            portfolioLink: update.portfolioLink ?? null,
+            socialLinks: Array.isArray(update.socialLinks) ? update.socialLinks : [],
+            updatedAt: new Date().toISOString(),
+          },
+        },
+        { returnDocument: "after" }
+      )
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: "Profile updated successfully",
+          data: updateResult?.value || null,
+        }),
+        { status: 200 }
+      )
+    }
 
     if (!id || !clerkId) {
       return new Response(
@@ -22,9 +57,6 @@ export async function PUT(req: Request) {
     }
 
     // Update MongoDB
-    const client = await clientPromise
-    const db = client.db(process.env.MONGODB_DATABASE)
-    const usersCollection = db.collection("users")
 
     await usersCollection.updateOne(
       { _id: new ObjectId(id) },
@@ -40,8 +72,14 @@ export async function PUT(req: Request) {
 
     // Update Clerk publicMetadata
     try {
-      const publicMetadata: any = {
+      const publicMetadata: {
+        isAdmin: boolean
+        role: string | null
+        adminRole: string | null
+      } = {
         isAdmin: isAdmin || false,
+        role: null,
+        adminRole: null,
       }
 
       if (role === "admin") {

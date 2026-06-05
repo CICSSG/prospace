@@ -8,6 +8,30 @@ export async function GET(req: Request) {
     const url = new URL(req.url);
     const collection = url.searchParams.get("collection");
     if (collection) {
+      if (collection === "missions") {
+        // join missionCategories to attach categoryName at read time
+        const data = await db
+          .collection("missions")
+          .aggregate([
+            {
+              $lookup: {
+                from: "missionCategories",
+                let: { catId: "$categoryId" },
+                pipeline: [
+                  { $addFields: { idStr: { $toString: "$_id" } } },
+                  { $match: { $expr: { $eq: ["$idStr", "$$catId"] } } },
+                  { $project: { _id: 1, categoryName: 1 } },
+                ],
+                as: "category",
+              },
+            },
+            { $addFields: { categoryName: { $arrayElemAt: ["$category.categoryName", 0] } } },
+            { $project: { category: 0 } },
+          ])
+          .toArray();
+
+        return NextResponse.json({ success: true, data });
+      }
       const data = await db.collection(collection).find({}).toArray();
       return NextResponse.json({ success: true, data });
     } else {

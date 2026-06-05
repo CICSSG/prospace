@@ -4,6 +4,7 @@ export {
   getDefaultManagementRoute,
   getPageDefinition,
   getVisibleManagementSections,
+  hasAnyManagementPageAccess,
   hasPagePermission,
   managementPageSections,
   type ManagementAccessMetadata,

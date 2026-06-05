@@ -114,9 +114,20 @@ export default function CompanyList() {
     return matchesSearch && matchesFilter
   })
 
-  const totalPages = Math.max(1, Math.ceil(filteredCompanies.length / itemsPerPage))
+  const sortedCompanies = [...filteredCompanies].sort((left, right) => {
+    const leftHasModerators = left.moderatorEmails.some((email) => email.trim().length > 0)
+    const rightHasModerators = right.moderatorEmails.some((email) => email.trim().length > 0)
+
+    if (leftHasModerators !== rightHasModerators) {
+      return leftHasModerators ? 1 : -1
+    }
+
+    return left.name.localeCompare(right.name)
+  })
+
+  const totalPages = Math.max(1, Math.ceil(sortedCompanies.length / itemsPerPage))
   const currentPage = Math.min(page, totalPages)
-  const paginatedCompanies = filteredCompanies.slice(
+  const paginatedCompanies = sortedCompanies.slice(
     (currentPage - 1) * itemsPerPage,
     (currentPage - 1) * itemsPerPage + itemsPerPage
   )
@@ -274,14 +285,23 @@ export default function CompanyList() {
                       </div>
                       <div className="space-y-1">
                         <div className="font-medium">Moderators:</div>
-                        {company.moderatorEmails.length > 0 ? (
-                          company.moderatorEmails.map((email) => (
-                            <div key={email} className="text-xs text-muted-foreground">
-                              {email}
-                            </div>
-                          ))
+                        {company.moderatorEmails.some((email) => email.trim().length > 0) ? (
+                          company.moderatorEmails
+                            .filter((email) => email.trim().length > 0)
+                            .map((email) => (
+                              <div key={email} className="text-xs text-muted-foreground">
+                                {email}
+                              </div>
+                            ))
                         ) : (
-                          <div className="text-xs text-muted-foreground">-</div>
+                          <div className="space-y-1">
+                            <div className="text-xs font-medium text-amber-500">
+                              No moderator assigned yet
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              No one is managing this company yet.
+                            </div>
+                          </div>
                         )}
                       </div>
                     </div>

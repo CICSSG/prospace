@@ -9,6 +9,7 @@ import { toast } from "sonner"
 
 import {
   managementPageSections,
+  hasAnyManagementPageAccess,
   type PageAccess,
   type PageAccessSection,
 } from "./permissions"
@@ -103,6 +104,10 @@ export default function UserFormDialog({ open, user, mode, onOpenChange, onSaved
 
     if (role === "admin" && adminRole === "none") {
       nextErrors.push("Select an admin type")
+    }
+
+    if (role === "admin" && !hasAnyManagementPageAccess(pageAccess)) {
+      nextErrors.push("Grant at least one view or edit permission before saving an admin")
     }
 
     setErrors(nextErrors)

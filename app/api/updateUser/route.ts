@@ -1,6 +1,7 @@
 import clientPromise from "@/lib/mongodb"
 import { ObjectId } from "mongodb"
 import { clerkClient } from "@clerk/nextjs/server"
+import { hasAnyManagementPageAccess, type PageAccess } from "@/lib/management-access"
 
 export async function PUT(req: Request) {
   try {
@@ -20,6 +21,13 @@ export async function PUT(req: Request) {
     const client = await clientPromise
     const db = client.db(process.env.MONGODB_DATABASE)
     const usersCollection = db.collection("users")
+
+    if (role === "admin" && !hasAnyManagementPageAccess(pageAccess as PageAccess | undefined)) {
+      return new Response(
+        JSON.stringify({ success: false, message: "At least one view or edit permission is required for admin accounts" }),
+        { status: 400 }
+      )
+    }
 
     if (update && clerkId) {
       const filter = id ? { _id: new ObjectId(id) } : { clerkId }

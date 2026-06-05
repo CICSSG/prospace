@@ -1,6 +1,7 @@
 import { clerkClient } from "@clerk/nextjs/server"
 import { NextResponse } from "next/server"
 import clientPromise from "@/lib/mongodb"
+import { hasAnyManagementPageAccess, type PageAccess } from "@/lib/management-access"
 
 export async function POST(req: Request) {
   const client = await clerkClient()
@@ -11,6 +12,13 @@ export async function POST(req: Request) {
   const adminRole = request.adminRole || null
   const isAdmin = role === "admin"
   const pageAccess = role === "admin" ? request.pageAccess || null : null
+
+  if (role === "admin" && !hasAnyManagementPageAccess(pageAccess as PageAccess | undefined)) {
+    return NextResponse.json(
+      { message: "At least one view or edit permission is required for admin accounts" },
+      { status: 400 }
+    )
+  }
 
   if (!firstName || !lastName || !email) {
     return NextResponse.json(

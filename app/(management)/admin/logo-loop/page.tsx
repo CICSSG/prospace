@@ -184,7 +184,6 @@ const LogoLoop = () => {
           </TableHeader>
           <TableBody>
             {paginatedLogos.map((logo) => { 
-              console.log("Rendering logo:", logo)
               
               return (
               <TableRow key={logo.id}>

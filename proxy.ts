@@ -15,7 +15,7 @@ const isCompanyRoute = createRouteMatcher(["/company(.*)"])
 
 export default clerkMiddleware(async (auth, req) => {
   const { sessionClaims, userId, isAuthenticated } = await auth()
-  var metadata = sessionClaims?.publicMetadata as
+  const metadata = sessionClaims?.publicMetadata as
     | {
         isAdmin?: boolean
         adminRole?: string
@@ -45,8 +45,9 @@ export default clerkMiddleware(async (auth, req) => {
   if (isLogoLoopUploadRoute(req)) {
     return NextResponse.next()
   }
-  if (!req.nextUrl.pathname.startsWith("/api") && !isManagementRoutes(req) && metadata?.isAdmin) {
-    return NextResponse.redirect(new URL("/admin/dashboard", req.url))
+  const isAdminUser = metadata?.isAdmin || metadata?.role === "admin"
+  if (!req.nextUrl.pathname.startsWith("/api") && !isManagementRoutes(req) && isAdminUser) {
+    return NextResponse.redirect(new URL(getDefaultManagementRoute(pageAccess, normalizedAdminRole), req.url))
   }
 
   if (isManagementRoutes(req)) {

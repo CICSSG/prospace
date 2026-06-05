@@ -92,14 +92,6 @@ export const managementPageSections: Array<{
         section: "data",
         iconKey: "dashboard",
       },
-      {
-        key: "data-manage",
-        title: "Manage",
-        url: "/data/manage",
-        accessKeys: ["/data/manage", "data/manage"],
-        section: "data",
-        iconKey: "dashboard",
-      },
     ],
   },
 ]
@@ -134,6 +126,15 @@ export function getManagementPageAccessState(
     canView: permission === "view" || permission === "edit",
     canEdit: permission === "edit",
   }
+}
+
+export function hasAnyManagementPageAccess(pageAccess: PageAccess | undefined) {
+  return managementPageSections.some((section) => {
+    const sectionAccess = pageAccess?.[section.key]
+    return sectionAccess
+      ? section.items.some((page) => hasPagePermission(sectionAccess, page.accessKeys))
+      : false
+  })
 }
 
 export function hasPagePermission(

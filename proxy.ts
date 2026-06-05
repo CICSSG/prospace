@@ -55,6 +55,10 @@ export default clerkMiddleware(async (auth, req) => {
       return NextResponse.redirect(new URL("/", req.url))
     }
 
+    if(metadata?.role === "user") {
+      return NextResponse.redirect(new URL("/", req.url))
+    }
+
     const canAccessCurrentPage = canAccessManagementPath(
       req.nextUrl.pathname,
       pageAccess,

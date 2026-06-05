@@ -36,7 +36,7 @@ export default function Header() {
 
   return (
     <>
-      <div className="fixed top-5 z-20 grid w-full grid-cols-2 items-center justify-center px-5 text-lg lg:max-w-400 lg:grid-cols-5 lg:justify-around">
+      <div className="grid w-full mt-5 grid-cols-2 items-center justify-center px-5 text-lg lg:max-w-400 lg:grid-cols-5 lg:justify-around">
         <button
           className="mr-auto lg:hidden"
           onClick={() => setIsMenuOpen(true)}
@@ -317,14 +317,14 @@ export default function Header() {
                     >
                       Connect
                     </Link>
-                    {/* <Link
+                    <Link
                       href={"/missions"}                      
-                      className="block py-2"
+                      className={`block py-2 ${isActive("/missions") ? "font-semibold text-primary" : ""}`}
                       onClick={() => setIsMenuOpen(false)}
                     >
                       Missions
-                    </Link> */}
-                    <p className="block py-2 text-white/50 text-sm cursor-not-allowed">Missions (coming soon)</p>
+                    </Link>
+                    {/* <p className="block py-2 text-white/50 text-sm cursor-not-allowed">Missions (coming soon)</p> */}
                   </Show>
                 </div>
 

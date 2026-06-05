@@ -12,10 +12,7 @@ type UserOverlayData = {
   school?: string
   shortBio?: string
   email?: string
-  socialLinks?: Array<{
-    platform?: string
-    url?: string
-  }>
+  socialLinks?: string[]
   portfolioLink?: string
   clerkId?: string
   userId?: number
@@ -28,6 +25,33 @@ type ConnectUserOverlayProps = {
   open: boolean
   user: UserOverlayData | null
   onClose: () => void
+}
+
+function getLinkLabel(url?: string) {
+  if (!url) return "Link"
+
+  const normalized = url.replace(/\s+/g, "")
+  let cleanHost = ""
+
+  try {
+    const host = normalized.match(/^https?:\/\//i)
+      ? new URL(normalized).hostname
+      : new URL(`https://${normalized}`).hostname
+    cleanHost = host.replace(/^www\./, "").toLowerCase()
+  } catch {
+    cleanHost = normalized.replace(/^www\./, "").toLowerCase()
+  }
+
+  if (cleanHost.includes("blob.vercel-storage.com")) return "Resume"
+  if (cleanHost.includes("facebook.com") || cleanHost.includes("fb.com")) return "Facebook"
+  if (cleanHost.includes("linkedin.com")) return "LinkedIn"
+  if (cleanHost.includes("instagram.com")) return "Instagram"
+  if (cleanHost.includes("x.com") || cleanHost.includes("twitter.com")) return "X"
+  if (cleanHost.includes("youtube.com") || cleanHost.includes("youtu.be")) return "YouTube"
+  if (cleanHost.includes("tiktok.com")) return "TikTok"
+  if (cleanHost.includes("github.com")) return "GitHub"
+
+  return cleanHost.split(".")[0] || "Link"
 }
 
 export default function ConnectUserOverlay({
@@ -63,10 +87,10 @@ export default function ConnectUserOverlay({
               {displayName}
             </h2>
             <p className="text-sm text-white/80">{user.course || "No course provided"}</p>
-            <div className="rounded-full border border-white/50 px-4 py-1 text-xs text-white/80">
+            {/* <div className="rounded-full border border-white/50 px-4 py-1 text-xs text-white/80">
               {user.school || "No school provided"}
-            </div>
-            <div className="mt-2 text-xs text-white/70">ID: {user.userId ?? user.clerkId ?? "—"}</div>
+            </div> */}
+            {/* <div className="mt-2 text-xs text-white/70">ID: {user.userId ?? user.clerkId ?? "—"}</div> */}
           </div>
 
           <div className="my-5 h-px w-full bg-white/35" />
@@ -101,15 +125,15 @@ export default function ConnectUserOverlay({
 
               {user.socialLinks?.length ? (
                 user.socialLinks.map((link) => (
-                  <div key={`${link.platform}-${link.url}`} className="flex items-center gap-3">
+                  <div key={link} className="flex items-center gap-3">
                     <LinkIcon size={18} />
                     <a
-                      href={link.url}
+                      href={link.startsWith("http") ? link : `https://${link}`}
                       target="_blank"
                       rel="noreferrer"
                       className="truncate underline decoration-white/40 underline-offset-4 hover:decoration-white"
                     >
-                      {link.platform || link.url}
+                      {getLinkLabel(link)}
                     </a>
                   </div>
                 ))
@@ -128,7 +152,7 @@ export default function ConnectUserOverlay({
                 <div className="flex items-center gap-3">
                   <LinkIcon size={18} />
                   <a href={user.portfolioLink} target="_blank" rel="noreferrer" className="underline">
-                    Portfolio
+                    Resume
                   </a>
                 </div>
               ) : null}

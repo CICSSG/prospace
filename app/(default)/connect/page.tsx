@@ -1,552 +1,138 @@
 "use client"
-import { useRouter, useSearchParams } from "next/navigation"
-import { getConnections, initiateConnection } from "../../actions"
-import { useUser } from "@clerk/nextjs"
-import { useEffect, useMemo, useRef, useState } from "react"
-import { Dialog, DialogContent } from "@/components/ui/dialog"
+
 import Image from "next/image"
+import { useRouter, useSearchParams } from "next/navigation"
+import { useEffect, useMemo, useState } from "react"
+import { useUser } from "@clerk/nextjs"
+import { Building2, Users2 } from "lucide-react"
 import { toast } from "sonner"
-import { Building, Users2 } from "lucide-react"
-import { moscaLaroke, sora } from "@/components/prospace/fonts";
-import DividerComponent from "@/components/divider";
-import { m } from "framer-motion";
-import { b } from "framer-motion/client";
-import ConnectUserOverlay from "@/components/connect-user-overlay"
+
+import { getConnections, initiateConnection } from "../../actions"
+import ConnectCompanyCard from "@/components/connect-company-card"
 import ConnectCompanyOverlay from "@/components/connect-company-overlay"
 import ConnectUserCard from "@/components/connect-user-card"
-import ConnectCompanyCard from "@/components/connect-company-card"
+import ConnectUserOverlay from "@/components/connect-user-overlay"
+import DividerComponent from "@/components/divider"
+import { moscaLaroke, sora } from "@/components/prospace/fonts"
+import { Dialog, DialogContent } from "@/components/ui/dialog"
 
-// const sampleConnections = [
-//   {
-//     _id: "69f143b49b1f25238d59823c",
-//     clerkId: "user_3D0VtQ9AYdEbwcTIlOILM3kAVL1i",
-//     firstName: "Alice",
-//     lastName: "Martinez",
-//     email: "alice.martinez@example.com",
-//     course: "Bachelor of Science in Computer Science",
-//     shortBio: "Sali na kau SIKAPTala <3",
-//     resumeLink: "https://example.com/resume/alice-martinez",
-//     createdAt: "2026-04-28T23:33:08.832Z",
-//     updatedAt: "2026-04-28T23:33:08.832Z",
-//     userId: 10001,
-//     type: "user",
-//   },
-//   {
-//     _id: "69f143b49b1f25238d59823d",
-//     clerkId: "user_3D0VtQ9AYdEbwcTIOILM3kAVL1j",
-//     firstName: "Brian",
-//     lastName: "ONeil",
-//     email: "brian.oneil@example.com",
-//     course: "Bachelor of Science in Business Administration",
-//     shortBio: "",
-//     resumeLink: "https://example.com/resume/brian-oneil",
-//     createdAt: "2026-04-28T23:33:08.832Z",
-//     updatedAt: "2026-04-28T23:33:08.832Z",
-//     userId: 10002,
-//     type: "user",
-//   },
-//   {
-//     _id: "69f143b49b1f25238d59823e",
-//     clerkId: "user_3D0VtQ9AYdEbwcTIOILM3kAVL1k",
-//     firstName: "Jhloe",
-//     lastName: "Tan",
-//     email: "jhloe.tan@example.com",
-//     course: "Bachelor of Science in Psychology",
-//     shortBio: "",
-//     resumeLink: "https://example.com/resume/jhloe-tan",
-//     createdAt: "2026-04-28T23:33:08.832Z",
-//     updatedAt: "2026-04-28T23:33:08.832Z",
-//     userId: 10003,
-//     type: "user",
-//   },
-//   {
-//     _id: "69f143b49b1f25238d59823f",
-//     clerkId: "user_3D0VtQ9AYdEbwcTIOILM3kAVL1l",
-//     firstName: "Daniel",
-//     lastName: "Cruz",
-//     email: "daniel.cruz@example.com",
-//     course: "Bachelor of Science in Information Technology",
-//     shortBio: "",
-//     resumeLink: "https://example.com/resume/daniel-cruz",
-//     createdAt: "2026-04-28T23:33:08.832Z",
-//     updatedAt: "2026-04-28T23:33:08.832Z",
-//     userId: 10004,
-//     type: "user",
-//   },
-//   {
-//     _id: "69f143b49b1f25238d598240",
-//     clerkId: "user_3D0VtQ9AYdEbwcTIOILM3kAVL1m",
-//     firstName: "Elena",
-//     lastName: "Rodriguez",
-//     email: "elena.rodriguez@example.com",
-//     course: "Bachelor of Science in Accountancy",
-//     shortBio: "",
-//     resumeLink: "https://example.com/resume/elena-rodriguez",
-//     createdAt: "2026-04-28T23:33:08.832Z",
-//     updatedAt: "2026-04-28T23:33:08.832Z",
-//     userId: 10005,
-//     type: "user",
-//   },
-//   {
-//     _id: "69f143b49b1f25238d598241",
-//     clerkId: "user_3D0VtQ9AYdEbwcTIOILM3kAVL1n",
-//     firstName: "Franco",
-//     lastName: "Villanueva",
-//     email: "franco.villanueva@example.com",
-//     course: "Bachelor of Science in Civil Engineering",
-//     shortBio: "",
-//     resumeLink: "https://example.com/resume/franco-villanueva",
-//     createdAt: "2026-04-28T23:33:08.832Z",
-//     updatedAt: "2026-04-28T23:33:08.832Z",
-//     userId: 10006,
-//     type: "user",
-//   },
-//   {
-//     _id: "69f143b49b1f25238d598242",
-//     clerkId: "user_3D0VtQ9AYdEbwcTIOILM3kAVL1o",
-//     firstName: "Grace",
-//     lastName: "Lim",
-//     email: "grace.lim@example.com",
-//     course: "Bachelor of Science in Marketing Management",
-//     shortBio: "",
-//     resumeLink: "https://example.com/resume/grace-lim",
-//     createdAt: "2026-04-28T23:33:08.832Z",
-//     updatedAt: "2026-04-28T23:33:08.832Z",
-//     userId: 10007,
-//     type: "user",
-//   },
-//   {
-//     _id: "69f143b49b1f25238d598243",
-//     clerkId: "user_3D0VtQ9AYdEbwcTIOILM3kAVL1p",
-//     firstName: "Harvey",
-//     lastName: "Reyes",
-//     email: "harvey.reyes@example.com",
-//     course: "Bachelor of Science in Computer Engineering",
-//     shortBio: "",
-//     resumeLink: "https://example.com/resume/harvey-reyes",
-//     createdAt: "2026-04-28T23:33:08.832Z",
-//     updatedAt: "2026-04-28T23:33:08.832Z",
-//     userId: 10008,
-//     type: "user",
-//   },
-//   {
-//     _id: "69f143b49b1f25238d598244",
-//     clerkId: "user_3D0VtQ9AYdEbwcTIOILM3kAVL1q",
-//     firstName: "Isabella",
-//     lastName: "Dela Rosa",
-//     email: "isabella.delarosa@example.com",
-//     course: "Bachelor of Science in Tourism Management",
-//     shortBio: "",
-//     resumeLink: "https://example.com/resume/isabella-dela-rosa",
-//     createdAt: "2026-04-28T23:33:08.832Z",
-//     updatedAt: "2026-04-28T23:33:08.832Z",
-//     userId: 10009,
-//     type: "user",
-//   },
-//   {
-//     _id: "69f143b49b1f25238d598245",
-//     clerkId: "user_3D0VtQ9AYdEbwcTIOILM3kAVL1r",
-//     firstName: "Joshua",
-//     lastName: "Velasco",
-//     email: "joshua.velasco@example.com",
-//     course: "Bachelor of Science in Architecture",
-//     shortBio: "",
-//     resumeLink: "https://example.com/resume/joshua-velasco",
-//     createdAt: "2026-04-28T23:33:08.832Z",
-//     updatedAt: "2026-04-28T23:33:08.832Z",
-//     userId: 10010,
-//     type: "user",
-//   },
-//   {
-//     _id: "69f407189c02fdf3c3d1e1d7",
-//     imageUrl: "https://hd4ny9sgmodyi3bw.public.blob.vercel-storage.com/companies/cicssg/image",
-//     name: "CICSSG",
-//     logoUrl: "https://hd4ny9sgmodyi3bw.public.blob.vercel-storage.com/companies/cicssg/logo",
-//     socialLinks: [
-//       {
-//         platform: "Facebook",
-//         url: "https://www.facebook.com/dlsud.cicssg",
-//       },
-//       {
-//         platform: "Instagram",
-//         url: "https://www.instagram.com/dlsud.cicssg",
-//       },
-//     ],
-//     companyEmail: "cicssg.com",
-//     moderatorEmails: ["jeremiahnueno2019@gmail.com"],
-//     description: "This is a test entry for companies",
-//     createdAt: "2026-05-01T01:51:20.997Z",
-//     updatedAt: "2026-05-01T02:27:59.254Z",
-//     type: "company",
-//   },
-//   {
-//     _id: "69f407189c02fdf3c3d1e1d8",
-//     imageUrl: "https://hd4ny9sgmodyi3bw.public.blob.vercel-storage.com/companies/bosstech/image",
-//     name: "BossTech",
-//     logoUrl: "https://hd4ny9sgmodyi3bw.public.blob.vercel-storage.com/companies/bosstech/logo",
-//     socialLinks: [
-//       {
-//         platform: "LinkedIn",
-//         url: "https://www.linkedin.com/company/bosstech",
-//       },
-//       {
-//         platform: "Website",
-//         url: "https://bosstech.example.com",
-//       },
-//     ],
-//     companyEmail: "hello@bosstech.example.com",
-//     moderatorEmails: ["admin@bosstech.example.com"],
-//     description: "Enterprise software and automation solutions",
-//     createdAt: "2026-05-01T01:51:20.997Z",
-//     updatedAt: "2026-05-01T02:27:59.254Z",
-//     type: "company",
-//   },
-//   {
-//     _id: "69f407189c02fdf3c3d1e1d9",
-//     imageUrl: "https://hd4ny9sgmodyi3bw.public.blob.vercel-storage.com/companies/evergreen/image",
-//     name: "Evergreen Labs",
-//     logoUrl: "https://hd4ny9sgmodyi3bw.public.blob.vercel-storage.com/companies/evergreen/logo",
-//     socialLinks: [
-//       {
-//         platform: "Facebook",
-//         url: "https://www.facebook.com/evergreenlabs",
-//       },
-//       {
-//         platform: "Instagram",
-//         url: "https://www.instagram.com/evergreenlabs",
-//       },
-//     ],
-//     companyEmail: "contact@evergreenlabs.example.com",
-//     moderatorEmails: ["admin@evergreenlabs.example.com"],
-//     description: "Sustainability-focused research and development",
-//     createdAt: "2026-05-01T01:51:20.997Z",
-//     updatedAt: "2026-05-01T02:27:59.254Z",
-//     type: "company",
-//   },
-//   {
-//     _id: "69f407189c02fdf3c3d1e1da",
-//     imageUrl: "https://hd4ny9sgmodyi3bw.public.blob.vercel-storage.com/companies/falcon/image",
-//     name: "Falcon Freight",
-//     logoUrl: "https://hd4ny9sgmodyi3bw.public.blob.vercel-storage.com/companies/falcon/logo",
-//     socialLinks: [
-//       {
-//         platform: "Website",
-//         url: "https://falconfreight.example.com",
-//       },
-//       {
-//         platform: "LinkedIn",
-//         url: "https://www.linkedin.com/company/falconfreight",
-//       },
-//     ],
-//     companyEmail: "team@falconfreight.example.com",
-//     moderatorEmails: ["ops@falconfreight.example.com"],
-//     description: "Logistics and supply chain services",
-//     createdAt: "2026-05-01T01:51:20.997Z",
-//     updatedAt: "2026-05-01T02:27:59.254Z",
-//     type: "company",
-//   },
-//   {
-//     _id: "69f407189c02fdf3c3d1e1db",
-//     imageUrl: "https://hd4ny9sgmodyi3bw.public.blob.vercel-storage.com/companies/greenbyte/image",
-//     name: "Greenbyte Systems",
-//     logoUrl: "https://hd4ny9sgmodyi3bw.public.blob.vercel-storage.com/companies/greenbyte/logo",
-//     socialLinks: [
-//       {
-//         platform: "Website",
-//         url: "https://greenbyte.example.com",
-//       },
-//       {
-//         platform: "Instagram",
-//         url: "https://www.instagram.com/greenbytesystems",
-//       },
-//     ],
-//     companyEmail: "info@greenbyte.example.com",
-//     moderatorEmails: ["hello@greenbyte.example.com"],
-//     description: "Energy-efficient cloud infrastructure",
-//     createdAt: "2026-05-01T01:51:20.997Z",
-//     updatedAt: "2026-05-01T02:27:59.254Z",
-//     type: "company",
-//   },
-//   {
-//     _id: "69f407189c02fdf3c3d1e1dc",
-//     imageUrl: "https://hd4ny9sgmodyi3bw.public.blob.vercel-storage.com/companies/helios/image",
-//     name: "Helios Health",
-//     logoUrl: "https://hd4ny9sgmodyi3bw.public.blob.vercel-storage.com/companies/helios/logo",
-//     socialLinks: [
-//       {
-//         platform: "Facebook",
-//         url: "https://www.facebook.com/helioshealth",
-//       },
-//       {
-//         platform: "Website",
-//         url: "https://helioshealth.example.com",
-//       },
-//     ],
-//     companyEmail: "support@helioshealth.example.com",
-//     moderatorEmails: ["support@helioshealth.example.com"],
-//     description: "Digital health and wellness platform",
-//     createdAt: "2026-05-01T01:51:20.997Z",
-//     updatedAt: "2026-05-01T02:27:59.254Z",
-//     type: "company",
-//   },
-//   {
-//     _id: "69f407189c02fdf3c3d1e1dd",
-//     imageUrl: "https://hd4ny9sgmodyi3bw.public.blob.vercel-storage.com/companies/ionix/image",
-//     name: "Ionix Motors",
-//     logoUrl: "https://hd4ny9sgmodyi3bw.public.blob.vercel-storage.com/companies/ionix/logo",
-//     socialLinks: [
-//       {
-//         platform: "LinkedIn",
-//         url: "https://www.linkedin.com/company/ionixmotors",
-//       },
-//       {
-//         platform: "Website",
-//         url: "https://ionixmotors.example.com",
-//       },
-//     ],
-//     companyEmail: "hello@ionixmotors.example.com",
-//     moderatorEmails: ["team@ionixmotors.example.com"],
-//     description: "Electric vehicle technology startup",
-//     createdAt: "2026-05-01T01:51:20.997Z",
-//     updatedAt: "2026-05-01T02:27:59.254Z",
-//     type: "company",
-//   },
-//   {
-//     _id: "69f407189c02fdf3c3d1e1de",
-//     imageUrl: "https://hd4ny9sgmodyi3bw.public.blob.vercel-storage.com/companies/jade/image",
-//     name: "Jade Commerce",
-//     logoUrl: "https://hd4ny9sgmodyi3bw.public.blob.vercel-storage.com/companies/jade/logo",
-//     socialLinks: [
-//       {
-//         platform: "Instagram",
-//         url: "https://www.instagram.com/jadecommerce",
-//       },
-//       {
-//         platform: "Website",
-//         url: "https://jadecommerce.example.com",
-//       },
-//     ],
-//     companyEmail: "contact@jadecommerce.example.com",
-//     moderatorEmails: ["admin@jadecommerce.example.com"],
-//     description: "Retail analytics and e-commerce optimization",
-//     createdAt: "2026-05-01T01:51:20.997Z",
-//     updatedAt: "2026-05-01T02:27:59.254Z",
-//     type: "company",
-//   },
-//   {
-//     _id: "69f407189c02fdf3c3d1e1df",
-//     imageUrl: "https://hd4ny9sgmodyi3bw.public.blob.vercel-storage.com/companies/keystone/image",
-//     name: "Keystone AI",
-//     logoUrl: "https://hd4ny9sgmodyi3bw.public.blob.vercel-storage.com/companies/keystone/logo",
-//     socialLinks: [
-//       {
-//         platform: "LinkedIn",
-//         url: "https://www.linkedin.com/company/keystone-ai",
-//       },
-//       {
-//         platform: "Website",
-//         url: "https://keystoneai.example.com",
-//       },
-//     ],
-//     companyEmail: "partners@keystoneai.example.com",
-//     moderatorEmails: ["contact@keystoneai.example.com"],
-//     description: "Applied AI solutions for enterprises",
-//     createdAt: "2026-05-01T01:51:20.997Z",
-//     updatedAt: "2026-05-01T02:27:59.254Z",
-//     type: "company",
-//   },
-//   {
-//     _id: "69f407189c02fdf3c3d1e1e0",
-//     imageUrl: "https://hd4ny9sgmodyi3bw.public.blob.vercel-storage.com/companies/lumina/image",
-//     name: "Lumina Design Studio",
-//     logoUrl: "https://hd4ny9sgmodyi3bw.public.blob.vercel-storage.com/companies/lumina/logo",
-//     socialLinks: [
-//       {
-//         platform: "Instagram",
-//         url: "https://www.instagram.com/luminadesignstudio",
-//       },
-//       {
-//         platform: "Website",
-//         url: "https://luminastudio.example.com",
-//       },
-//     ],
-//     companyEmail: "hello@luminastudio.example.com",
-//     moderatorEmails: ["hello@luminastudio.example.com"],
-//     description: "Brand, product, and UX design consultancy",
-//     createdAt: "2026-05-01T01:51:20.997Z",
-//     updatedAt: "2026-05-01T02:27:59.254Z",
-//     type: "company",
-//   },
-//   {
-//     _id: "69f407189c02fdf3c3d1e1e1",
-//     imageUrl: "https://hd4ny9sgmodyi3bw.public.blob.vercel-storage.com/companies/northstar/image",
-//     name: "Northstar Analytics",
-//     logoUrl: "https://hd4ny9sgmodyi3bw.public.blob.vercel-storage.com/companies/northstar/logo",
-//     socialLinks: [
-//       {
-//         platform: "LinkedIn",
-//         url: "https://www.linkedin.com/company/northstar-analytics",
-//       },
-//       {
-//         platform: "Website",
-//         url: "https://northstaranalytics.example.com",
-//       },
-//     ],
-//     companyEmail: "team@northstaranalytics.example.com",
-//     moderatorEmails: ["team@northstaranalytics.example.com"],
-//     description: "Business intelligence and data strategy",
-//     createdAt: "2026-05-01T01:51:20.997Z",
-//     updatedAt: "2026-05-01T02:27:59.254Z",
-//     type: "company",
-//   },
-// ]
+type TabValue = "user" | "company"
+
+type ConnectRecord = {
+  _id?: string
+  id?: string
+  type?: TabValue
+  name?: string
+  fullName?: string
+  firstName?: string
+  lastName?: string
+  companyId?: string | number
+  companyEmail?: string
+  course?: string
+  imageUrl?: string
+  logoUrl?: string
+} & Record<string, unknown>
+
+function getConnectionName(connection: ConnectRecord) {
+  if (connection?.name) return connection.name
+  if (connection?.fullName) return connection.fullName
+  return `${connection?.firstName || ""} ${connection?.lastName || ""}`.trim()
+}
 
 export default function Connect() {
   const router = useRouter()
   const { user } = useUser()
-  const [activeTab, setActiveTab] = useState("user")
+  const searchParams = useSearchParams()
+
+  const [activeTab, setActiveTab] = useState<TabValue>("user")
   const [isLoading, setIsLoading] = useState(true)
   const [isConnecting, setIsConnecting] = useState(false)
-  const [connectData, setConnectData] = useState<any | null>(null)
-  const [connections, setConnections] = useState<any | null>(null)
-  const [filteredConnections, setFilteredConnections] = useState<any | null>(null)
-  const [selectedUser, setSelectedUser] = useState<any | null>(null)
-  const [selectedCompany, setSelectedCompany] = useState<any | null>(null)
-  const searchParams = useSearchParams()
+  const [connections, setConnections] = useState<ConnectRecord[] | null>(null)
+  const [selectedUser, setSelectedUser] = useState<ConnectRecord | null>(null)
+  const [selectedCompany, setSelectedCompany] = useState<ConnectRecord | null>(null)
+  const [connectData, setConnectData] = useState<ConnectRecord | null>(null)
+
   const id = searchParams.get("id")
   const type = searchParams.get("type")
   const connectionRequestKey = id && type ? `${type}:${id}` : null
-  const dismissedConnectionRequestRef = useRef<string | null>(null)
-  const [isOpen, setIsOpen] = useState(Boolean(connectionRequestKey))
-
-  const getConnectionName = (connection: any) => {
-    if (connection.name) return connection.name
-    if (connection.fullName) return connection.fullName
-    return `${connection.firstName || ""} ${connection.lastName || ""}`.trim()
-  }
+  const [dismissedConnectionRequestKey, setDismissedConnectionRequestKey] = useState<string | null>(null)
+  const isOpen = Boolean(connectionRequestKey) && dismissedConnectionRequestKey !== connectionRequestKey
 
   useEffect(() => {
-    if (!connectionRequestKey) {
-      dismissedConnectionRequestRef.current = null
-      setIsOpen(false)
-      return
-    }
+    if (!id || !type) return
 
-    if (dismissedConnectionRequestRef.current !== connectionRequestKey) {
-      setIsOpen(true)
+    if (type === "user") {
+      fetch(`/api/getUserByUserId?user_id=${id}`)
+        .then((res) => res.json())
+        .then((response) => {
+          setConnectData(response.success ? response.data : null)
+        })
+        .catch((error) => {
+          console.error("Error fetching user data:", error)
+          setConnectData(null)
+        })
+        .finally(() => setIsLoading(false))
+    } else if (type === "company") {
+      fetch(`/api/getCollectionData?collection=companies`)
+        .then((res) => res.json())
+        .then((response) => {
+          if (response.success && Array.isArray(response.data)) {
+            const found = response.data.find((company: ConnectRecord) => String(company.companyId) === String(id) || String(company._id) === String(id))
+            setConnectData(found || null)
+          } else {
+            setConnectData(null)
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching company data:", error)
+          setConnectData(null)
+        })
+        .finally(() => setIsLoading(false))
     }
-  }, [connectionRequestKey])
-
-  const closeConnectionDialog = () => {
-    if (connectionRequestKey) {
-      dismissedConnectionRequestRef.current = connectionRequestKey
-    }
-    setIsOpen(false)
-    router.replace("/connect")
-  }
+  }, [id, type])
 
   useEffect(() => {
-    if (id && type) {
-      if (type === "user") {
-        fetch(`/api/getUserByUserId?user_id=${id}`)
-          .then((res) => res.json())
-          .then((response) => {
-            if (response.success && response.data) {
-              setConnectData(response.data)
-              return
-            }
-
-            console.error("Error fetching user data:", response.error)
-            setConnectData(null)
-          })
-          .catch((error) => {
-            console.error("Error fetching user data:", error)
-            setConnectData(null)
-          })
-          .finally(() => setIsLoading(false))
-      } else if (type === "company") {
-        // fetch companies collection and find by companyId or _id
-        fetch(`/api/getCollectionData?collection=companies`)
-          .then((res) => res.json())
-          .then((res) => {
-            if (res.success && Array.isArray(res.data)) {
-              const found = res.data.find((c: any) => {
-                // match numeric companyId or string _id
-                return String(c.companyId) === String(id) || String(c._id) === String(id)
-              })
-              if (found) {
-                setConnectData(found)
-              } else {
-                setConnectData(null)
-              }
-            } else {
-              setConnectData(null)
-            }
-          })
-          .catch((error) => {
-            console.error("Error fetching company data:", error)
-            setConnectData(null)
-          })
-          .finally(() => setIsLoading(false))
-      }
-    }
-
     getConnections(user?.id || "")
       .then((response) => {
         if (response.success) {
           setConnections([...(response.data || [])])
-          console.log("Fetched connections:", response.data)
-        } else {
-          console.error("Error fetching connections:", response.error)
         }
       })
       .catch((error) => {
         console.error("Error fetching connections:", error)
       })
-  }, [id, type, router, user])
+  }, [user?.id])
 
-  useEffect(() => {
-    if (connections) {
-      const filtered = connections
-        .filter((connection: any) => connection.type === activeTab)
-        .sort((a: any, b: any) => {
-          const aName = getConnectionName(a).toLowerCase()
-          const bName = getConnectionName(b).toLowerCase()
-          return aName.localeCompare(bName)
-        })
-      setFilteredConnections(filtered)
-    }
+  const filteredConnections = useMemo(() => {
+    if (!connections) return [] as ConnectRecord[]
+
+    return connections
+      .filter((connection) => connection.type === activeTab)
+      .sort((a, b) => getConnectionName(a).localeCompare(getConnectionName(b), undefined, { sensitivity: "base" }))
   }, [activeTab, connections])
 
   const groupedConnections = useMemo(() => {
-    if (!filteredConnections || filteredConnections.length === 0) {
-      return [] as Array<{ letter: string; items: any[] }>
-    }
+    if (!filteredConnections.length) return [] as Array<{ letter: string; items: ConnectRecord[] }>
 
-    const groups = filteredConnections.reduce(
-      (acc: Record<string, any[]>, connection: any) => {
-        const name = getConnectionName(connection).trim()
-        const firstChar = name.charAt(0).toUpperCase()
-        const letter = /^[A-Z]$/.test(firstChar) ? firstChar : "#"
-
-        if (!acc[letter]) {
-          acc[letter] = []
-        }
-
-        acc[letter].push(connection)
-        return acc
-      },
-      {}
-    )
+    const groups = filteredConnections.reduce((acc: Record<string, ConnectRecord[]>, connection: ConnectRecord) => {
+      const firstChar = getConnectionName(connection).trim().charAt(0).toUpperCase()
+      const letter = /^[A-Z]$/.test(firstChar) ? firstChar : "#"
+      acc[letter] ||= []
+      acc[letter].push(connection)
+      return acc
+    }, {})
 
     return Object.keys(groups)
-      .sort((a, b) => {
-        if (a === "#") return 1
-        if (b === "#") return -1
-        return a.localeCompare(b)
-      })
+      .sort((a, b) => (a === "#" ? 1 : b === "#" ? -1 : a.localeCompare(b)))
       .map((letter) => ({ letter, items: groups[letter] }))
   }, [filteredConnections])
+
+  const closeConnectionDialog = () => {
+    if (connectionRequestKey) {
+      setDismissedConnectionRequestKey(connectionRequestKey)
+    }
+    router.replace("/connect")
+  }
 
   const onConnect = async () => {
     setIsConnecting(true)
@@ -558,7 +144,6 @@ export default function Connect() {
     const response = await initiateConnection(payload)
 
     if (!response.success) {
-      console.error("Error initiating connection:", response.error)
       toast.error(response.error || "Failed to initiate connection")
       setIsConnecting(false)
       return
@@ -575,40 +160,38 @@ export default function Connect() {
     : `${connectData?.firstName || ""} ${connectData?.lastName || ""}`.trim() || "Unknown User"
   const modalImage = connectData?.logoUrl || connectData?.imageUrl || "/images/ProspaceMinimalLogo-2.png"
 
+  const tabButtonClass = (tabValue: TabValue) =>
+    `rounded-md border px-6 py-1.5 text-xs uppercase tracking-[0.24em] transition-all duration-300 ${
+      activeTab === tabValue
+        ? "border-white/10 bg-[#7d53ef] text-white shadow-[0_8px_24px_rgba(125,83,239,0.38)]"
+        : "border-white/25 bg-black/10 text-white/80 hover:border-white/45 hover:bg-white/10"
+    }`
+
   return (
-    <div className="flex min-h-screen w-full justify-center pt-30 pb-4">
-      <ConnectUserOverlay
-        open={activeTab === "user" && !!selectedUser}
-        user={selectedUser}
-        onClose={() => setSelectedUser(null)}
-      />
-      <ConnectCompanyOverlay
-        open={activeTab === "company" && !!selectedCompany}
-        company={selectedCompany}
-        onClose={() => setSelectedCompany(null)}
-      />
+    <div className="relative min-h-screen w-full overflow-hidden bg-[#090b22] pb-8 pt-24 text-white lg:pt-28">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_24%,rgba(146,116,255,0.28),transparent_23%),radial-gradient(circle_at_50%_100%,rgba(255,168,228,0.36),transparent_22%),linear-gradient(180deg,rgba(7,8,28,0.3),rgba(7,8,28,0.94))]" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-[28rem] bg-[radial-gradient(circle_at_50%_10%,rgba(255,255,255,0.07),transparent_24%),radial-gradient(circle_at_12%_18%,rgba(255,255,255,0.14),transparent_4%),radial-gradient(circle_at_88%_8%,rgba(255,255,255,0.12),transparent_5%)]" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-48 bg-[linear-gradient(180deg,transparent,rgba(0,0,0,0.45)),linear-gradient(90deg,rgba(255,255,255,0.06),rgba(255,255,255,0.01))]" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-[radial-gradient(circle_at_50%_100%,rgba(255,255,255,0.08),transparent_35%)]" />
+
+      <ConnectUserOverlay open={activeTab === "user" && !!selectedUser} user={selectedUser} onClose={() => setSelectedUser(null)} />
+      <ConnectCompanyOverlay open={activeTab === "company" && !!selectedCompany} company={selectedCompany} onClose={() => setSelectedCompany(null)} />
 
       {isOpen && (
         <Dialog
           open={isOpen}
           onOpenChange={(nextOpen) => {
             if (nextOpen) {
-              dismissedConnectionRequestRef.current = null
-              setIsOpen(true)
+              setDismissedConnectionRequestKey(null)
               return
             }
-
             closeConnectionDialog()
           }}
         >
           <DialogContent className="max-w-md overflow-hidden rounded-3xl border border-white/20 bg-linear-to-br from-[#1f1330]/95 via-primary/85 to-[#120a14] p-0 shadow-[0_30px_80px_rgba(0,0,0,0.5)] ring-1 ring-white/10 backdrop-blur-xl">
             <div className="border-b border-white/10 bg-linear-to-r from-[#FF5FA2]/20 via-white/5 to-transparent px-6 py-5">
-              <div className="flex flex-row items-center justify-between gap-4">
-                <div>
-                  <h2 className={"uppercase tracking-[0.35em] text-white/60"}>
-                    Connection Request
-                  </h2>
-                </div>
+              <div className="flex items-center justify-between gap-4">
+                <h2 className="uppercase tracking-[0.35em] text-white/60">Connection Request</h2>
                 <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.25em] text-white/75">
                   {isCompanyRequest ? "Company" : "User"}
                 </span>
@@ -622,47 +205,26 @@ export default function Connect() {
             ) : connectData ? (
               <>
                 <div className="px-6 pt-6 pb-5">
-                  <div className="flex flex-row items-center gap-4 rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <div className="flex items-center gap-4 rounded-2xl border border-white/10 bg-white/5 p-4">
                     <div className="relative shrink-0">
                       <div className="absolute inset-0 rounded-full bg-[#FF5FA2]/25 blur-xl" />
-                      <Image
-                        src={modalImage}
-                        alt={modalDisplayName}
-                        width={68}
-                        height={68}
-                        className="relative h-17 w-17 rounded-full border border-white/25 object-cover shadow-lg"
-                      />
+                      <Image src={modalImage} alt={modalDisplayName} width={68} height={68} className="relative h-17 w-17 rounded-full border border-white/25 object-cover shadow-lg" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs uppercase tracking-[0.2em] text-white/55">
-                        Review profile
-                      </p>
-                      <p className="mt-1 truncate text-xl font-semibold leading-tight text-white">
-                        {modalDisplayName}
-                      </p>
+                      <p className="text-xs uppercase tracking-[0.2em] text-white/55">Review profile</p>
+                      <p className="mt-1 truncate text-xl font-semibold leading-tight text-white">{modalDisplayName}</p>
                       <p className="mt-2 text-sm leading-snug text-white/75">
-                        {isCompanyRequest
-                          ? connectData?.companyEmail || "No company email provided"
-                          : connectData?.course || "No course information provided"}
+                        {isCompanyRequest ? connectData?.companyEmail || "No company email provided" : connectData?.course || "No course information provided"}
                       </p>
                     </div>
                   </div>
-                  <p className="mt-4 text-sm leading-6 text-white/75">
-                    This request will add them to your connections list if you continue.
-                  </p>
+                  <p className="mt-4 text-sm leading-6 text-white/75">This request will add them to your connections list if you continue.</p>
                 </div>
                 <div className="flex flex-col-reverse gap-3 border-t border-white/10 bg-black/15 px-6 py-4 sm:flex-row sm:justify-end">
-                  <button
-                    onClick={closeConnectionDialog}
-                    className="rounded-xl border border-white/15 bg-white/5 px-5 py-2.5 text-sm font-medium text-white/85 transition hover:bg-white/10 hover:text-white"
-                  >
+                  <button onClick={closeConnectionDialog} className="rounded-xl border border-white/15 bg-white/5 px-5 py-2.5 text-sm font-medium text-white/85 transition hover:bg-white/10 hover:text-white">
                     Cancel
                   </button>
-                  <button
-                    onClick={onConnect}
-                    disabled={isConnecting}
-                    className="cursor-pointer rounded-xl bg-linear-to-r from-[#FF5FA2] to-[#FF7C70] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(255,95,162,0.32)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
-                  >
+                  <button onClick={onConnect} disabled={isConnecting} className="cursor-pointer rounded-xl bg-linear-to-r from-[#FF5FA2] to-[#FF7C70] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(255,95,162,0.32)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60">
                     {isConnecting ? "Connecting..." : "Connect"}
                   </button>
                 </div>
@@ -670,69 +232,65 @@ export default function Connect() {
             ) : (
               <div className="px-6 py-6">
                 <p className="text-base font-medium text-white">Connection target not found.</p>
-                <p className="mt-2 text-sm leading-6 text-white/70">
-                  The profile you opened may have been removed or the link is no longer valid.
-                </p>
+                <p className="mt-2 text-sm leading-6 text-white/70">The profile you opened may have been removed or the link is no longer valid.</p>
               </div>
             )}
           </DialogContent>
         </Dialog>
       )}
 
-      <div className="flex h-fit flex-col items-center gap-4 rounded-lg p-4 shadow-lg w-full mx-2">
-        <h1 className={moscaLaroke.className + " text-3xl"}>Connect</h1>
-        <p className="font-thin text-center max-w-xs tracking-widest leading-tight mb-4">
-          Browse through attendees and partner companies. Connect directly to exchange insights and opportunities.
-        </p>
-        <DividerComponent />
-        {connections ? (
-          <>
-          <div className="flex justify-around w-full *:flex *:gap-1 *:justify-center *:py-2 *:rounded-lg *:border *:border-white/40 *:transition-all *:duration-300 gap-3 rounded-lg overflow-hidden py-1 px-1.5">
-            <button 
-              className={`w-full ${activeTab === "user" ? "bg-primary/58 text-white border-none" : ""}`}
-              onClick={() => setActiveTab("user")}
-            >
-              Users
-            </button>
-            <button 
-              className={`w-full ${activeTab === "company" ? "bg-primary/58 text-white border-none" : ""}`}
-              onClick={() => setActiveTab("company")}
-            >
-              Companies
-            </button>
-          </div>
-            <div className="flex flex-col gap-4 w-full">
-              {groupedConnections.length > 0 ? (
-                groupedConnections.map((group) => (
-                  <div key={group.letter} className="flex flex-col gap-2">
-                    <p className={"px-3 text-xl font-semibold uppercase bg-linear-to-r from-[#FF5FA2]/22 to-black/0 py-2 rounded " + moscaLaroke.className}>
-                      {group.letter}
-                    </p>
-                    {group.items.map((connection: any) =>
-                      activeTab === "user" ? (
-                        <ConnectUserCard
-                          key={connection.id || connection._id}
-                          user={connection}
-                          onClick={() => setSelectedUser(connection)}
-                        />
-                      ) : (
-                        <ConnectCompanyCard
-                          key={connection.id || connection._id}
-                          company={connection}
-                          onClick={() => setSelectedCompany(connection)}
-                        />
-                      )
-                    )}
-                  </div>
-                ))
-              ) : (
-                <p className="flex flex-row items-center gap-4 rounded-lg bg-linear-to-r from-primary/20 border border-white/50 p-4 w-full">No connections found.</p>
-              )}
+      <div className="relative z-10 mx-auto flex w-full max-w-[1120px] flex-col gap-5 px-4 sm:px-6 lg:px-8">
+        <header className="flex w-full flex-col items-center gap-4 text-center">
+          <h1 className={`${moscaLaroke.className} text-[2.5rem] leading-none sm:text-[3rem] lg:text-[4rem]`}>Connect</h1>
+          <p className={`${sora.className} max-w-2xl text-sm font-light tracking-[0.3em] text-white/70 sm:text-base`}>
+            Browse through attendees and partner companies. Connect directly to exchange insights and opportunities.
+          </p>
+          <DividerComponent />
+        </header>
+
+        <section className="w-full rounded-[30px] border border-white/10 bg-[linear-gradient(180deg,rgba(10,12,33,0.72),rgba(83,56,156,0.26))] px-4 py-4 shadow-[0_24px_70px_rgba(0,0,0,0.32)] backdrop-blur-md lg:px-6 lg:py-6">
+          <div className="mb-5 flex justify-center">
+            <div className="inline-flex rounded-lg border border-white/20 bg-black/10 p-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+              <button className={tabButtonClass("user")} onClick={() => setActiveTab("user")}>
+                <Users2 className="mr-2 inline-block size-4" />
+                Users
+              </button>
+              <button className={tabButtonClass("company")} onClick={() => setActiveTab("company")}>
+                <Building2 className="mr-2 inline-block size-4" />
+                Companies
+              </button>
             </div>
-          </>
-        ) : (
-          <p>Loading..</p>
-        )}
+          </div>
+
+          {connections ? (
+            <div className="relative max-h-[58vh] overflow-y-auto pr-3 lg:pr-4">
+              <div className="space-y-5">
+                {groupedConnections.length > 0 ? (
+                  groupedConnections.map((group) => (
+                    <div key={group.letter} className="space-y-3">
+                      <div className="inline-flex min-w-[9rem] items-center rounded-sm bg-[linear-gradient(90deg,rgba(183,77,143,0.42),rgba(255,255,255,0.12))] px-6 py-1.5 text-2xl text-white/90 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+                        <span className={`${moscaLaroke.className} translate-y-[1px]`}>{group.letter}</span>
+                      </div>
+                      <div className="space-y-3">
+                        {group.items.map((connection) =>
+                          activeTab === "user" ? (
+                            <ConnectUserCard key={connection.id || connection._id} user={connection} onClick={() => setSelectedUser(connection)} />
+                          ) : (
+                            <ConnectCompanyCard key={connection.id || connection._id} company={connection} onClick={() => setSelectedCompany(connection)} />
+                          )
+                        )}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="rounded-2xl border border-white/20 bg-white/5 px-4 py-4 text-sm text-white/75">No connections found.</p>
+                )}
+              </div>
+            </div>
+          ) : (
+            <p className="px-2 py-10 text-center text-sm tracking-[0.24em] text-white/70">Loading..</p>
+          )}
+        </section>
       </div>
     </div>
   )

@@ -41,9 +41,9 @@ export default function ConnectUserCard({ user, onClick }: ConnectUserCardProps)
         <p className="text-sm text-muted-foreground">
           {user.course || user.email || "No course provided"}
         </p>
-        <p className="text-sm text-muted-foreground">
+        {/* <p className="text-sm text-muted-foreground">
           {user.school || user.email || "No school provided"}
-        </p>
+        </p> */}
       </div>
     </button>
   )

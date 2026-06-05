@@ -12,7 +12,7 @@ import {
   useUser,
 } from "@clerk/nextjs"
 import { useState } from "react"
-import { usePathname, useRouter } from "next/navigation"
+import { usePathname } from "next/navigation"
 import { WebMode } from "@/app/types"
 import { sora } from "@/components/prospace/fonts"
 import {
@@ -24,7 +24,6 @@ import {
 
 export default function Header() {
   const { user } = useUser()
-  const router = useRouter()
   const mode = process.env.NEXT_PUBLIC_MODE as WebMode
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const pathname = usePathname()
@@ -56,7 +55,7 @@ export default function Header() {
         <div className="col-span-3 mx-auto hidden flex-row gap-2 lg:flex xl:gap-4">
           <Link
             href="/"
-            className={`block h-fit rounded-full px-6 py-1 ${isActive("/") ? "bg-linear-to-b to-primary/50 outline outline-white/60 backdrop-blur-sm" : "hover:outline hover:outline-white/60"}`}
+            className={`block h-fit rounded-full px-6 py-1 backdrop-blur-sm outline outline-white/5 ${isActive("/") ? "bg-linear-to-b to-primary/50 outline outline-white/60 backdrop-blur-sm" : "hover:outline hover:outline-white/60"}`}
             onClick={() => setIsMenuOpen(false)}
           >
             Home
@@ -64,21 +63,21 @@ export default function Header() {
           <>
             <Link
               href="/about"
-              className={`block h-fit rounded-full px-6 py-1 ${isActive("/about") ? "bg-linear-to-b to-primary/50 outline outline-white/60 backdrop-blur-sm" : "hover:outline hover:outline-white/60"}`}
+              className={`block h-fit rounded-full px-6 py-1 backdrop-blur-sm outline outline-white/5 ${isActive("/about") ? "bg-linear-to-b to-primary/50 outline outline-white/60 backdrop-blur-sm" : "hover:outline hover:outline-white/60"}`}
               onClick={() => setIsMenuOpen(false)}
             >
               About
             </Link>
             <Link
               href="/job-fair"
-              className={`block h-fit rounded-full px-6 py-1 ${isActive("/job-fair") ? "bg-linear-to-b to-primary/50 outline outline-white/60 backdrop-blur-sm" : "text-nowrap hover:outline hover:outline-white/60"}`}
+              className={`block h-fit rounded-full px-6 py-1 backdrop-blur-sm outline outline-white/5 ${isActive("/job-fair") ? "bg-linear-to-b to-primary/50 outline outline-white/60 backdrop-blur-sm" : "text-nowrap hover:outline hover:outline-white/60"}`}
               onClick={() => setIsMenuOpen(false)}
             >
               Job Fair
             </Link>
             <Link
               href="/sessions"
-              className={`block h-fit rounded-full px-6 py-1 ${isActive("/sessions") ? "bg-linear-to-b to-primary/50 outline outline-white/60 backdrop-blur-sm" : "hover:outline hover:outline-white/60"}`}
+              className={`block h-fit rounded-full px-6 py-1 backdrop-blur-sm outline outline-white/5 ${isActive("/sessions") ? "bg-linear-to-b to-primary/50 outline outline-white/60 backdrop-blur-sm" : "hover:outline hover:outline-white/60"}`}
               onClick={() => setIsMenuOpen(false)}
             >
               Sessions
@@ -176,22 +175,37 @@ export default function Header() {
                 className="min-w-56 overflow-hidden rounded-2xl border border-white/10 bg-linear-to-r from-[#2f204b] to-[#090d25] p-2 text-white shadow-2xl shadow-black/30 backdrop-blur-xl data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-open:slide-in-from-top-2 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95"
               >
                 <DropdownMenuItem
-                  className="rounded-xl px-3 py-2.5 text-sm text-white/85 outline-none transition-colors focus:bg-white/10 focus:text-white hover:bg-white/10 hover:text-white"
-                  onSelect={() => router.push("/profile")}
+                  className="rounded-xl p-0 outline-none"
                 >
-                  Profile
+                  <Link
+                    href="/profile"
+                    className="block w-full rounded-xl px-3 py-2.5 text-sm text-white/85 transition-colors hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white"
+                  >
+                    Profile
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  className="rounded-xl px-3 py-2.5 text-sm text-white/85 outline-none transition-colors focus:bg-white/10 focus:text-white hover:bg-white/10 hover:text-white"
-                  onSelect={() => router.push("/connect")}
+                  className="rounded-xl p-0 outline-none"
                 >
-                  Connect
+                  <Link
+                    href="/connect"
+                    className="block w-full rounded-xl px-3 py-2.5 text-sm text-white/85 transition-colors hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white"
+                  >
+                    Connect
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  className="rounded-xl px-3 py-2.5 text-sm text-white/85 outline-none transition-colors focus:bg-white/10 focus:text-white hover:bg-white/10 hover:text-white"
-                  onSelect={() => router.push("/missions")}
+                  className="rounded-xl p-0 outline-none"
                 >
-                  Missions
+                  <p className="block w-full rounded-xl px-3 py-2.5 text-sm text-white/85 transition-colors hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white cursor-not-allowed">
+                    Missions (coming soon)
+                  </p>
+                  {/* <Link
+                    href="/missions"
+                    className="block w-full rounded-xl px-3 py-2.5 text-sm text-white/85 transition-colors hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white"
+                  >
+                    Missions
+                  </Link> */}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -298,6 +312,7 @@ export default function Header() {
                     >
                       Missions
                     </Link> */}
+                    <p className="block py-2 text-white/50 text-sm cursor-not-allowed">Missions (coming soon)</p>
                   </Show>
                 </div>
 

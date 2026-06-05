@@ -197,15 +197,15 @@ export default function Header() {
                 <DropdownMenuItem
                   className="rounded-xl p-0 outline-none"
                 >
-                  <p className="block w-full rounded-xl px-3 py-2.5 text-sm text-white/85 transition-colors hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white cursor-not-allowed">
+                  {/* <p className="block w-full rounded-xl px-3 py-2.5 text-sm text-white/85 transition-colors hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white cursor-not-allowed">
                     Missions (coming soon)
-                  </p>
-                  {/* <Link
+                  </p> */}
+                  <Link
                     href="/missions"
                     className="block w-full rounded-xl px-3 py-2.5 text-sm text-white/85 transition-colors hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white"
                   >
                     Missions
-                  </Link> */}
+                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   className="rounded-xl p-0 outline-none"

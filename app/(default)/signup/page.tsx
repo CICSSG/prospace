@@ -39,8 +39,8 @@ const SignUpPage = () => {
   const dlsuEmailValidator = z.string().regex(dlsuEmailPattern)
 
   const step1Schema = z.object({
-    firstName: z.string().min(2, "First name must be at least 2 characters"),
-    lastName: z.string().min(2, "Last name must be at least 2 characters"),
+    firstName: z.string().min(1, "First name must be at least 1 character"),
+    lastName: z.string().min(1, "Last name must be at least 1 character"),
     // email: z.union(
     //   [dlsudEmailValidator, dlsuEmailValidator],
     //   "Must be a valid email of any DLSU branch"

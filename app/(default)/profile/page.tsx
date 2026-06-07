@@ -110,6 +110,7 @@ function ProfileOverviewCard({
   qrValue,
   qrRef,
   profileImageUrl,
+  userId
 }: {
   displayName: string
   subtitle: string
@@ -120,6 +121,7 @@ function ProfileOverviewCard({
   qrValue: string
   qrRef: React.RefObject<ReactQRCodeRef | null>
   profileImageUrl?: string
+  userId?: number
 }) {
   const [qrOpen, setQrOpen] = useState(false)
   const description =
@@ -160,7 +162,7 @@ function ProfileOverviewCard({
             </p>
             <div className="mt-4 inline-flex max-w-full items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-1.5 text-[0.68rem] uppercase tracking-[0.22em] text-white/88 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]">
               <Sparkles className="size-3.5 text-fuchsia-200" />
-              <span className="truncate">User</span>
+              <span className="truncate">User-{userId}</span>
             </div>
           </div>
 
@@ -375,6 +377,7 @@ function AccountPanel({
       const key = `resume/${uploaderName || user?.id || String(Date.now())}-Resume`
       const blob = await UploadImageToBlobStorage(file, key)
       const fileUrl = blob.url
+      console.log("File uploaded successfully. URL:", fileUrl)
       setResumeLink(fileUrl)
       setResumeDataUrl(undefined)
     } catch (err) {
@@ -410,6 +413,7 @@ function AccountPanel({
       }
 
       // prepare payload for server update
+      console.log(resumeLink, resumeDataUrl)
       const payload: Record<string, unknown> = {
         clerkId: user.id,
         update: {
@@ -651,10 +655,10 @@ export default function Profile() {
   }, [activeTab])
 
   const qrRef = useRef<ReactQRCodeRef | null>(null)
-  const link = useMemo(
-    () => `https://prospace.app/u/${user?.id ?? ""}`,
-    [user?.id]
-  )
+  const link =
+    mongoUser?.userId != null
+      ? `${process.env.NEXT_PUBLIC_BASE_URL}/connect?id=${mongoUser.userId}&type=user`
+      : ""
 
   const email =
     mongoUser?.email ??
@@ -748,6 +752,7 @@ export default function Profile() {
                   qrValue={link}
                   qrRef={qrRef}
                   profileImageUrl={profileImageUrl}
+                  userId={mongoUser?.userId}
                 />
               )}
 

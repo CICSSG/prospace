@@ -2,9 +2,10 @@
 import { useUser } from "@clerk/nextjs"
 import { ReactQRCode } from "@lglab/react-qr-code"
 import { Scanner } from "@yudiel/react-qr-scanner"
-import { QrCode, X } from "lucide-react"
+import { QrCode } from "lucide-react"
 import { useRouter } from "next/navigation"
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { sora } from "./prospace/fonts";
 
 const scannerConstraints: MediaTrackConstraints = {
   facingMode: { ideal: "environment" },
@@ -19,7 +20,44 @@ export default function ScannerComponent() {
   const [scannerOpen, setScannerOpen] = useState(false)
   const [scannerMessage, setScannerMessage] = useState<string | null>(null)
   const [viewQR, setViewQR] = useState(false)
-  const link = `${process.env.NEXT_PUBLIC_BASE_URL}/connect?id=${user?.id}&type=user`
+  const [mongoUserId, setMongoUserId] = useState<string | null>(null)
+
+  useEffect(() => {
+    const clerkUserId = user?.id ? String(user.id) : ""
+
+    if (!clerkUserId) {
+      setMongoUserId(null)
+      return
+    }
+
+    const controller = new AbortController()
+
+    async function loadMongoUserId() {
+      try {
+        const response = await fetch(
+          `/api/getUserInCollection?user_id=${encodeURIComponent(clerkUserId)}`,
+          { signal: controller.signal }
+        )
+        const data = await response.json()
+        setMongoUserId(
+          data?.data?.userId != null ? String(data.data.userId) : null
+        )
+      } catch (error) {
+        if ((error as Error).name !== "AbortError") {
+          console.error("Failed to load Mongo user id for QR code", error)
+          setMongoUserId(null)
+        }
+      }
+    }
+
+    loadMongoUserId()
+
+    return () => controller.abort()
+  }, [user?.id])
+
+  const link = mongoUserId
+    ? `${process.env.NEXT_PUBLIC_BASE_URL}/connect?id=${encodeURIComponent(mongoUserId)}&type=user`
+    : ""
 
   if (!isSignedIn) {
     return null
@@ -36,9 +74,9 @@ export default function ScannerComponent() {
     setScannerMessage(null)
     // console.log("Detected codes:", detectedCodes)
     // detectedCodes is an array of IDetectedBarcode objects
-    detectedCodes.forEach((code: { format: any; rawValue: any }) => {
-      console.log(`Format: ${code.format}, Value: ${code.rawValue}`)
-    })
+    // detectedCodes.forEach((code: { format: any; rawValue: any }) => {
+    //   console.log(`Format: ${code.format}, Value: ${code.rawValue}`)
+    // })
 
     router.push(rawValue)
   }
@@ -85,36 +123,52 @@ export default function ScannerComponent() {
               Hide QR Code
             </button>
 
-            <div className="rounded-xl overflow-hidden">
-              <ReactQRCode
-                size={380}
-                marginSize={2}
-                background={"white"}
-                gradient={{
-                  type: "linear",
-                  stops: [
-                    { color: "#5c41c7", offset: "0" },
-                    { color: "#702056", offset: "100%" },
-                  ],
-                  rotation: 60,
-                }}
-                dataModulesSettings={{
-                  style: "star",
-                }}
-                finderPatternOuterSettings={{
-                  style: "inpoint-sm",
-                }}
-                finderPatternInnerSettings={{
-                  style: "rounded",
-                }}
-                imageSettings={{
-                  src: "/images/ProspaceMinimalLogo-2.png",
-                  height: 60,
-                  width: 60,
-                  excavate: true,
-                }}
-                value={link}
-              />
+            <div>
+              {link ? (
+                <div className="flex flex-col items-center gap-1">
+                  <div className="overflow-hidden rounded-xl mb-5">
+                    <ReactQRCode
+                      size={380}
+                      marginSize={2}
+                      background={"white"}
+                      gradient={{
+                        type: "linear",
+                        stops: [
+                          { color: "#5c41c7", offset: "0" },
+                          { color: "#702056", offset: "100%" },
+                        ],
+                        rotation: 60,
+                      }}
+                      dataModulesSettings={{
+                        style: "star",
+                      }}
+                      finderPatternOuterSettings={{
+                        style: "inpoint-sm",
+                      }}
+                      finderPatternInnerSettings={{
+                        style: "rounded",
+                      }}
+                      imageSettings={{
+                        src: "/images/ProspaceMinimalLogo-2.png",
+                        height: 60,
+                        width: 60,
+                        excavate: true,
+                      }}
+                      value={link}
+                    />
+                  </div>
+                  <p className={`text-center text-white/80 ${sora.className} tracking-[0.3rem]`}>
+                    {user?.fullName ?? "Your QR Code"}
+                  </p>
+                  <p className={`text-center text-white/80 ${sora.className} tracking-[0.3rem]`}>
+                    {mongoUserId}
+                  </p>
+                </div>
+              ) : (
+                <div className="max-w-sm rounded-2xl border border-white/10 bg-black/40 px-5 py-4 text-center text-sm text-white/80 shadow-2xl backdrop-blur-sm">
+                  Loading your QR code...
+                </div>
+              )}
             </div>
           </div>
         ) : (

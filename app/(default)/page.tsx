@@ -636,13 +636,21 @@ export default function Page() {
                 className="h-fit object-contain"
               />
             </div>
-            <div>
+
+            <div className="flex flex-col justify-center lg:justify-normal items-center md:items-stretch md:flex-row gap-4 md:gap-2 max-w-64 md:max-w-48 md:max-h-20 mx-auto lg:mx-0">
+              <Image
+                src={"/images/IMPACT Logo.png"}
+                alt={"IMPACT Logo"}
+                width={256}
+                height={64}
+                className="w-auto h-auto object-contain"
+              />
               <Image
                 src={"/images/Prospace-DLSU-D.png"}
                 alt={"Prospace DLSU-D Logo"}
                 width={512}
                 height={128}
-                className="w-full max-w-md object-contain"
+                className="w-auto h-auto object-contain"
               />
             </div>
             <p className="mx-4 text-white/90 lg:mx-0">

@@ -168,38 +168,46 @@ function ProfileOverviewCard({
 
           <div className="flex flex-col items-end gap-3 self-start">
             <div
-              role="button"
-              tabIndex={0}
-              onClick={() => setQrOpen(true)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") setQrOpen(true)
+              role={qrValue ? "button" : undefined}
+              tabIndex={qrValue ? 0 : -1}
+              onClick={() => {
+                if (qrValue) setQrOpen(true)
               }}
-              className="rounded-xl border border-white/10 bg-white p-2 shadow-[0_16px_36px_rgba(0,0,0,0.22)] cursor-pointer"
+              onKeyDown={(e) => {
+                if (qrValue && (e.key === "Enter" || e.key === " ")) setQrOpen(true)
+              }}
+              className={`rounded-xl border border-white/10 bg-white p-2 shadow-[0_16px_36px_rgba(0,0,0,0.22)] ${qrValue ? "cursor-pointer" : "cursor-default"}`}
             >
-              <ReactQRCode
-                size={148}
-                marginSize={2}
-                background={"white"}
-                gradient={{
-                  type: "linear",
-                  stops: [
-                    { color: "#5c41c7", offset: "0" },
-                    { color: "#702056", offset: "100%" },
-                  ],
-                  rotation: 60,
-                }}
-                dataModulesSettings={{ style: "star" }}
-                finderPatternOuterSettings={{ style: "inpoint-sm" }}
-                finderPatternInnerSettings={{ style: "rounded" }}
-                imageSettings={{
-                  src: "/images/ProspaceMinimalLogo-2.png",
-                  height: 24,
-                  width: 24,
-                  excavate: true,
-                }}
-                value={qrValue}
-                ref={qrRef}
-              />
+              {qrValue ? (
+                <ReactQRCode
+                  size={148}
+                  marginSize={2}
+                  background={"white"}
+                  gradient={{
+                    type: "linear",
+                    stops: [
+                      { color: "#5c41c7", offset: "0" },
+                      { color: "#702056", offset: "100%" },
+                    ],
+                    rotation: 60,
+                  }}
+                  dataModulesSettings={{ style: "star" }}
+                  finderPatternOuterSettings={{ style: "inpoint-sm" }}
+                  finderPatternInnerSettings={{ style: "rounded" }}
+                  imageSettings={{
+                    src: "/images/ProspaceMinimalLogo-2.png",
+                    height: 24,
+                    width: 24,
+                    excavate: true,
+                  }}
+                  value={qrValue}
+                  ref={qrRef}
+                />
+              ) : (
+                <div className="flex h-fit max-w-3xs items-center justify-center p-4 text-center text-xs leading-5 text-[#241c48]">
+                  There was an error loading your data. Please proceed to the helpdesk or email us at prospace@cicssg.com.
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -292,29 +300,35 @@ function ProfileOverviewCard({
           >
             
             <div className="rounded-xl overflow-hidden bg-white">
-              <ReactQRCode
-                size={360}
-                marginSize={2}
-                background={"white"}
-                gradient={{
-                  type: "linear",
-                  stops: [
-                    { color: "#5c41c7", offset: "0" },
-                    { color: "#702056", offset: "100%" },
-                  ],
-                  rotation: 60,
-                }}
-                dataModulesSettings={{ style: "star" }}
-                finderPatternOuterSettings={{ style: "inpoint-sm" }}
-                finderPatternInnerSettings={{ style: "rounded" }}
-                imageSettings={{
-                  src: "/images/ProspaceMinimalLogo-2.png",
-                  height: 48,
-                  width: 48,
-                  excavate: true,
-                }}
-                value={qrValue}
-              />
+              {qrValue ? (
+                <ReactQRCode
+                  size={360}
+                  marginSize={2}
+                  background={"white"}
+                  gradient={{
+                    type: "linear",
+                    stops: [
+                      { color: "#5c41c7", offset: "0" },
+                      { color: "#702056", offset: "100%" },
+                    ],
+                    rotation: 60,
+                  }}
+                  dataModulesSettings={{ style: "star" }}
+                  finderPatternOuterSettings={{ style: "inpoint-sm" }}
+                  finderPatternInnerSettings={{ style: "rounded" }}
+                  imageSettings={{
+                    src: "/images/ProspaceMinimalLogo-2.png",
+                    height: 48,
+                    width: 48,
+                    excavate: true,
+                  }}
+                  value={qrValue}
+                />
+              ) : (
+                <div className="flex max-w-sm items-center justify-center p-8 text-center text-sm leading-6 text-[#241c48]">
+                  There was an error loading your data. Please proceed to the helpdesk or email us at prospace@cicssg.com.
+                </div>
+              )}
             </div>
             <button
               onClick={() => setQrOpen(false)}

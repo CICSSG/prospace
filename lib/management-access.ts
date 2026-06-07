@@ -5,7 +5,7 @@ export type PageAccessSection = Record<
   PagePermission | boolean | null | undefined
 >
 
-export type PageAccess = Partial<Record<"manage" | "data", PageAccessSection>>
+export type PageAccess = Partial<Record<"manage" | "data" | "company", PageAccessSection>>
 
 export type ManagementSectionKey = keyof PageAccess
 
@@ -111,6 +111,28 @@ export const managementPageSections: Array<{
         accessKeys: ["/data/missions", "data/missions"],
         section: "data",
         iconKey: "target",
+      },
+    ],
+  },
+  {
+    key: "company",
+    title: "Company",
+    items: [
+      {
+        key: "company-dashboard",
+        title: "Dashboard",
+        url: "/company/dashboard",
+        accessKeys: ["/company/dashboard", "company/dashboard"],
+        section: "company",
+        iconKey: "dashboard",
+      },
+      {
+        key: "company-check-ins",
+        title: "Check-ins",
+        url: "/company/check-ins",
+        accessKeys: ["/company/check-ins", "company/check-ins"],
+        section: "company",
+        iconKey: "calendar",
       },
     ],
   },

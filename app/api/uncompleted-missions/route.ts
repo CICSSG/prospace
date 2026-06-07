@@ -51,7 +51,7 @@ export async function GET(req: Request) {
 
     const data = await missionsCollection.aggregate(pipeline).toArray();
 
-    console.log("Uncompleted missions data:", data);
+    // console.log("Uncompleted missions data:", data);
     return NextResponse.json({ success: true, data });
   } catch (e) {
     console.error(e);

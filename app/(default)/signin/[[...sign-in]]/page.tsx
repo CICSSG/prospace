@@ -6,6 +6,7 @@ import { useForm } from "@tanstack/react-form"
 import clsx from "clsx"
 import { isRedirectError } from "next/dist/client/components/redirect-error"
 import { permanentRedirect, RedirectType } from "next/navigation"
+import { useSearchParams } from "next/navigation"
 import { useEffect, useRef, useState } from "react"
 import { ClipLoader } from "react-spinners"
 import { toast } from "sonner"
@@ -17,6 +18,8 @@ import { Jacquard_12 } from "next/font/google";
 import { SignIn } from "@clerk/nextjs";
 
 const SignUpPage = () => {
+  const searchParams = useSearchParams()
+  const redirectUrl = searchParams.get("redirect_url") || "/"
   const portfolioInputRef = useRef<HTMLInputElement>(null)
   const focusRef = useRef<HTMLInputElement>(null)
   const [step, setStep] = useState(1) // 1: Basic info, 2: OTP, 3: Optional fields
@@ -327,7 +330,7 @@ const SignUpPage = () => {
          <div className="mx-auto w-full max-w-md">
           <SignIn 
           signUpUrl="/signup"
-            forceRedirectUrl="/"/>
+            forceRedirectUrl={redirectUrl}/>
         </div>
       </div>
 

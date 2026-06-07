@@ -32,19 +32,25 @@ export async function PUT(req: Request) {
     if (update && clerkId) {
       const filter = id ? { _id: new ObjectId(id) } : { clerkId }
 
+      const userUpdate: Record<string, unknown> = {
+        firstName: update.firstName ?? null,
+        lastName: update.lastName ?? null,
+        shortBio: update.shortBio ?? null,
+        course: update.course ?? null,
+        portfolioLink: update.portfolioLink ?? null,
+        socialLinks: Array.isArray(update.socialLinks) ? update.socialLinks : [],
+        resumeUpdate: update.resumeUpdate ?? null,
+        updatedAt: new Date().toISOString(),
+      }
+
+      if (Object.prototype.hasOwnProperty.call(update, "showResumeInConnect")) {
+        userUpdate.showResumeInConnect = update.showResumeInConnect ?? null
+      }
+
       const updateResult = await usersCollection.findOneAndUpdate(
         filter,
         {
-          $set: {
-            firstName: update.firstName ?? null,
-            lastName: update.lastName ?? null,
-            shortBio: update.shortBio ?? null,
-            course: update.course ?? null,
-            portfolioLink: update.portfolioLink ?? null,
-            socialLinks: Array.isArray(update.socialLinks) ? update.socialLinks : [],
-            resumeUpdate: update.resumeUpdate ?? null,
-            updatedAt: new Date().toISOString(),
-          },
+          $set: userUpdate,
         },
         { returnDocument: "after" }
       )

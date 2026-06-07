@@ -53,6 +53,7 @@ export async function POST(req: Request) {
     course,
     shortBio,
     resumeLink,
+    showResumeInConnect: true,
     role,
     adminRole,
     isAdmin,

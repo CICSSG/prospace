@@ -283,7 +283,7 @@ const MissionsPage = () => {
                 {isOpen ? (
                   <div className="px-4 py-4">
                     <div className="flex w-full flex-col gap-3">
-                      {group.missions.map((mission) => (
+                      {group.missions.sort((a, b) => a.title.localeCompare(b.title)).map((mission) => (
                         (() => {
                           const isCompleted = completedMissionIds.includes(mission.id)
 

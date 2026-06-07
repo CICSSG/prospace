@@ -1,5 +1,13 @@
 import clientPromise from "@/lib/mongodb"
 import { clerkClient } from "@clerk/nextjs/server"
+import { buildExplicitPageAccess } from "@/lib/management-access"
+
+const companyModeratorPageAccess = buildExplicitPageAccess({
+  company: {
+    "/company/dashboard": "edit",
+    "/company/check-ins": "edit",
+  },
+})
 
 export function normalizeEmailList(emails: string[]) {
   return [...new Set(emails.map((email) => email.trim().toLowerCase()).filter(Boolean))]
@@ -38,10 +46,13 @@ export async function ensureCompanyModeratorAccounts({
         clerkUser = await clerk.users.updateUser(existingUser.id, {
           publicMetadata: {
             ...(existingUser.publicMetadata ?? {}),
-            role: "companymoderator",
+            role: "admin",
+            isAdmin: true,
+            adminRole: "admin",
             companyId,
             assignedCompany: companyId,
             companyName,
+            pageAccess: companyModeratorPageAccess,
           },
         })
       } else {
@@ -50,10 +61,13 @@ export async function ensureCompanyModeratorAccounts({
           lastName: "Moderator",
           emailAddress: [email],
           publicMetadata: {
-            role: "companymoderator",
+            role: "admin",
+            isAdmin: true,
+            adminRole: "admin",
             companyId,
             assignedCompany: companyId,
             companyName,
+            pageAccess: companyModeratorPageAccess,
           },
         })
       }
@@ -64,10 +78,13 @@ export async function ensureCompanyModeratorAccounts({
           $set: {
             clerkId: clerkUser.id,
             email,
-            role: "companymoderator",
+            role: "admin",
+            adminRole: "admin",
+            isAdmin: true,
             companyId,
             assignedCompany: companyId,
             companyName,
+            pageAccess: companyModeratorPageAccess,
             updatedAt: new Date().toISOString(),
           },
           $setOnInsert: {

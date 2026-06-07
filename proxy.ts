@@ -5,7 +5,7 @@ import { canAccessManagementPath, getDefaultManagementRoute, type PageAccess } f
 
 const isTestingRoutes = createRouteMatcher(["/testing(.*)"])
 const isAdminRoutes = createRouteMatcher(["/admin(.*)"])
-const isManagementRoutes = createRouteMatcher(["/admin(.*)", "/data(.*)"])
+const isManagementRoutes = createRouteMatcher(["/admin(.*)", "/data(.*)", "/company(.*)"])
 const isLogoLoopUploadRoute = createRouteMatcher(["/api/logo-loop/upload(.*)"])
 const isLoggedInRoute = createRouteMatcher(["/connect(.*)", "/profile(.*)", "/missions(.*)"])
 const isSignupRoute = createRouteMatcher(["/signup(.*)"])
@@ -21,6 +21,7 @@ export default clerkMiddleware(async (auth, req) => {
         adminRole?: string
         role: "user" | "admin"
         pageAccess?: PageAccess | null
+        assignedCompany?: string | null
       }
     | undefined
 
@@ -46,8 +47,13 @@ export default clerkMiddleware(async (auth, req) => {
     return NextResponse.next()
   }
   const isAdminUser = metadata?.isAdmin || metadata?.role === "admin"
+  const defaultManagementRoute = getDefaultManagementRoute(pageAccess, normalizedAdminRole, metadata?.assignedCompany)
   if (!req.nextUrl.pathname.startsWith("/api") && !isManagementRoutes(req) && isAdminUser) {
-    return NextResponse.redirect(new URL(getDefaultManagementRoute(pageAccess, normalizedAdminRole), req.url))
+    if (defaultManagementRoute !== req.nextUrl.pathname) {
+      return NextResponse.redirect(new URL(defaultManagementRoute, req.url))
+    }
+
+    return NextResponse.next()
   }
 
   if (isManagementRoutes(req)) {
@@ -63,12 +69,15 @@ export default clerkMiddleware(async (auth, req) => {
       req.nextUrl.pathname,
       pageAccess,
       normalizedAdminRole,
+      metadata?.assignedCompany,
     )
 
     if (!canAccessCurrentPage) {
-      return NextResponse.redirect(
-        new URL(getDefaultManagementRoute(pageAccess, normalizedAdminRole), req.url),
-      )
+      if (defaultManagementRoute !== req.nextUrl.pathname) {
+        return NextResponse.redirect(new URL(defaultManagementRoute, req.url))
+      }
+
+      return NextResponse.next()
     }
   }
 

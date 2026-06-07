@@ -1,7 +1,7 @@
 import clientPromise from "@/lib/mongodb"
 import { ObjectId } from "mongodb"
 import { clerkClient } from "@clerk/nextjs/server"
-import { hasAnyManagementPageAccess, type PageAccess } from "@/lib/management-access"
+import { buildExplicitPageAccess, hasAnyManagementPageAccess, type PageAccess } from "@/lib/management-access"
 
 export async function PUT(req: Request) {
   try {
@@ -76,7 +76,7 @@ export async function PUT(req: Request) {
           role: role === "admin" ? "admin" : "user",
           adminRole: role === "admin" ? adminRole || "admin" : null,
           isAdmin: role === "admin",
-          pageAccess: role === "admin" ? pageAccess || null : null,
+          pageAccess: role === "admin" ? buildExplicitPageAccess(pageAccess as PageAccess | undefined) : null,
         },
       }
     )
@@ -92,7 +92,7 @@ export async function PUT(req: Request) {
         isAdmin: role === "admin",
         role: null,
         adminRole: null,
-        pageAccess: role === "admin" ? pageAccess || null : null,
+        pageAccess: role === "admin" ? buildExplicitPageAccess(pageAccess as PageAccess | undefined) : null,
       }
 
       if (role === "admin") {

@@ -34,7 +34,7 @@ export default function ConnectUserCard({ user, onClick }: ConnectUserCardProps)
         alt={displayName}
         width={50}
         height={50}
-        className="rounded-full"
+        className="rounded-full aspect-square border-2 border-dashed border-white/30 object-cover transition group-hover:border-white/60"
       />
       <div>
         <p>{displayName}</p>

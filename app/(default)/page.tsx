@@ -506,7 +506,7 @@ export default function Page() {
                   setAnimateHover(true)
                 }
               }}
-              className="absolute top-10 left-0 w-full lg:-top-40 lg:-left-20 2xl:-top-70 2xl:-left-10"
+              className="absolute -top-10 left-0 w-full lg:-top-40 lg:-left-20 2xl:-top-70 2xl:-left-10"
             >
               <Image
                 src={"/images/HeroHandTop.png"}

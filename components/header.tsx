@@ -97,7 +97,7 @@ export default function Header() {
             {mode === "production" ? (
               <>
                 <Link href={"/signin"}>
-                  <span className="flex h-full border border-white/60 rounded-full px-6 py-1 flex-row items-center justify-center text-center transition-colors hover:bg-[#FF5FA2]/20 cursor-pointer  backdrop-blur-sm">
+                  <span className="flex h-full border border-white/60 rounded-full px-6 py-1 flex-row items-center justify-center text-center transition-colors hover:bg-[#FF5FA2]/20 cursor-pointer  backdrop-blur-sm text-nowrap">
                     Sign In
                   </span>
                 </Link>
@@ -120,7 +120,7 @@ export default function Header() {
                     blur={10}
                     className="cursor-pointer p-0 *:p-0"
                   >
-                    <span className="flex h-full w-[calc(400%)] flex-row items-center justify-center bg-[#FF5FA2]/20 text-center transition-colors hover:bg-[#FF5FA2]/40">
+                    <span className="flex h-full w-[calc(400%)] flex-row items-center justify-center bg-[#FF5FA2]/20 text-center transition-colors hover:bg-[#FF5FA2]/40 text-nowrap">
                       Sign Up
                     </span>
                   </GlassSurface>
@@ -212,7 +212,7 @@ export default function Header() {
                 >
                   <SignOutButton>
                     <button
-                      className="block w-full rounded-xl px-3 py-2.5 text-sm text-white/85 transition-colors hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white"
+                      className="block w-full rounded-xl px-3 py-2.5 text-sm text-white/85 transition-colors hover:bg-white/10 hover:text-white focus:bg-white/10 focus:text-white text-nowrap"
                     >
                       Sign Out
                     </button>
@@ -338,13 +338,13 @@ export default function Header() {
                           },
                         }}
                       >
-                        <button className="h-10 w-full cursor-pointer rounded-full border border-white px-4 text-sm text-white sm:h-12 sm:px-5 sm:text-base">
+                        <button className="h-10 w-full cursor-pointer rounded-full border border-white px-4 text-sm text-white sm:h-12 sm:px-5 sm:text-base text-nowrap">
                           Sign In
                         </button>
                       </SignInButton>
                     )}
                     <Link href={"/signup"} onClick={() => setIsMenuOpen(false)}>
-                      <button className="h-10 w-full cursor-pointer rounded-full border border-white px-4 text-sm text-white sm:h-12 sm:px-5 sm:text-base">
+                      <button className="h-10 w-full cursor-pointer rounded-full border border-white px-4 text-sm text-white sm:h-12 sm:px-5 sm:text-base text-nowrap">
                         {mode === "production" ? "Sign Up" : "Register Now!"}
                       </button>
                     </Link>
@@ -352,7 +352,7 @@ export default function Header() {
                   <Show when="signed-in">
                     <SignOutButton>
                       <button
-                        className="h-10 w-full cursor-pointer rounded-full bg-white px-4 text-sm font-medium text-primary sm:h-12 sm:px-5 sm:text-base"
+                        className="h-10 w-full cursor-pointer rounded-full bg-white px-4 text-sm font-medium text-primary sm:h-12 sm:px-5 sm:text-base text-nowrap"
                         onClick={() => setIsMenuOpen(false)}
                       >
                         Sign Out

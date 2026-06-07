@@ -415,6 +415,149 @@ export async function getAdminUserMissionsData(): Promise<{ success: boolean; er
   }
 }
 
+export async function getDataUserMissionsData(): Promise<{ success: boolean; error?: string; data?: UserMissionResponse }> {
+  try {
+    const { sessionClaims, userId } = await auth()
+    const metadata = sessionClaims?.publicMetadata as ManagementAccessMetadata | undefined
+
+    if (!userId || !Boolean(metadata?.isAdmin) || !canAccessManagementPath("/data/missions", metadata?.pageAccess ?? undefined, metadata?.adminRole)) {
+      return { success: false, error: "Unauthorized" }
+    }
+
+    const client = await clientPromise
+    const db = client.db(process.env.MONGODB_DATABASE)
+
+    const [userRows, missionRows, categoryRows, completionRows] = await Promise.all([
+      db.collection("users").find({}).toArray(),
+      db.collection("missions").find({}).toArray(),
+      db.collection("missionCategories").find({}).toArray(),
+      db.collection("missionCompletions").find({}).toArray(),
+    ])
+
+    const users = userRows as unknown as Array<{ _id: string; userId?: string | number; clerkId?: string; firstName?: string; lastName?: string; email?: string; course?: string; shortBio?: string }>
+    const missionsSource = missionRows as unknown as Array<{ _id: string; missionTitle?: string; title?: string; description?: string; categoryId?: string; categoryName?: string; completionMethod?: string }>
+    const categoriesSource = categoryRows as unknown as Array<{ _id: string; categoryName?: string }>
+    const completionsSource = completionRows as unknown as Array<{ _id: string; userId?: string | number; missionId?: string; createdAt?: string; updatedAt?: string }>
+
+    const categoryById = new Map<string, string>()
+    const categories = categoriesSource
+      .map((category) => ({
+        id: asString(category._id),
+        categoryName: category.categoryName?.trim() || "Uncategorized",
+      }))
+      .filter((category) => Boolean(category.id))
+      .sort((left, right) => left.categoryName.localeCompare(right.categoryName, undefined, { sensitivity: "base" }))
+
+    categories.forEach((category) => {
+      categoryById.set(category.id, category.categoryName)
+    })
+
+    const missionsById = new Map<string, { id: string; title: string; description: string; categoryId: string; categoryName: string; completionMethod: string }>()
+
+    const missions = missionsSource
+      .map((mission) => {
+        const id = asString(mission._id)
+        const categoryId = asString(mission.categoryId)
+        const categoryName = mission.categoryName?.trim() || (categoryId ? categoryById.get(categoryId) : undefined) || "Uncategorized"
+
+        const normalizedMission = {
+          id,
+          title: normalizeMissionTitle(mission),
+          description: mission.description || "",
+          categoryId,
+          categoryName,
+          completionMethod: mission.completionMethod || "",
+        }
+
+        if (id) {
+          missionsById.set(id, normalizedMission)
+        }
+
+        return normalizedMission
+      })
+      .filter((mission) => Boolean(mission.id))
+      .sort((left, right) => left.title.localeCompare(right.title, undefined, { sensitivity: "base" }))
+
+    const completionsByUser = new Map<string, Map<string, { createdAt?: string; updatedAt?: string }>>()
+    for (const completion of completionsSource) {
+      const userKey = asString(completion.userId)
+      const missionKey = asString(completion.missionId)
+      if (!userKey || !missionKey) continue
+
+      const existing = completionsByUser.get(userKey) ?? new Map<string, { createdAt?: string; updatedAt?: string }>()
+      existing.set(missionKey, { createdAt: completion.createdAt, updatedAt: completion.updatedAt })
+      completionsByUser.set(userKey, existing)
+    }
+
+    const compiledUsers = users
+      .map((user) => {
+        const userKey = asString(user.userId)
+        if (!userKey) return null
+
+        const userCompletions = completionsByUser.get(userKey)
+
+        const completedMissionIds = userCompletions ? Array.from(userCompletions.keys()) : []
+        const completedMissions = completedMissionIds
+          .map((missionId) => {
+            const mission = missionsById.get(missionId)
+            const completion = userCompletions ? userCompletions.get(missionId) : undefined
+
+            return {
+              missionId,
+              title: mission?.title || "Unknown mission",
+              description: mission?.description || "",
+              categoryId: mission?.categoryId || "",
+              categoryName: mission?.categoryName || "Uncategorized",
+              completionMethod: mission?.completionMethod || "",
+              completedAt: completion?.updatedAt || completion?.createdAt || "",
+            }
+          })
+          .filter((mission) => Boolean(mission))
+          .sort((left, right) => left.title.localeCompare(right.title, undefined, { sensitivity: "base" }))
+
+        return {
+          id: user._id,
+          userId: user.userId ?? userKey,
+          clerkId: user.clerkId || "",
+          firstName: user.firstName || "",
+          lastName: user.lastName || "",
+          fullName: getDisplayName(user.firstName, user.lastName, user.email),
+          email: user.email || "",
+          course: user.course || "",
+          shortBio: user.shortBio || "",
+          completedCount: completedMissions.length,
+          completedMissionIds,
+          completedMissions,
+        }
+      })
+      .filter(Boolean) as unknown as UserMissionRecord[]
+
+    compiledUsers.sort((left, right) => {
+      if (right.completedCount !== left.completedCount) {
+        return right.completedCount - left.completedCount
+      }
+
+      const nameOrder = left.fullName.localeCompare(right.fullName, undefined, { sensitivity: "base" })
+      if (nameOrder !== 0) return nameOrder
+
+      return asString(left.userId).localeCompare(asString(right.userId), undefined, { sensitivity: "base" })
+    })
+
+    return {
+      success: true,
+      data: {
+        users: compiledUsers,
+        missions,
+        categories,
+        lastUpdated: new Date().toISOString(),
+      },
+    }
+  } catch (error) {
+    console.error("Failed to load data user missions data:", error)
+    return { success: false, error: "Failed to load user missions" }
+  }
+}
+
 export async function updateAdminUserMissions(data: {
   userId: string | number | null
   missionIds: string[]
@@ -501,6 +644,92 @@ export async function updateAdminUserMissions(data: {
   }
 }
 
+export async function updateDataUserMissions(data: {
+  userId: string | number | null
+  missionIds: string[]
+}) {
+  try {
+    const { sessionClaims, userId } = await auth()
+    const metadata = sessionClaims?.publicMetadata as ManagementAccessMetadata | undefined
+
+    if (!userId || !Boolean(metadata?.isAdmin) || !canAccessManagementPath("/data/missions", metadata?.pageAccess ?? undefined, metadata?.adminRole)) {
+      return { success: false, error: "Unauthorized" }
+    }
+
+    if (data.userId == null || !Array.isArray(data.missionIds)) {
+      return { success: false, error: "userId and missionIds are required" }
+    }
+
+    const normalizedMissionIds = Array.from(new Set(data.missionIds.map((missionId) => asString(missionId).trim()).filter(Boolean)))
+    if (normalizedMissionIds.some((missionId) => !ObjectId.isValid(missionId))) {
+      return { success: false, error: "One or more mission ids are invalid" }
+    }
+
+    const client = await clientPromise
+    const db = client.db(process.env.MONGODB_DATABASE)
+    const usersCollection = db.collection("users")
+    const missionsCollection = db.collection("missions")
+    const completionsCollection = db.collection("missionCompletions")
+
+    const numericUserId = Number(data.userId)
+    const userQuery = Number.isNaN(numericUserId)
+      ? { userId: data.userId }
+      : { $or: [{ userId: numericUserId }, { userId: data.userId }] }
+
+    const userDoc = (await usersCollection.findOne(userQuery)) as { userId?: string | number } | null
+    if (!userDoc) {
+      return { success: false, error: "User not found" }
+    }
+
+    const resolvedUserId = userDoc.userId ?? data.userId
+    const missionObjectIds = normalizedMissionIds.map((missionId) => new ObjectId(missionId))
+
+    const existingMissions = await missionsCollection.find({ _id: { $in: missionObjectIds } }).project({ _id: 1 }).toArray()
+    if (existingMissions.length !== normalizedMissionIds.length) {
+      return { success: false, error: "One or more missions were not found" }
+    }
+
+    const currentCompletions = (await completionsCollection.find({ userId: resolvedUserId }).toArray()) as unknown as Array<{ missionId?: string }>
+    const currentMissionIds = new Set(currentCompletions.map((completion) => asString(completion.missionId)).filter(Boolean))
+    const targetMissionIds = new Set(normalizedMissionIds)
+
+    const missionIdsToAdd = normalizedMissionIds.filter((missionId) => !currentMissionIds.has(missionId))
+    const missionIdsToRemove = Array.from(currentMissionIds).filter((missionId) => !targetMissionIds.has(missionId))
+    const now = new Date().toISOString()
+
+    if (missionIdsToAdd.length > 0) {
+      await completionsCollection.insertMany(
+        missionIdsToAdd.map((missionId) => ({
+          userId: resolvedUserId,
+          missionId,
+          createdAt: now,
+          updatedAt: now,
+        }))
+      )
+    }
+
+    if (missionIdsToRemove.length > 0) {
+      await completionsCollection.deleteMany({
+        userId: resolvedUserId,
+        missionId: { $in: missionIdsToRemove },
+      })
+    }
+
+    return {
+      success: true,
+      data: {
+        userId: resolvedUserId,
+        added: missionIdsToAdd.length,
+        removed: missionIdsToRemove.length,
+        missionIds: normalizedMissionIds,
+      },
+    }
+  } catch (error) {
+    console.error("Failed to update data mission completions:", error)
+    return { success: false, error: "Failed to update user missions" }
+  }
+}
+
 export async function scanClerkUsersToMongo(): Promise<{ success: boolean; totalScanned?: number; totalAdded?: number; totalExisting?: number; error?: string }> {
   try {
     const { sessionClaims, userId } = await auth()
@@ -566,5 +795,107 @@ export async function scanClerkUsersToMongo(): Promise<{ success: boolean; total
   } catch (error) {
     console.error("Failed to scan Clerk users:", error)
     return { success: false, error: "Failed to scan Clerk users" }
+  }
+}
+
+export async function inspectOrCreateMongoUserByEmail(data: {
+  email: string
+  createIfMissing?: boolean
+}): Promise<{
+  success: boolean
+  clerkFound?: boolean
+  mongoExists?: boolean
+  created?: boolean
+  clerkId?: string
+  email?: string
+  firstName?: string
+  lastName?: string
+  error?: string
+}> {
+  try {
+    const { sessionClaims, userId } = await auth()
+    const metadata = sessionClaims?.publicMetadata as ManagementAccessMetadata | undefined
+
+    if (!userId || !Boolean(metadata?.isAdmin) || !canAccessManagementPath("/admin/users", metadata?.pageAccess ?? undefined, metadata?.adminRole)) {
+      return { success: false, error: "Unauthorized" }
+    }
+
+    const email = data.email.trim().toLowerCase()
+    if (!email) {
+      return { success: false, error: "Email is required" }
+    }
+
+    const clerk = await clerkClient()
+    const mongoClient = await clientPromise
+    const db = mongoClient.db(process.env.MONGODB_DATABASE)
+    const usersCollection = db.collection("users")
+
+    const existingUsers = await clerk.users.getUserList({ emailAddress: [email], limit: 1 })
+    const clerkUser = existingUsers.data[0]
+
+    if (!clerkUser) {
+      return { success: false, clerkFound: false, mongoExists: false, error: "No Clerk account found for that email" }
+    }
+
+    const existingMongoUser = await usersCollection.findOne({ clerkId: clerkUser.id })
+    if (existingMongoUser) {
+      return {
+        success: true,
+        clerkFound: true,
+        mongoExists: true,
+        created: false,
+        clerkId: clerkUser.id,
+        email,
+        firstName: clerkUser.firstName ?? "",
+        lastName: clerkUser.lastName ?? "",
+      }
+    }
+
+    if (!data.createIfMissing) {
+      return {
+        success: true,
+        clerkFound: true,
+        mongoExists: false,
+        created: false,
+        clerkId: clerkUser.id,
+        email,
+        firstName: clerkUser.firstName ?? "",
+        lastName: clerkUser.lastName ?? "",
+      }
+    }
+
+    const firstName = clerkUser.firstName ?? ""
+    const lastName = clerkUser.lastName ?? ""
+
+    await usersCollection.insertOne({
+      clerkId: clerkUser.id,
+      firstName,
+      lastName,
+      email,
+      course: "",
+      shortBio: "",
+      socialLinks: [],
+      portfolioLink: "",
+      resumeUpdate: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }).catch((error) => {
+      console.error("Error inserting user into MongoDB:", error)
+      throw error
+    })
+
+    return {
+      success: true,
+      clerkFound: true,
+      mongoExists: false,
+      created: true,
+      clerkId: clerkUser.id,
+      email,
+      firstName,
+      lastName,
+    }
+  } catch (error) {
+    console.error("Failed to inspect or create Mongo user by email:", error)
+    return { success: false, error: "Failed to inspect or create user data" }
   }
 }

@@ -40,6 +40,7 @@ export async function ensureCompanyModeratorAccounts({
             ...(existingUser.publicMetadata ?? {}),
             role: "companymoderator",
             companyId,
+            assignedCompany: companyId,
             companyName,
           },
         })
@@ -51,6 +52,7 @@ export async function ensureCompanyModeratorAccounts({
           publicMetadata: {
             role: "companymoderator",
             companyId,
+            assignedCompany: companyId,
             companyName,
           },
         })
@@ -64,6 +66,7 @@ export async function ensureCompanyModeratorAccounts({
             email,
             role: "companymoderator",
             companyId,
+            assignedCompany: companyId,
             companyName,
             updatedAt: new Date().toISOString(),
           },

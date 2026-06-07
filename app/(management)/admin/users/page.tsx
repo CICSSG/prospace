@@ -1,6 +1,8 @@
 "use client"
 
 import { PaginationComponent } from "@/components/pagination"
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
 import {
   Table,
   TableBody,
@@ -13,7 +15,7 @@ import {
 import { Plus, RefreshCw, PencilLine, Trash2, Shield, Users2 } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
 import { toast } from "sonner"
-import { getCollectionData, scanClerkUsersToMongo } from "../actions"
+import { getCollectionData, inspectOrCreateMongoUserByEmail } from "../actions"
 import UserFormDialog from "./user-form-dialog"
 import DeleteUserDialog from "./delete-user-dialog"
 import { User } from "./types"
@@ -51,6 +53,20 @@ export default function UsersList() {
   const [editUser, setEditUser] = useState<User | null>(null)
   const [deleteUser, setDeleteUser] = useState<User | null>(null)
   const [availableDomains, setAvailableDomains] = useState<string[]>([])
+  const [userSetupOpen, setUserSetupOpen] = useState(false)
+  const [setupEmail, setSetupEmail] = useState("")
+  const [setupStep, setSetupStep] = useState<"email" | "confirm">("email")
+  const [setupLoading, setSetupLoading] = useState(false)
+  const [setupResult, setSetupResult] = useState<{
+    clerkFound?: boolean
+    mongoExists?: boolean
+    created?: boolean
+    clerkId?: string
+    email?: string
+    firstName?: string
+    lastName?: string
+    error?: string
+  } | null>(null)
 
   useEffect(() => {
     if (user && !canViewUsersPage) {
@@ -181,6 +197,64 @@ export default function UsersList() {
     })
   }
 
+  const resetUserSetupModal = () => {
+    setUserSetupOpen(false)
+    setSetupEmail("")
+    setSetupStep("email")
+    setSetupLoading(false)
+    setSetupResult(null)
+  }
+
+  const handleCheckUser = async () => {
+    const email = setupEmail.trim()
+    if (!email) {
+      toast.error("Please enter a user email")
+      return
+    }
+
+    setSetupLoading(true)
+    try {
+      const result = await inspectOrCreateMongoUserByEmail({ email, createIfMissing: false })
+      if (!result.success) {
+        throw new Error(result.error || "Failed to check user data")
+      }
+
+      setSetupResult(result)
+
+      if (result.mongoExists) {
+        toast.success("Mongo data already exists for this Clerk account")
+        resetUserSetupModal()
+        return
+      }
+
+      setSetupStep("confirm")
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to check user data")
+    } finally {
+      setSetupLoading(false)
+    }
+  }
+
+  const handleGenerateUserData = async () => {
+    if (!setupEmail.trim()) return
+
+    setSetupLoading(true)
+    try {
+      const result = await inspectOrCreateMongoUserByEmail({ email: setupEmail, createIfMissing: true })
+      if (!result.success) {
+        throw new Error(result.error || "Failed to generate user data")
+      }
+
+      toast.success(result.created ? "User data generated successfully" : "User data already existed")
+      await getData()
+      resetUserSetupModal()
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to generate user data")
+    } finally {
+      setSetupLoading(false)
+    }
+  }
+
   return (
     <div className="flex flex-col gap-4 p-4">
       <div className="flex flex-col gap-3 rounded-2xl border bg-card p-4 shadow-sm lg:flex-row lg:items-center lg:justify-between">
@@ -207,29 +281,12 @@ export default function UsersList() {
           </button>
           <button
             type="button"
-            onClick={async () => {
-              if (!canEditUsersPage) return
-              toast.promise(
-                (async () => {
-                  const res = await scanClerkUsersToMongo()
-                  if (res.success) {
-                    await getData()
-                    return `Scanned ${res.totalScanned}, added ${res.totalAdded}`
-                  }
-                  throw new Error(res.error || "Scan failed")
-                })(),
-                {
-                  loading: "Scanning Clerk users...",
-                  success: (msg) => String(msg),
-                  error: (err) => String(err),
-                }
-              )
-            }}
+            onClick={() => setUserSetupOpen(true)}
             disabled={!canEditUsersPage}
             className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
-            title="Scan Clerk users and insert missing Mongo records"
+            title="Check a Clerk account and generate missing Mongo data"
           >
-            <Users2 size={16} /> Scan Clerk Users
+            <Users2 size={16} /> Setup User Data
           </button>
         </div>
       </div>
@@ -412,6 +469,98 @@ export default function UsersList() {
           getData={getData}
         />
       )}
+
+      <Dialog open={userSetupOpen} onOpenChange={(open) => (open ? setUserSetupOpen(true) : resetUserSetupModal())}>
+        <DialogContent className="sm:max-w-lg bg-primary/40">
+          <DialogHeader>
+            <DialogTitle>{setupStep === "email" ? "Setup user data" : "Confirm data generation"}</DialogTitle>
+          </DialogHeader>
+
+          {setupStep === "email" ? (
+            <div className="space-y-4 py-2">
+              <p className="text-sm text-white/75">
+                Enter the Clerk account email to check whether a MongoDB user record already exists.
+              </p>
+              <Input
+                type="email"
+                value={setupEmail}
+                onChange={(event) => setSetupEmail(event.target.value)}
+                placeholder="user@example.com"
+                className="bg-white/10 text-white placeholder:text-white/40"
+              />
+              <p className="text-xs text-white/55">
+                You may generate a MongoDB user record if the Clerk account exists but the MongoDB record is missing.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4 py-2">
+              <div className="rounded-lg border border-white/10 bg-white/5 p-4 text-sm text-white/80">
+                <p>
+                  Clerk account: <span className="font-medium text-white">{setupResult?.email || setupEmail}</span>
+                </p>
+                <p className="mt-2">
+                  Name: <span className="font-medium text-white">{[setupResult?.firstName, setupResult?.lastName].filter(Boolean).join(" ") || "Unknown"}</span>
+                </p>
+                <p className="mt-2">
+                  MongoDB record: <span className="font-medium text-white">missing</span>
+                </p>
+              </div>
+              <p className="text-sm text-white/75">
+                A Clerk account was found, but there is no matching MongoDB user document for this clerkId. Do you want to generate it now?
+              </p>
+            </div>
+          )}
+
+          <DialogFooter className="gap-2 sm:justify-end">
+            {setupStep === "email" ? (
+              <>
+                <button
+                  type="button"
+                  onClick={resetUserSetupModal}
+                  className="rounded-lg border border-white/15 bg-white/5 px-4 py-2 text-sm text-white/85 hover:bg-white/10"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void handleCheckUser()}
+                  disabled={setupLoading}
+                  className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {setupLoading ? "Checking..." : "Check Clerk account"}
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setSetupStep("email")}
+                  disabled={setupLoading}
+                  className="rounded-lg border border-white/15 bg-white/5 px-4 py-2 text-sm text-white/85 hover:bg-white/10 disabled:opacity-60"
+                >
+                  Back
+                </button>
+                <button
+                  type="button"
+                  onClick={resetUserSetupModal}
+                  disabled={setupLoading}
+                  className="rounded-lg border border-white/15 bg-white/5 px-4 py-2 text-sm text-white/85 hover:bg-white/10 disabled:opacity-60"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void handleGenerateUserData()}
+                  disabled={setupLoading}
+                  className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {setupLoading ? "Generating..." : "Generate data"}
+                </button>
+              </>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

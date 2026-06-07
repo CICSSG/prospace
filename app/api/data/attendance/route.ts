@@ -3,7 +3,10 @@ import { Collection, ObjectId } from "mongodb"
 import { NextRequest, NextResponse } from "next/server"
 
 import clientPromise from "@/lib/mongodb"
-import { canAccessManagementPath, type ManagementAccessMetadata } from "@/lib/management-access"
+import {
+  canAccessManagementPath,
+  type ManagementAccessMetadata,
+} from "@/lib/management-access"
 
 type MongoUserRecord = {
   _id: string
@@ -87,10 +90,19 @@ function formatAttendanceParts(date = new Date()) {
 }
 
 function isAuthorized(metadata: ManagementAccessMetadata | undefined) {
-  return Boolean(metadata?.isAdmin) && canAccessManagementPath("/data/attendance", metadata?.pageAccess ?? undefined, metadata?.adminRole)
+  return (
+    Boolean(metadata?.isAdmin) &&
+    canAccessManagementPath(
+      "/data/attendance",
+      metadata?.pageAccess ?? undefined,
+      metadata?.adminRole
+    )
+  )
 }
 
-function toAttendanceResponse(record: AttendanceDbRecord | null): AttendanceResponseRecord | null {
+function toAttendanceResponse(
+  record: AttendanceDbRecord | null
+): AttendanceResponseRecord | null {
   if (!record) return null
 
   return {
@@ -101,7 +113,9 @@ function toAttendanceResponse(record: AttendanceDbRecord | null): AttendanceResp
     email: record.email || "",
     firstName: record.firstName || "",
     lastName: record.lastName || "",
-    fullName: record.fullName || getFullName(record.firstName, record.lastName, record.email),
+    fullName:
+      record.fullName ||
+      getFullName(record.firstName, record.lastName, record.email),
     attendanceAt: record.attendanceAt || "",
     attendanceDate: record.attendanceDate || "",
     attendanceTime: record.attendanceTime || "",
@@ -120,7 +134,10 @@ function getAttendanceDateKey(value?: string) {
   return date.toLocaleDateString("en-CA")
 }
 
-async function resolveUserByIdentifier(usersCollection: Collection<MongoUserRecord>, identifier: string) {
+async function resolveUserByIdentifier(
+  usersCollection: Collection<MongoUserRecord>,
+  identifier: string
+) {
   const trimmed = identifier.trim()
   if (!trimmed) return null
 
@@ -148,16 +165,25 @@ async function resolveUserByIdentifier(usersCollection: Collection<MongoUserReco
 export async function GET() {
   try {
     const { sessionClaims, userId } = await auth()
-    const metadata = sessionClaims?.publicMetadata as ManagementAccessMetadata | undefined
+    const metadata = sessionClaims?.publicMetadata as
+      | ManagementAccessMetadata
+      | undefined
 
     if (!userId || !isAuthorized(metadata)) {
-      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 403 })
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 403 }
+      )
     }
 
     const client = await clientPromise
     const db = client.db(process.env.MONGODB_DATABASE)
-    const usersCollection = db.collection("users") as Collection<MongoUserRecord>
-    const attendanceCollection = db.collection("attendance") as Collection<AttendanceDbRecord>
+    const usersCollection = db.collection(
+      "users"
+    ) as Collection<MongoUserRecord>
+    const attendanceCollection = db.collection(
+      "attendance"
+    ) as Collection<AttendanceDbRecord>
 
     const [users, attendanceRecords] = await Promise.all([
       usersCollection.find({}).toArray(),
@@ -167,7 +193,9 @@ export async function GET() {
     const attendanceByKey = new Map<string, AttendanceDbRecord[]>()
     const attendanceByDayKey = new Map<string, AttendanceDbRecord>()
     attendanceRecords.forEach((record) => {
-      const key = asString(record.attendanceKey || record.userId || record.clerkId)
+      const key = asString(
+        record.attendanceKey || record.userId || record.clerkId
+      )
       if (key) {
         const recordsForKey = attendanceByKey.get(key) || []
         recordsForKey.push(record)
@@ -186,15 +214,19 @@ export async function GET() {
       .map((user) => {
         const attendanceKey = getAttendanceKey(user)
         const userAttendanceRecords = attendanceByKey.get(attendanceKey) || []
-        const latestAttendanceRecord = userAttendanceRecords
-          .slice()
-          .sort((left, right) => {
+        const latestAttendanceRecord =
+          userAttendanceRecords.slice().sort((left, right) => {
             const leftAttendanceAt = left.attendanceAt || ""
             const rightAttendanceAt = right.attendanceAt || ""
 
-            return rightAttendanceAt.localeCompare(leftAttendanceAt, undefined, { sensitivity: "base" })
+            return rightAttendanceAt.localeCompare(
+              leftAttendanceAt,
+              undefined,
+              { sensitivity: "base" }
+            )
           })[0] || null
-        const todayAttendanceRecord = attendanceByDayKey.get(`${attendanceKey}:${todayKey}`) || null
+        const todayAttendanceRecord =
+          attendanceByDayKey.get(`${attendanceKey}:${todayKey}`) || null
 
         return {
           id: user._id,
@@ -218,7 +250,9 @@ export async function GET() {
           return left.hasAttendanceToday ? -1 : 1
         }
 
-        return left.fullName.localeCompare(right.fullName, undefined, { sensitivity: "base" })
+        return left.fullName.localeCompare(right.fullName, undefined, {
+          sensitivity: "base",
+        })
       })
 
     const compiledAttendance = attendanceRecords
@@ -228,7 +262,9 @@ export async function GET() {
         const leftAttendanceAt = left.attendanceAt || ""
         const rightAttendanceAt = right.attendanceAt || ""
 
-        return rightAttendanceAt.localeCompare(leftAttendanceAt, undefined, { sensitivity: "base" })
+        return rightAttendanceAt.localeCompare(leftAttendanceAt, undefined, {
+          sensitivity: "base",
+        })
       })
 
     return NextResponse.json({
@@ -241,40 +277,66 @@ export async function GET() {
     })
   } catch (error) {
     console.error("Failed to load attendance data:", error)
-    return NextResponse.json({ success: false, error: "Failed to load attendance data" }, { status: 500 })
+    return NextResponse.json(
+      { success: false, error: "Failed to load attendance data" },
+      { status: 500 }
+    )
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
     const { sessionClaims, userId } = await auth()
-    const metadata = sessionClaims?.publicMetadata as ManagementAccessMetadata | undefined
+    const metadata = sessionClaims?.publicMetadata as
+      | ManagementAccessMetadata
+      | undefined
 
     if (!userId || !isAuthorized(metadata)) {
-      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 403 })
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 403 }
+      )
     }
 
     const body = await request.json()
-    const identifier = asString(body?.email || body?.userId || body?.identifier || body?.scannedUserId)
-    const source: "manual" | "scanner" = body?.source === "scanner" ? "scanner" : "manual"
+    const identifier = asString(
+      body?.email || body?.userId || body?.identifier || body?.scannedUserId
+    )
+    const source: "manual" | "scanner" =
+      body?.source === "scanner" ? "scanner" : "manual"
 
     if (!identifier) {
-      return NextResponse.json({ success: false, error: "Email or userId is required" }, { status: 400 })
+      return NextResponse.json(
+        { success: false, error: "Email or userId is required" },
+        { status: 400 }
+      )
     }
 
     const client = await clientPromise
     const db = client.db(process.env.MONGODB_DATABASE)
-    const usersCollection = db.collection("users") as Collection<MongoUserRecord>
-    const attendanceCollection = db.collection("attendance") as Collection<AttendanceDbRecord>
+    const usersCollection = db.collection(
+      "users"
+    ) as Collection<MongoUserRecord>
+    const attendanceCollection = db.collection(
+      "attendance"
+    ) as Collection<AttendanceDbRecord>
 
     const user = await resolveUserByIdentifier(usersCollection, identifier)
     if (!user) {
-      return NextResponse.json({ success: false, error: "User not found" }, { status: 404 })
+      return NextResponse.json(
+        { success: false, error: "User not found" },
+        { status: 404 }
+      )
     }
 
-    const providedDate = body?.attendanceAt ? new Date(body.attendanceAt) : new Date()
+    const providedDate = body?.attendanceAt
+      ? new Date(body.attendanceAt)
+      : new Date()
     if (Number.isNaN(providedDate.getTime())) {
-      return NextResponse.json({ success: false, error: "Invalid attendance date and time" }, { status: 400 })
+      return NextResponse.json(
+        { success: false, error: "Invalid attendance date and time" },
+        { status: 400 }
+      )
     }
 
     const attendanceParts = formatAttendanceParts(providedDate)
@@ -318,6 +380,14 @@ export async function POST(request: NextRequest) {
       attendanceDate: attendanceParts.attendanceDate,
     })
 
+    const missionsCollection = db.collection("missionCompletions")
+    await missionsCollection.insertOne({
+      userId: user.userId ?? null,
+      missionId: "6a1bd7d6ea50b4da758b7b8f",
+      createdAt: now,
+      updatedAt: now,
+    })
+
     return NextResponse.json({
       success: true,
       action: existingAttendance ? "updated" : "created",
@@ -333,53 +403,82 @@ export async function POST(request: NextRequest) {
           email: user.email || "",
           course: user.course || "",
         },
-        attendanceRecord: toAttendanceResponse(savedAttendance as AttendanceDbRecord | null),
+        attendanceRecord: toAttendanceResponse(
+          savedAttendance as AttendanceDbRecord | null
+        ),
       },
     })
   } catch (error) {
     console.error("Failed to save attendance record:", error)
-    return NextResponse.json({ success: false, error: "Failed to save attendance record" }, { status: 500 })
+    return NextResponse.json(
+      { success: false, error: "Failed to save attendance record" },
+      { status: 500 }
+    )
   }
 }
 
 export async function PUT(request: NextRequest) {
   try {
     void request
-    return NextResponse.json({ success: false, error: "Editing attendance records is disabled." }, { status: 405 })
+    return NextResponse.json(
+      { success: false, error: "Editing attendance records is disabled." },
+      { status: 405 }
+    )
   } catch (error) {
     console.error("Failed to update attendance record:", error)
-    return NextResponse.json({ success: false, error: "Failed to update attendance record" }, { status: 500 })
+    return NextResponse.json(
+      { success: false, error: "Failed to update attendance record" },
+      { status: 500 }
+    )
   }
 }
 
 export async function DELETE(request: NextRequest) {
   try {
     const { sessionClaims, userId } = await auth()
-    const metadata = sessionClaims?.publicMetadata as ManagementAccessMetadata | undefined
+    const metadata = sessionClaims?.publicMetadata as
+      | ManagementAccessMetadata
+      | undefined
 
     if (!userId || !isAuthorized(metadata)) {
-      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 403 })
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 403 }
+      )
     }
 
     const body = await request.json()
     const attendanceId = asString(body?.attendanceId)
 
     if (!attendanceId || !ObjectId.isValid(attendanceId)) {
-      return NextResponse.json({ success: false, error: "attendanceId is required" }, { status: 400 })
+      return NextResponse.json(
+        { success: false, error: "attendanceId is required" },
+        { status: 400 }
+      )
     }
 
     const client = await clientPromise
     const db = client.db(process.env.MONGODB_DATABASE)
-    const attendanceCollection = db.collection("attendance") as Collection<AttendanceDbRecord>
+    const attendanceCollection = db.collection(
+      "attendance"
+    ) as Collection<AttendanceDbRecord>
 
-    const deleteResult = await attendanceCollection.deleteOne({ _id: new ObjectId(attendanceId) })
+    const deleteResult = await attendanceCollection.deleteOne({
+      _id: new ObjectId(attendanceId),
+    })
     if (deleteResult.deletedCount === 0) {
-      return NextResponse.json({ success: false, error: "Attendance record not found" }, { status: 404 })
+      return NextResponse.json(
+        { success: false, error: "Attendance record not found" },
+        { status: 404 }
+      )
     }
 
     return NextResponse.json({ success: true, data: { deleted: true } })
   } catch (error) {
     console.error("Failed to delete attendance record:", error)
-    return NextResponse.json({ success: false, error: "Failed to delete attendance record" }, { status: 500 })
+    return NextResponse.json(
+      { success: false, error: "Failed to delete attendance record" },
+      { status: 500 }
+    )
   }
 }

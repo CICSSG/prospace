@@ -2,14 +2,14 @@
 
 import { useUser } from "@clerk/nextjs"
 import { ReactQRCode, ReactQRCodeRef } from "@lglab/react-qr-code"
-import {
-  Sparkles,
-  UserRound,
-} from "lucide-react"
+import { Sparkles, UserRound } from "lucide-react"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { UploadImageToBlobStorage } from "@/app/(management)/admin/actions"
 
 import { cn } from "@/lib/utils"
+import { MongoUserProfile } from "../layout"
+import Link from "next/link";
+import { toast } from "sonner";
 
 type EditableUser = {
   id?: string
@@ -59,10 +59,13 @@ function getSocialLinkLabel(value: string) {
   if (host.includes("x.com") || host.includes("twitter.com")) return "X"
   if (host.includes("instagram.com")) return "Instagram"
   if (host.includes("linkedin.com")) return "LinkedIn"
-  if (host.includes("facebook.com") || host.includes("fb.com")) return "Facebook"
-  if (host.includes("youtube.com") || host.includes("youtu.be")) return "YouTube"
+  if (host.includes("facebook.com") || host.includes("fb.com"))
+    return "Facebook"
+  if (host.includes("youtube.com") || host.includes("youtu.be"))
+    return "YouTube"
   if (host.includes("tiktok.com")) return "TikTok"
-  if (host.includes("discord.com") || host.includes("discord.gg")) return "Discord"
+  if (host.includes("discord.com") || host.includes("discord.gg"))
+    return "Discord"
   if (host.includes("behance.net")) return "Behance"
   if (host.includes("dribbble.com")) return "Dribbble"
   if (host.includes("medium.com")) return "Medium"
@@ -97,7 +100,9 @@ function getSocialLinkHost(value: string) {
 function getSocialLinkHref(value: string) {
   const normalizedInput = normalizeSocialLink(value)
   if (!normalizedInput) return undefined
-  return normalizedInput.startsWith("http") ? normalizedInput : `https://${normalizedInput}`
+  return normalizedInput.startsWith("http")
+    ? normalizedInput
+    : `https://${normalizedInput}`
 }
 
 function ProfileOverviewCard({
@@ -110,7 +115,8 @@ function ProfileOverviewCard({
   qrValue,
   qrRef,
   profileImageUrl,
-  userId
+  userId,
+  showResumeBanner,
 }: {
   displayName: string
   subtitle: string
@@ -122,6 +128,7 @@ function ProfileOverviewCard({
   qrRef: React.RefObject<ReactQRCodeRef | null>
   profileImageUrl?: string
   userId?: number
+  showResumeBanner: boolean
 }) {
   const [qrOpen, setQrOpen] = useState(false)
   const description =
@@ -136,20 +143,20 @@ function ProfileOverviewCard({
         <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between xl:gap-8">
           <div className="relative shrink-0 self-start">
             <div className="absolute inset-0 -m-5 rounded-full border border-dashed border-fuchsia-300/50" />
-            <div className="absolute -right-1 top-0 h-4 w-4 rounded-full bg-fuchsia-400 shadow-[0_0_18px_rgba(255,109,183,0.8)]" />
-            <div className="absolute -left-3 bottom-2 h-4 w-4 rounded-full bg-sky-400 shadow-[0_0_18px_rgba(96,165,250,0.8)]" />
+            <div className="absolute top-0 -right-1 h-4 w-4 rounded-full bg-fuchsia-400 shadow-[0_0_18px_rgba(255,109,183,0.8)]" />
+            <div className="absolute bottom-2 -left-3 h-4 w-4 rounded-full bg-sky-400 shadow-[0_0_18px_rgba(96,165,250,0.8)]" />
             <div className="flex h-28 w-28 items-center justify-center rounded-full border border-white/15 bg-white/10 p-1 shadow-[0_0_0_1px_rgba(255,255,255,0.07),0_18px_40px_rgba(0,0,0,0.35)] backdrop-blur sm:h-32 sm:w-32">
-              <div className="flex h-full w-full items-center justify-center rounded-full bg-white text-[#120d2d] shadow-inner shadow-black/10 overflow-hidden">
-                  {profileImageUrl ? (
-                    <img
-                      src={profileImageUrl}
-                      alt={`${displayName} avatar`}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <UserRound className="size-12 sm:size-14" strokeWidth={1.8} />
-                  )}
-                </div>
+              <div className="flex h-full w-full items-center justify-center overflow-hidden rounded-full bg-white text-[#120d2d] shadow-inner shadow-black/10">
+                {profileImageUrl ? (
+                  <img
+                    src={profileImageUrl}
+                    alt={`${displayName} avatar`}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <UserRound className="size-12 sm:size-14" strokeWidth={1.8} />
+                )}
+              </div>
             </div>
           </div>
 
@@ -160,7 +167,7 @@ function ProfileOverviewCard({
             <p className="mt-3 text-lg font-light tracking-[0.12em] text-white/84 sm:text-xl">
               {subtitle}
             </p>
-            <div className="mt-4 inline-flex max-w-full items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-1.5 text-[0.68rem] uppercase tracking-[0.22em] text-white/88 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]">
+            <div className="mt-4 inline-flex max-w-full items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-1.5 text-[0.68rem] tracking-[0.22em] text-white/88 uppercase shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]">
               <Sparkles className="size-3.5 text-fuchsia-200" />
               <span className="truncate">User-{userId}</span>
             </div>
@@ -174,7 +181,8 @@ function ProfileOverviewCard({
                 if (qrValue) setQrOpen(true)
               }}
               onKeyDown={(e) => {
-                if (qrValue && (e.key === "Enter" || e.key === " ")) setQrOpen(true)
+                if (qrValue && (e.key === "Enter" || e.key === " "))
+                  setQrOpen(true)
               }}
               className={`rounded-xl border border-white/10 bg-white p-2 shadow-[0_16px_36px_rgba(0,0,0,0.22)] ${qrValue ? "cursor-pointer" : "cursor-default"}`}
             >
@@ -205,7 +213,8 @@ function ProfileOverviewCard({
                 />
               ) : (
                 <div className="flex h-fit max-w-3xs items-center justify-center p-4 text-center text-xs leading-5 text-[#241c48]">
-                  There was an error loading your data. Please proceed to the helpdesk or email us at prospace@cicssg.com.
+                  There was an error loading your data. Please proceed to the
+                  helpdesk or email us at prospace@cicssg.com.
                 </div>
               )}
             </div>
@@ -220,22 +229,26 @@ function ProfileOverviewCard({
 
         <div className="mt-8 grid gap-5 xl:grid-cols-[1.05fr_0.95fr]">
           <div className="rounded-[18px] border border-white/10 bg-white/5 px-5 py-4">
-            <p className="text-[0.68rem] uppercase tracking-[0.32em] text-white/45">
+            <p className="text-[0.68rem] tracking-[0.32em] text-white/45 uppercase">
               Email
             </p>
             <a
               href={`mailto:${email}`}
-              className="mt-3 block break-all text-base tracking-[0.18em] text-white/90 underline-offset-4 hover:underline"
+              className="mt-3 block text-base tracking-[0.18em] break-all text-white/90 underline-offset-4 hover:underline"
             >
               {email}
             </a>
 
             <div className="mt-5 grid gap-3">
               <div className="rounded-2xl border border-white/10 bg-white/4 px-4 py-3">
-                <p className="text-[0.62rem] uppercase tracking-[0.3em] text-white/45">
+                <p className="text-[0.62rem] tracking-[0.3em] text-white/45 uppercase">
                   Resume
                 </p>
-                {resumeLink ? (
+                {showResumeBanner ? (
+                  <p className="mt-2 text-sm text-white">
+                    Please update your resume in the account section.
+                  </p>
+                ) : resumeLink ? (
                   <a
                     href={resumeLink}
                     target="_blank"
@@ -252,16 +265,19 @@ function ProfileOverviewCard({
           </div>
 
           <div className="rounded-[18px] border border-white/10 bg-white/5 px-5 py-4">
-            <p className="text-[0.68rem] uppercase tracking-[0.32em] text-white/45">
+            <p className="text-[0.68rem] tracking-[0.32em] text-white/45 uppercase">
               Social Links
             </p>
             <div className="mt-4 space-y-3">
               {socialLinks.length ? (
                 socialLinks.map((item) => {
                   return (
-                    <div key={item.value} className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/4 px-4 py-3">
+                    <div
+                      key={item.value}
+                      className="flex items-start gap-3 rounded-2xl border border-white/10 bg-white/4 px-4 py-3"
+                    >
                       <div className="min-w-0">
-                        <p className="text-[0.62rem] uppercase tracking-[0.28em] text-white/45">
+                        <p className="text-[0.62rem] tracking-[0.28em] text-white/45 uppercase">
                           {getSocialLinkLabel(item.value)}
                         </p>
                         {getSocialLinkHref(item.value) ? (
@@ -283,7 +299,9 @@ function ProfileOverviewCard({
                   )
                 })
               ) : (
-                <p className="text-sm text-white/60">No social links added yet</p>
+                <p className="text-sm text-white/60">
+                  No social links added yet
+                </p>
               )}
             </div>
           </div>
@@ -298,8 +316,7 @@ function ProfileOverviewCard({
             className="relative rounded-lg bg-transparent p-6"
             onClick={(e) => e.stopPropagation()}
           >
-            
-            <div className="rounded-xl overflow-hidden bg-white">
+            <div className="overflow-hidden rounded-xl bg-white">
               {qrValue ? (
                 <ReactQRCode
                   size={360}
@@ -326,14 +343,15 @@ function ProfileOverviewCard({
                 />
               ) : (
                 <div className="flex max-w-sm items-center justify-center p-8 text-center text-sm leading-6 text-[#241c48]">
-                  There was an error loading your data. Please proceed to the helpdesk or email us at prospace@cicssg.com.
+                  There was an error loading your data. Please proceed to the
+                  helpdesk or email us at prospace@cicssg.com.
                 </div>
               )}
             </div>
             <button
               onClick={() => setQrOpen(false)}
               aria-label="Close QR"
-              className="z-10 inline-flex py-3 mt-4 w-full items-center justify-center rounded bg-white/10 text-white"
+              className="z-10 mt-4 inline-flex w-full items-center justify-center rounded bg-white/10 py-3 text-white"
             >
               Close
             </button>
@@ -348,21 +366,31 @@ function AccountPanel({
   user,
   mongoUser,
   setMongoUser,
+  showResumeBanner,
 }: {
   user?: EditableUser | null
   mongoUser?: MongoUserRecord | null
   setMongoUser?: (m: MongoUserRecord | null) => void
+  showResumeBanner: boolean
 }) {
   const [first, setFirst] = useState(user?.firstName ?? "")
   const [last, setLast] = useState(user?.lastName ?? "")
   const [shortBio, setShortBio] = useState(mongoUser?.shortBio ?? "")
   const [course, setCourse] = useState(mongoUser?.course ?? "")
-  const [resumeLink, setResumeLink] = useState<string | undefined>(mongoUser?.portfolioLink ?? undefined)
-  const [resumeFileName, setResumeFileName] = useState<string | undefined>(undefined)
-  const [resumeDataUrl, setResumeDataUrl] = useState<string | undefined>(undefined)
+  const [resumeLink, setResumeLink] = useState<string | undefined>(
+    mongoUser?.portfolioLink ?? undefined
+  )
+  const [resumeFileName, setResumeFileName] = useState<string | undefined>(
+    undefined
+  )
+  const [resumeDataUrl, setResumeDataUrl] = useState<string | undefined>(
+    undefined
+  )
   const [isUploadingResume, setIsUploadingResume] = useState(false)
   const portfolioInputRef = useRef<HTMLInputElement | null>(null)
-  const [socialLinks, setSocialLinks] = useState<string[]>(() => mongoUser?.socialLinks ?? [])
+  const [socialLinks, setSocialLinks] = useState<string[]>(
+    () => mongoUser?.socialLinks ?? []
+  )
 
   const [saving, setSaving] = useState(false)
 
@@ -374,7 +402,9 @@ function AccountPanel({
       const fileSizeInMB = (file.size / (1024 * 1024)).toFixed(2)
       // mimic signup behavior: clear input and show error via basic alert
       if (portfolioInputRef.current) portfolioInputRef.current.value = ""
-      alert(`File size (${fileSizeInMB}MB) exceeds the maximum allowed size of 4.5MB`)
+      alert(
+        `File size (${fileSizeInMB}MB) exceeds the maximum allowed size of 4.5MB`
+      )
       return
     }
 
@@ -410,7 +440,9 @@ function AccountPanel({
   }
 
   function updateSocialLink(index: number, val: string) {
-    setSocialLinks((s) => s.map((item, i) => (i === index ? normalizeSocialLink(val) : item)))
+    setSocialLinks((s) =>
+      s.map((item, i) => (i === index ? normalizeSocialLink(val) : item))
+    )
   }
 
   function removeSocialLink(index: number) {
@@ -437,7 +469,11 @@ function AccountPanel({
           course: course || undefined,
           portfolioLink: resumeDataUrl ?? resumeLink ?? undefined,
           socialLinks: socialLinks.map(normalizeSocialLink).filter(Boolean),
-          resumeUpdate: resumeLink ? true : mongoUser?.resumeUpdate === true ? true : undefined, // if a resume link exists, set resumeUpdate to true. If not, keep existing value or undefined
+          resumeUpdate: resumeLink
+            ? true
+            : mongoUser?.resumeUpdate === true
+              ? true
+              : undefined, // if a resume link exists, set resumeUpdate to true. If not, keep existing value or undefined
         },
       }
 
@@ -451,10 +487,14 @@ function AccountPanel({
       const data = responseText ? JSON.parse(responseText) : null
 
       if (!res.ok) {
-        throw new Error(data?.message || `Failed to update user (${res.status})`)
+        toast.error(data?.message || `Failed to update profile (${res.status})`)
+        throw new Error(
+          data?.message || `Failed to update user (${res.status})`
+        )
       }
 
       if (data?.success) {
+        toast.success("Profile updated successfully!")
         const updatedProfile = {
           ...(mongoUser ?? {}),
           firstName: first,
@@ -467,12 +507,15 @@ function AccountPanel({
         } as MongoUserRecord
 
         setMongoUser?.(
-          ((data?.data as MongoUserRecord | null) ?? updatedProfile) as MongoUserRecord
+          ((data?.data as MongoUserRecord | null) ??
+            updatedProfile) as MongoUserRecord
         )
       } else {
+        toast.error(data?.message || "Failed to update profile")
         console.error("Failed to update user", data)
       }
     } catch (err) {
+      toast.error(err instanceof Error ? err.message : "An error occurred")
       console.error(err)
     } finally {
       setSaving(false)
@@ -519,7 +562,9 @@ function AccountPanel({
       </div>
 
       <div>
-        <label className="block text-sm text-white/80">Resume (4.5mb max)</label>
+        <label className="block text-sm text-white/80">
+          Resume (4.5mb max)
+        </label>
         <div className="mt-2 flex items-center gap-3">
           <label className="cursor-pointer rounded-md border border-white/10 bg-white/6 px-3 py-2 text-sm">
             {isUploadingResume ? "Uploading..." : "Upload file"}
@@ -532,10 +577,17 @@ function AccountPanel({
               className="hidden"
             />
           </label>
-          {resumeFileName ? (
+          {showResumeBanner ? (
+            <div className="text-sm text-white/80">Please update your resume.</div>
+          ) : resumeFileName ? (
             <div className="text-sm text-white/80">{resumeFileName}</div>
           ) : resumeLink ? (
-            <a href={resumeLink} target="_blank" rel="noreferrer" className="text-sm underline text-white/88">
+            <a
+              href={resumeLink}
+              target="_blank"
+              rel="noreferrer"
+              className="text-sm text-white/88 underline"
+            >
               View current resume
             </a>
           ) : (
@@ -565,7 +617,10 @@ function AccountPanel({
           ))}
 
           <div>
-            <button onClick={addSocialLink} className="rounded-md border border-white/10 bg-white/6 px-3 py-2 text-sm">
+            <button
+              onClick={addSocialLink}
+              className="rounded-md border border-white/10 bg-white/6 px-3 py-2 text-sm"
+            >
               Add link
             </button>
           </div>
@@ -578,7 +633,11 @@ function AccountPanel({
           disabled={saving || isUploadingResume}
           className="rounded-md border border-white/10 bg-white/6 px-3 py-2 text-sm"
         >
-          {saving ? "Saving..." : isUploadingResume ? "Wait for upload..." : "Save"}
+          {saving
+            ? "Saving..."
+            : isUploadingResume
+              ? "Wait for upload..."
+              : "Save"}
         </button>
       </div>
     </div>
@@ -621,6 +680,47 @@ export default function Profile() {
         typeof window !== "undefined" ? window.location.hash : ""
       ) || "profile"
   )
+  const [showResumeBanner, setShowResumeBanner] = useState(false)
+
+  useEffect(() => {
+    let isMounted = true
+
+    const loadUserProfile = async () => {
+      if (!user?.id) {
+        if (isMounted) setShowResumeBanner(false)
+        return
+      }
+
+      try {
+        const response = await fetch(
+          `/api/getUserInCollection?user_id=${encodeURIComponent(user.id)}`
+        )
+        const payload = await response.json()
+        const mongoUser = (
+          payload?.success ? payload.data : null
+        ) as MongoUserProfile | null
+
+        if (!isMounted) return
+
+        const hasPortfolioLink = Boolean(
+          mongoUser?.portfolioLink && String(mongoUser.portfolioLink).trim()
+        )
+        const shouldPromptResumeUpdate = mongoUser?.resumeUpdate !== true
+
+        const shouldShow = hasPortfolioLink && shouldPromptResumeUpdate
+        setShowResumeBanner(shouldShow)
+      } catch (error) {
+        console.error("Failed to load user profile for resume reminder:", error)
+        if (isMounted) setShowResumeBanner(false)
+      }
+    }
+
+    loadUserProfile()
+
+    return () => {
+      isMounted = false
+    }
+  }, [user?.id, mongoUser])
 
   useEffect(() => {
     const onHash = () =>
@@ -680,11 +780,17 @@ export default function Profile() {
     user?.emailAddresses?.[0]?.emailAddress ??
     "No email on file"
 
-  const profileMetadata = (user?.publicMetadata ?? {}) as Record<string, unknown>
+  const profileMetadata = (user?.publicMetadata ?? {}) as Record<
+    string,
+    unknown
+  >
   const profileImageUrl = user?.imageUrl as string | undefined
 
   const displayName =
-    [mongoUser?.firstName ?? user?.firstName, mongoUser?.lastName ?? user?.lastName]
+    [
+      mongoUser?.firstName ?? user?.firstName,
+      mongoUser?.lastName ?? user?.lastName,
+    ]
       .filter(Boolean)
       .join(" ") ||
     user?.primaryEmailAddress?.emailAddress ||
@@ -699,7 +805,7 @@ export default function Profile() {
   const badgeText =
     mongoUser?.userId != null
       ? `User ID ${mongoUser.userId}`
-      : (profileMetadata.role as string | undefined) ?? "Member"
+      : ((profileMetadata.role as string | undefined) ?? "Member")
 
   const socialLinks: SocialLink[] = (() => {
     const links: SocialLink[] = []
@@ -721,12 +827,12 @@ export default function Profile() {
     profileTabs.find((tab) => tab.value === activeTab) ?? profileTabs[0]
 
   return (
-    <div className="mt-30 relative z-10 min-h-screen w-full overflow-hidden px-3 py-3 text-white sm:px-4 sm:py-4 lg:px-6 lg:py-5">
+    <div className="relative z-10 mt-30 min-h-screen w-full overflow-hidden px-3 py-3 text-white sm:px-4 sm:py-4 lg:px-6 lg:py-5">
       <div className="relative mx-auto w-full max-w-350">
         <div className="grid gap-4 lg:grid-cols-[180px_minmax(0,1fr)] lg:gap-5">
           <aside className="flex h-fit flex-col rounded-[18px] border border-white/20 bg-[linear-gradient(180deg,rgba(10,12,34,0.94),rgba(20,19,48,0.86))] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
             <div>
-              <div className="pb-2 text-[0.68rem] uppercase tracking-[0.32em] text-white/70">
+              <div className="pb-2 text-[0.68rem] tracking-[0.32em] text-white/70 uppercase">
                 Account
               </div>
               <div className="h-px w-full bg-white/30" />
@@ -742,7 +848,9 @@ export default function Profile() {
                     onClick={() => setActiveTab(tab.value)}
                     className={cn(
                       "block rounded-md py-1 transition-colors",
-                      active ? "font-semibold text-white" : "text-white/86 hover:text-white"
+                      active
+                        ? "font-semibold text-white"
+                        : "text-white/86 hover:text-white"
                     )}
                   >
                     {tab.label}
@@ -767,17 +875,24 @@ export default function Profile() {
                   qrRef={qrRef}
                   profileImageUrl={profileImageUrl}
                   userId={mongoUser?.userId}
+                  showResumeBanner={showResumeBanner}
                 />
               )}
 
               {currentTab.value === "account" && (
                 <div className="rounded-[18px] border border-white/15 bg-[linear-gradient(180deg,rgba(13,14,42,0.95),rgba(62,44,122,0.56))] p-5 shadow-[0_24px_60px_rgba(0,0,0,0.28)] sm:p-7">
                   <div className="rounded-[18px] border border-white/10 bg-white/5 px-5 py-4">
-                    <p className="text-[0.68rem] uppercase tracking-[0.32em] text-white/45">
+                    <p className="text-[0.68rem] tracking-[0.32em] text-white/45 uppercase">
                       Account Details
                     </p>
                     <div className="mt-4">
-                      <AccountPanel key={`account-${mongoUser?._id ?? user?.id ?? "default"}-${mongoUser?.updatedAt ?? "initial"}`} user={user} mongoUser={mongoUser} setMongoUser={setMongoUser} />
+                      <AccountPanel
+                        key={`account-${mongoUser?._id ?? user?.id ?? "default"}-${mongoUser?.updatedAt ?? "initial"}`}
+                        user={user}
+                        mongoUser={mongoUser}
+                        setMongoUser={setMongoUser}
+                        showResumeBanner={showResumeBanner}
+                      />
                     </div>
                   </div>
                 </div>

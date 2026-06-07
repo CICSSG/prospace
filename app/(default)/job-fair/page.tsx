@@ -225,9 +225,9 @@ const JobFair = () => {
                 alt={partner.name}
                 width={100}
                 height={100}
-                className="h-16 w-16 rounded-md object-contain"
+                className="h-16 w-16 rounded-md object-contain outline"
               />
-              <div className="flex w-full flex-col gap-2">
+              <div className="flex w-full flex-col justify-center gap-2">
                 <p className="text-sm font-medium">{partner.name}</p>
                 <p className="text-xs text-white/80">{partner.description}</p>
                 {partner.link && (

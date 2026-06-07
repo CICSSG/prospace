@@ -42,6 +42,7 @@ export async function PUT(req: Request) {
             course: update.course ?? null,
             portfolioLink: update.portfolioLink ?? null,
             socialLinks: Array.isArray(update.socialLinks) ? update.socialLinks : [],
+            resumeUpdate: update.resumeUpdate ?? null,
             updatedAt: new Date().toISOString(),
           },
         },

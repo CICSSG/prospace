@@ -79,7 +79,7 @@ export default function RootLayout({
       <div className="flex min-h-screen w-full flex-col items-center">
         {showResumeBanner && pathname !== "/profile" ? (
             <div className="fixed top-0 left-0 z-1000 flex w-full flex-wrap items-center justify-center gap-3 bg-[#2c1a57]/90 h-screen px-4 py-2 text-center font-medium tracking-[0.08em] text-white/95">
-              <div className="flex flex-row flex-wrap justify-center items-center gap-2">
+              <div className="flex flex-col flex-wrap justify-center items-center gap-2">
                 <span>Attention: Please update your resume.</span>
                 <div className="flex flex-row flex-wrap items-center gap-2">
                   <Link
@@ -89,6 +89,9 @@ export default function RootLayout({
                     Go to Profile
                   </Link>
                 </div>
+                <p className="text-sm text-white/80 max-w-sm">
+                  If you have already updated your resume and are still seeing this message, kindly refresh the page. If the issue persists, please contact us at prospace@cicssg.com.
+                </p>
               </div>
             </div>
           ) : null}

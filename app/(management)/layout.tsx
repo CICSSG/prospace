@@ -23,6 +23,7 @@ export default function RootLayout({
         role?: "user" | "admin" | null
         adminRole?: "superadmin" | "admin" | null
         pageAccess?: PageAccess | null
+        assignedCompany?: string | null
       }
     | undefined
 
@@ -34,9 +35,9 @@ export default function RootLayout({
       return
     }
 
-    const canAccessCurrentPage = canAccessManagementPath(pathname, pageAccess, adminRole)
+    const canAccessCurrentPage = canAccessManagementPath(pathname, pageAccess, adminRole, metadata?.assignedCompany)
     if (!canAccessCurrentPage) {
-      router.replace(getDefaultManagementRoute(pageAccess, adminRole))
+      router.replace(getDefaultManagementRoute(pageAccess, adminRole, metadata?.assignedCompany))
     }
   }, [adminRole, pageAccess, pathname, router, user])
 

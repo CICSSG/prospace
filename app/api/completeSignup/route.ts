@@ -59,6 +59,7 @@ export async function POST(req: Request) {
       socialLinks: socialLinks || [],
       portfolioLink: portfolioLink || "",
       resumeUpdate: true,
+      showResumeInConnect: true,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     }).catch((error) => {

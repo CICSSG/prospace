@@ -19,6 +19,7 @@ type UserOverlayData = {
   companyEmail?: string
   website?: string
   linkedin?: string
+  showResumeInConnect?: boolean
 }
 
 type ConnectUserOverlayProps = {
@@ -149,12 +150,18 @@ export default function ConnectUserOverlay({
               ) : null}
 
               {user.portfolioLink ? (
-                <div className="flex items-center gap-3">
-                  <LinkIcon size={18} />
-                  <a href={user.portfolioLink} target="_blank" rel="noreferrer" className="underline">
-                    Resume
-                  </a>
-                </div>
+                user.showResumeInConnect === false ? (
+                  <p className="text-sm text-white/60">
+                    This user has hidden their resume from other users.
+                  </p>
+                ) : (
+                  <div className="flex items-center gap-3">
+                    <LinkIcon size={18} />
+                    <a href={user.portfolioLink} target="_blank" rel="noreferrer" className="underline">
+                      Resume
+                    </a>
+                  </div>
+                )
               ) : null}
             </div>
           </div>

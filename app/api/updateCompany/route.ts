@@ -1,9 +1,20 @@
+import { auth } from "@clerk/nextjs/server"
 import clientPromise from "@/lib/mongodb"
 import { ObjectId } from "mongodb"
 import { ensureCompanyModeratorAccounts, normalizeEmailList, removeCompanyModeratorAccounts } from "../company-users"
 
 export async function PUT(req: Request) {
   try {
+    const { sessionClaims, userId } = await auth()
+    const metadata = sessionClaims?.publicMetadata as
+      | {
+          role?: "user" | "admin" | null
+          adminRole?: "superadmin" | "admin" | null
+          assignedCompany?: string | null
+          isAdmin?: boolean
+        }
+      | undefined
+
     const {
       id,
       imageUrl,
@@ -22,14 +33,32 @@ export async function PUT(req: Request) {
       )
     }
 
+    if (!userId || !Boolean(metadata?.isAdmin)) {
+      return new Response(
+        JSON.stringify({ success: false, message: "Unauthorized" }),
+        { status: 403 }
+      )
+    }
+
     const client = await clientPromise
     const db = client.db(process.env.MONGODB_DATABASE)
     const companiesCollection = db.collection("companies")
 
-    const companyId = new ObjectId(id).toString()
+    const companyObjectId = new ObjectId(id)
+    const companyId = companyObjectId.toString()
+
+    if (metadata?.adminRole !== "superadmin") {
+      const assignedCompany = String(metadata?.assignedCompany || "").trim()
+      if (!assignedCompany || assignedCompany !== companyId) {
+        return new Response(
+          JSON.stringify({ success: false, message: "You can only update your assigned company" }),
+          { status: 403 }
+        )
+      }
+    }
 
     // Fetch old company to detect removed moderator emails
-    const oldCompany = await companiesCollection.findOne({ _id: new ObjectId(id) })
+    const oldCompany = await companiesCollection.findOne({ _id: companyObjectId })
     const oldModeratorEmails = normalizeEmailList(oldCompany?.moderatorEmails || [])
 
     const newModeratorEmails = Array.isArray(moderatorEmails)
@@ -44,7 +73,7 @@ export async function PUT(req: Request) {
     )
 
     await companiesCollection.updateOne(
-      { _id: new ObjectId(id) },
+      { _id: companyObjectId },
       {
         $set: {
           imageUrl,

@@ -76,6 +76,7 @@ const MissionsPage = () => {
   const [missions, setMissions] = useState<Mission[]>([])
   const [openGroups, setOpenGroups] = useState<string[]>([])
   const [completedMissionIds, setCompletedMissionIds] = useState<string[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
   const missionGroups = useMemo(() => {
     const groups = new Map<string, Mission[]>()
@@ -99,6 +100,10 @@ const MissionsPage = () => {
     let isMounted = true
 
     const loadMissions = async () => {
+      if (isMounted) {
+        setIsLoading(true)
+      }
+
       try {
         const [missionsRes, categoriesRes, completionsRes, userRes] = await Promise.all([
           getCollectionData("missions"),
@@ -157,6 +162,10 @@ const MissionsPage = () => {
           setMissions([])
           setCompletedMissionIds([])
           setOpenGroups([])
+        }
+      } finally {
+        if (isMounted) {
+          setIsLoading(false)
         }
       }
     }
@@ -227,22 +236,31 @@ const MissionsPage = () => {
         <div className="flex w-full flex-col gap-2">
           <div className={`flex flex-row justify-between text-sm uppercase tracking-[0.2em] text-white/70 ${sora.className}`}>
             <p>Overall Progress</p>
-            <p>
-              {completedMissions}/{totalMissions} Completed
-            </p>
+            {isLoading ? (
+              <p className="animate-pulse text-white/45">Loading missions...</p>
+            ) : (
+              <p>
+                {completedMissions}/{totalMissions} Completed
+              </p>
+            )}
           </div>
           <div className="relative h-2 w-full overflow-hidden rounded-full bg-white/10 ring-1 ring-white/10">
             <motion.div
               className="absolute left-0 top-0 h-full rounded-full bg-linear-to-r from-[#6F52FF] via-[#8B5CF6] to-[#C084FC] shadow-[0_0_24px_rgba(123,77,255,0.55)]"
               initial={{ width: 0 }}
-              animate={{ width: `${progressPercent}%` }}
+              animate={{ width: isLoading ? "22%" : `${progressPercent}%` }}
               transition={{ duration: 1.2, ease: 'easeOut' }}
             />
           </div>
         </div>
 
         <div className="flex w-full flex-col gap-4">
-          {(missionGroupStats as Array<MissionGroup & { completed: number; total: number; progressPercent: number }>).map((group) => {
+          {isLoading ? (
+            <div className="rounded-2xl border border-white/15 bg-linear-to-r from-primary/20 to-[#0d0b29] px-5 py-6 text-white/60">
+              Loading missions...
+            </div>
+          ) : (
+            (missionGroupStats as Array<MissionGroup & { completed: number; total: number; progressPercent: number }>).map((group) => {
             const isOpen = openGroups.includes(group.group)
 
             return (
@@ -338,7 +356,7 @@ const MissionsPage = () => {
                 ) : null}
               </div>
             )
-          })}
+          }))}
         </div>
       </div>
     </div>

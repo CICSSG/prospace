@@ -1,7 +1,7 @@
 import { clerkClient } from "@clerk/nextjs/server"
 import { NextResponse } from "next/server"
 import clientPromise from "@/lib/mongodb"
-import { hasAnyManagementPageAccess, type PageAccess } from "@/lib/management-access"
+import { buildExplicitPageAccess, hasAnyManagementPageAccess, type PageAccess } from "@/lib/management-access"
 
 export async function POST(req: Request) {
   const client = await clerkClient()
@@ -11,7 +11,7 @@ export async function POST(req: Request) {
   const role = request.role === "admin" ? "admin" : "user"
   const adminRole = request.adminRole || null
   const isAdmin = role === "admin"
-  const pageAccess = role === "admin" ? request.pageAccess || null : null
+  const pageAccess = role === "admin" ? buildExplicitPageAccess(request.pageAccess || null) : null
 
   if (role === "admin" && !hasAnyManagementPageAccess(pageAccess as PageAccess | undefined)) {
     return NextResponse.json(
@@ -53,6 +53,7 @@ export async function POST(req: Request) {
     course,
     shortBio,
     resumeLink,
+    showResumeInConnect: true,
     role,
     adminRole,
     isAdmin,

@@ -23,6 +23,29 @@ export type ManagementAccessMetadata = {
   adminRole?: "superadmin" | "admin" | null
   pageAccess?: PageAccess | null
   isAdmin?: boolean
+  assignedCompany?: string | null
+}
+
+export function buildExplicitPageAccess(pageAccess: PageAccess | null | undefined): PageAccess {
+  return managementPageSections.reduce((acc, section) => {
+    const sectionAccess = pageAccess?.[section.key] || {}
+
+    acc[section.key] = section.items.reduce((sectionMap, page) => {
+      const permission = page.accessKeys
+        .map((key) => sectionAccess[key])
+        .find((value) => value === "view" || value === "edit")
+
+      const normalizedPermission = (permission || false) as PagePermission | boolean
+
+      page.accessKeys.forEach((key) => {
+        sectionMap[key] = normalizedPermission
+      })
+
+      return sectionMap
+    }, {} as PageAccessSection)
+
+    return acc
+  }, {} as PageAccess)
 }
 
 export const managementPageSections: Array<{
@@ -89,7 +112,7 @@ export const managementPageSections: Array<{
         accessKeys: ["/users", "users"],
         section: "manage",
         iconKey: "users",
-      },
+      }
     ],
   },
   {
@@ -111,7 +134,7 @@ export const managementPageSections: Array<{
         accessKeys: ["/data/missions", "data/missions"],
         section: "data",
         iconKey: "target",
-      },
+      }
     ],
   },
   {
@@ -154,15 +177,30 @@ export function getManagementPageAccessState(
   const adminRole = metadata?.adminRole
   const pageAccess = metadata?.pageAccess
 
-  if (adminRole === "superadmin" || !pageAccess?.[section]) {
+  if (adminRole === "superadmin") {
     return {
       canView: true,
       canEdit: true,
     }
   }
 
+  if (section === "company" && adminRole === "admin" && String(metadata?.assignedCompany || "").trim()) {
+    return {
+      canView: true,
+      canEdit: true,
+    }
+  }
+
+  const sectionAccess = pageAccess?.[section]
+  if (!sectionAccess) {
+    return {
+      canView: false,
+      canEdit: false,
+    }
+  }
+
   const permission = pageKeys
-    .map((key) => pageAccess[section]?.[key])
+    .map((key) => sectionAccess[key])
     .find((value) => value === "view" || value === "edit") as
     | PagePermission
     | undefined
@@ -196,6 +234,17 @@ export function hasPagePermission(
   return allowedValues.includes(permission as "view" | "edit")
 }
 
+function hasCompanyCheckInsFallback(access: PageAccessSection | undefined) {
+  return false
+}
+
+function hasCompanyCheckInsAccess(access: PageAccessSection | undefined) {
+  return (
+    hasPagePermission(access, ["/company/check-ins", "company/check-ins"]) ||
+    hasCompanyCheckInsFallback(access)
+  )
+}
+
 export function getPageDefinition(pathname: string) {
   return managementPageSections
     .flatMap((section) => section.items)
@@ -205,7 +254,8 @@ export function getPageDefinition(pathname: string) {
 export function canAccessManagementPath(
   pathname: string,
   pageAccess: PageAccess | undefined,
-  adminRole: "superadmin" | "admin" | null | undefined
+  adminRole: "superadmin" | "admin" | null | undefined,
+  assignedCompany?: string | null
 ) {
   const page = getPageDefinition(pathname)
 
@@ -217,9 +267,21 @@ export function canAccessManagementPath(
     return true
   }
 
+  if (pathname.startsWith("/company/") && adminRole === "admin" && String(assignedCompany || "").trim()) {
+    return true
+  }
+
+  if (pathname.startsWith("/company/") && !String(assignedCompany || "").trim()) {
+    return false
+  }
+
   const sectionAccess = pageAccess?.[page.section]
   if (!sectionAccess) {
-    return true
+    return false
+  }
+
+  if (pathname === "/company/check-ins") {
+    return hasCompanyCheckInsAccess(sectionAccess)
   }
 
   return hasPagePermission(sectionAccess, page.accessKeys)
@@ -227,7 +289,8 @@ export function canAccessManagementPath(
 
 export function getDefaultManagementRoute(
   pageAccess: PageAccess | undefined,
-  adminRole: "superadmin" | "admin" | null | undefined
+  adminRole: "superadmin" | "admin" | null | undefined,
+  assignedCompany?: string | null
 ) {
   const visibleSections = managementPageSections
 
@@ -236,10 +299,12 @@ export function getDefaultManagementRoute(
       return section.items[0]?.url ?? "/"
     }
 
-    const sectionAccess = pageAccess?.[section.key]
-    if (!sectionAccess) {
+    if (section.key === "company" && adminRole === "admin" && String(assignedCompany || "").trim()) {
       return section.items[0]?.url ?? "/"
     }
+
+    const sectionAccess = pageAccess?.[section.key]
+    if (!sectionAccess) continue
 
     const firstAllowedPage = section.items.find((page) =>
       hasPagePermission(sectionAccess, page.accessKeys)
@@ -260,10 +325,12 @@ export function getVisibleManagementSections(
     .map((section) => {
       const sectionAccess = pageAccess?.[section.key]
       const items =
-        adminRole === "superadmin" || !sectionAccess
+        adminRole === "superadmin"
           ? section.items
           : section.items.filter((page) =>
-              hasPagePermission(sectionAccess, page.accessKeys)
+              page.url === "/company/check-ins"
+                ? hasCompanyCheckInsAccess(sectionAccess)
+                : hasPagePermission(sectionAccess, page.accessKeys)
             )
 
       return {

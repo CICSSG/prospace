@@ -97,7 +97,7 @@ export default function ConnectUserOverlay({
 
           <p className="text-sm leading-6 text-white/85">
             {user.shortBio ||
-              "No bio provided yet. Add a short introduction to help others get to know you."}
+              "This user has not provided a bio. If you know this person, encourage them to add a short bio to their profile!"}
           </p>
         </div>
 

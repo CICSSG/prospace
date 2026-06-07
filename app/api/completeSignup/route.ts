@@ -58,6 +58,7 @@ export async function POST(req: Request) {
       shortBio: shortBio || "",
       socialLinks: socialLinks || [],
       portfolioLink: portfolioLink || "",
+      resumeUpdate: true,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     }).catch((error) => {

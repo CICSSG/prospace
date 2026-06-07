@@ -266,7 +266,7 @@ export default function Connect() {
 
         <section className="w-full rounded-[30px] border border-white/10 bg-[linear-gradient(180deg,rgba(10,12,33,0.72),rgba(83,56,156,0.26))] px-4 py-4 shadow-[0_24px_70px_rgba(0,0,0,0.32)] backdrop-blur-md lg:px-6 lg:py-6">
           <div className="mb-5 flex justify-center">
-            <div className="inline-flex rounded-lg border border-white/20 bg-black/10 p-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
+            <div className="inline-flex gap-2 rounded-lg border border-white/20 bg-black/10 p-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
               <button className={tabButtonClass("user")} onClick={() => setActiveTab("user")}>
                 <Users2 className="mr-2 inline-block size-4" />
                 Users

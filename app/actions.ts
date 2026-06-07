@@ -128,7 +128,7 @@ export async function getConnections(user_id: string) {
 
     return {
       success: true,
-      data: responseData.data || [],
+      data: responseData.data || { connections: [], pendingConnections: [] },
     }
   } catch (error) {
     console.error("Error fetching connections:", error)

@@ -13,7 +13,7 @@ import {
 import { Plus, RefreshCw, PencilLine, Trash2, Shield, Users2 } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
 import { toast } from "sonner"
-import { getCollectionData } from "../actions"
+import { getCollectionData, scanClerkUsersToMongo } from "../actions"
 import UserFormDialog from "./user-form-dialog"
 import DeleteUserDialog from "./delete-user-dialog"
 import { User } from "./types"
@@ -204,6 +204,32 @@ export default function UsersList() {
             className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm hover:bg-muted"
           >
             <RefreshCw size={16} /> Refresh
+          </button>
+          <button
+            type="button"
+            onClick={async () => {
+              if (!canEditUsersPage) return
+              toast.promise(
+                (async () => {
+                  const res = await scanClerkUsersToMongo()
+                  if (res.success) {
+                    await getData()
+                    return `Scanned ${res.totalScanned}, added ${res.totalAdded}`
+                  }
+                  throw new Error(res.error || "Scan failed")
+                })(),
+                {
+                  loading: "Scanning Clerk users...",
+                  success: (msg) => String(msg),
+                  error: (err) => String(err),
+                }
+              )
+            }}
+            disabled={!canEditUsersPage}
+            className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Scan Clerk users and insert missing Mongo records"
+          >
+            <Users2 size={16} /> Scan Clerk Users
           </button>
         </div>
       </div>

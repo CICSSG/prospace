@@ -7,7 +7,7 @@ const isTestingRoutes = createRouteMatcher(["/testing(.*)"])
 const isAdminRoutes = createRouteMatcher(["/admin(.*)"])
 const isManagementRoutes = createRouteMatcher(["/admin(.*)", "/data(.*)"])
 const isLogoLoopUploadRoute = createRouteMatcher(["/api/logo-loop/upload(.*)"])
-const isLoggedInRoute = createRouteMatcher(["/connect(.*)", "/profile(.*)"])
+const isLoggedInRoute = createRouteMatcher(["/connect(.*)", "/profile(.*)", "/missions(.*)"])
 const isSignupRoute = createRouteMatcher(["/signup(.*)"])
 const isAdminRoute = createRouteMatcher(["/admin(.*)"])
 const isDataRoute = createRouteMatcher(["/data(.*)"])
@@ -74,7 +74,10 @@ export default clerkMiddleware(async (auth, req) => {
 
   if (isLoggedInRoute(req)) {
     if (!isAuthenticated) {
-      return NextResponse.redirect(new URL("/", req.url))
+      const redirectUrl = `${req.nextUrl.pathname}${req.nextUrl.search}`
+      return NextResponse.redirect(
+        new URL(`/signin?redirect_url=${encodeURIComponent(redirectUrl)}`, req.url)
+      )
     }
   }
 

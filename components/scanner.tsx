@@ -5,7 +5,7 @@ import { Scanner } from "@yudiel/react-qr-scanner"
 import { QrCode } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
-import { sora } from "./prospace/fonts";
+import { sora } from "./prospace/fonts"
 
 const scannerConstraints: MediaTrackConstraints = {
   facingMode: { ideal: "environment" },
@@ -126,7 +126,12 @@ export default function ScannerComponent() {
             <div>
               {link ? (
                 <div className="flex flex-col items-center gap-1">
-                  <div className="overflow-hidden rounded-xl mb-5">
+                  <p className="mb-5 max-w-sm text-center text-xs text-white/80">
+                    Disclaimer: By showing this QR code, you consent to the
+                    collection of your personal data strictly for job fair
+                    purposes in compliance with the Data Privacy Act of 2012
+                  </p>
+                  <div className="mb-5 overflow-hidden rounded-xl">
                     <ReactQRCode
                       size={380}
                       marginSize={2}
@@ -157,16 +162,24 @@ export default function ScannerComponent() {
                       value={link}
                     />
                   </div>
-                  <p className={`text-center text-white/80 ${sora.className} tracking-[0.3rem]`}>
+                  <p
+                    className={`text-center text-white/80 ${sora.className} tracking-[0.3rem]`}
+                  >
                     {user?.fullName ?? "Your QR Code"}
                   </p>
-                  <p className={`text-center text-white/80 ${sora.className} tracking-[0.3rem]`}>
+                  <p
+                    className={`text-center text-white/80 ${sora.className} tracking-[0.3rem]`}
+                  >
                     {mongoUserId}
                   </p>
                 </div>
-              ) : (
+              ) : mongoUserId ? (
                 <div className="max-w-sm rounded-2xl border border-white/10 bg-black/40 px-5 py-4 text-center text-sm text-white/80 shadow-2xl backdrop-blur-sm">
                   Loading your QR code...
+                </div>
+              ) : (
+                <div className="max-w-sm rounded-2xl border border-white/10 bg-black/40 px-5 py-4 text-center text-sm text-white/80 shadow-2xl backdrop-blur-sm">
+                  There was an error generating your QR code. Please proceed to the helpdesk or email us at prospace@cicssg.com.
                 </div>
               )}
             </div>

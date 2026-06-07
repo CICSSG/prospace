@@ -367,11 +367,13 @@ function AccountPanel({
   mongoUser,
   setMongoUser,
   showResumeBanner,
+  profileImageUrl,
 }: {
   user?: EditableUser | null
   mongoUser?: MongoUserRecord | null
   setMongoUser?: (m: MongoUserRecord | null) => void
   showResumeBanner: boolean
+  profileImageUrl?: string
 }) {
   const [first, setFirst] = useState(user?.firstName ?? "")
   const [last, setLast] = useState(user?.lastName ?? "")
@@ -387,7 +389,10 @@ function AccountPanel({
     undefined
   )
   const [isUploadingResume, setIsUploadingResume] = useState(false)
+  const [isUploadingProfileImage, setIsUploadingProfileImage] = useState(false)
+  const [profileImageFileName, setProfileImageFileName] = useState<string | undefined>(undefined)
   const portfolioInputRef = useRef<HTMLInputElement | null>(null)
+  const profileImageInputRef = useRef<HTMLInputElement | null>(null)
   const [socialLinks, setSocialLinks] = useState<string[]>(
     () => mongoUser?.socialLinks ?? []
   )
@@ -432,6 +437,48 @@ function AccountPanel({
       alert(err instanceof Error ? err.message : "Upload failed")
     } finally {
       setIsUploadingResume(false)
+    }
+  }
+
+  async function onSelectProfileImage(file?: File) {
+    if (!file) return
+
+    const maxSizeInBytes = 5 * 1024 * 1024
+    if (file.size > maxSizeInBytes) {
+      const fileSizeInMB = (file.size / (1024 * 1024)).toFixed(2)
+      if (profileImageInputRef.current) profileImageInputRef.current.value = ""
+      alert(`File size (${fileSizeInMB}MB) exceeds the maximum allowed size of 5MB`)
+      return
+    }
+
+    setIsUploadingProfileImage(true)
+    setProfileImageFileName(file.name)
+
+    try {
+      const formData = new FormData()
+      formData.append("file", file)
+
+      const response = await fetch("/api/updateUserProfileImage", {
+        method: "POST",
+        body: formData,
+      })
+
+      const responseText = await response.text()
+      const data = responseText ? JSON.parse(responseText) : null
+
+      if (!response.ok) {
+        throw new Error(data?.message || `Failed to update profile image (${response.status})`)
+      }
+
+      toast.success("Profile picture updated successfully")
+      setProfileImageFileName(undefined)
+      if (profileImageInputRef.current) profileImageInputRef.current.value = ""
+      window.location.reload()
+    } catch (error) {
+      console.error("Error uploading profile image:", error)
+      toast.error(error instanceof Error ? error.message : "Failed to update profile image")
+    } finally {
+      setIsUploadingProfileImage(false)
     }
   }
 
@@ -524,6 +571,45 @@ function AccountPanel({
 
   return (
     <div className="space-y-4">
+      <div className="rounded-[18px] border border-white/10 bg-white/5 px-5 py-4">
+        <p className="text-[0.68rem] tracking-[0.32em] text-white/45 uppercase">
+          Profile Picture
+        </p>
+        <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center">
+          <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border border-white/15 bg-white/10 text-[#120d2d] shadow-[0_16px_32px_rgba(0,0,0,0.22)]">
+            {profileImageUrl ? (
+              <img
+                src={profileImageUrl}
+                alt="Current profile picture"
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <UserRound className="size-10" strokeWidth={1.8} />
+            )}
+          </div>
+
+          <div className="min-w-0 flex-1">
+            <label className="inline-flex cursor-pointer rounded-md border border-white/10 bg-white/6 px-3 py-2 text-sm text-white transition hover:bg-white/10">
+              {isUploadingProfileImage ? "Updating..." : "Upload new picture"}
+              <input
+                ref={profileImageInputRef}
+                type="file"
+                accept="image/*"
+                onChange={(e) => onSelectProfileImage(e.target.files?.[0])}
+                disabled={isUploadingProfileImage}
+                className="hidden"
+              />
+            </label>
+            <p className="mt-2 text-sm text-white/60">
+              PNG, JPG, or WEBP up to 5MB.
+            </p>
+            {profileImageFileName ? (
+              <p className="mt-2 text-sm text-white/80">{profileImageFileName}</p>
+            ) : null}
+          </div>
+        </div>
+      </div>
+
       <div>
         <label className="block text-sm text-white/80">First name</label>
         <input
@@ -892,6 +978,7 @@ export default function Profile() {
                         mongoUser={mongoUser}
                         setMongoUser={setMongoUser}
                         showResumeBanner={showResumeBanner}
+                        profileImageUrl={profileImageUrl}
                       />
                     </div>
                   </div>

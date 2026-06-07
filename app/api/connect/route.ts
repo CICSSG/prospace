@@ -12,74 +12,91 @@ export async function GET(req: Request) {
     const id = url.searchParams.get("id")
 
     if (id) {
-      const data = await db
+      const usersCollection = db.collection("users")
+      const outgoingConnections = await db
         .collection("connect")
-        .find({ user_id: id })
+        .find({ user_id: id, type: "user" })
         .toArray()
 
+      const incomingConnections = await db
+        .collection("connect")
+        .find({ user_connect: id, type: "user" })
+        .toArray()
+
+      const outgoingConnectionKeys = new Set(
+        outgoingConnections.map((connection) => `${connection.user_id}:${connection.user_connect}:${connection.type}`)
+      )
+
+      const pendingIncomingConnections = []
+      for (const connection of incomingConnections) {
+        const reciprocalKey = `${id}:${connection.user_id}:${connection.type}`
+        if (outgoingConnectionKeys.has(reciprocalKey)) {
+          continue
+        }
+
+        try {
+          const userData = await usersCollection.findOne({ clerkId: connection.user_id })
+          if (!userData) {
+            pendingIncomingConnections.push({ ...connection })
+            continue
+          }
+
+          const fullName =
+            userData.fullName ||
+            `${userData.firstName || ""} ${userData.lastName || ""}`.trim() ||
+            "Unknown User"
+          const clerkUser = await clerkclient.users.getUser(userData.clerkId)
+          const profileImageUrl = clerkUser.imageUrl || userData.profileImageUrl || userData.imageUrl || null
+          const email = userData.email || "No email"
+
+          pendingIncomingConnections.push({
+            ...connection,
+            ...userData,
+            fullName,
+            profileImageUrl,
+            email,
+          })
+        } catch (e) {
+          pendingIncomingConnections.push({ ...connection })
+        }
+      }
+
       const connectionsWithUserData = []
-      for (const connection of data) {
-        if (connection.type === "user") {
-          try {
-            const usersCollection = db.collection("users")
-            const userData = await usersCollection.findOne({
-              clerkId: connection.user_connect,
-            })
+      for (const connection of outgoingConnections) {
+        try {
+          const userData = await usersCollection.findOne({ clerkId: connection.user_connect })
 
-            if (!userData) {
-              connectionsWithUserData.push({ ...connection })
-              continue
-            }
-
-            const fullName =
-              userData.fullName ||
-              `${userData.firstName || ""} ${userData.lastName || ""}`.trim() ||
-              "Unknown User"
-            const clerkUser = await clerkclient.users.getUser(userData.clerkId)
-            const profileImageUrl = clerkUser.imageUrl || userData.profileImageUrl || userData.imageUrl || null
-            const email = userData.email || "No email"
-            connectionsWithUserData.push({
-              ...connection,
-              ...userData,
-              fullName,
-              profileImageUrl,
-              email,
-            })
-          } catch (e) {
+          if (!userData) {
             connectionsWithUserData.push({ ...connection })
+            continue
           }
-        } else if (connection.type === "company") {
-          try {
-            const companiesColl = db.collection("companies")
-            let company = null
-            try {
-              company = await companiesColl.findOne({ _id: new ObjectId(connection.user_connect) })
-            } catch (err) {
-              company = await companiesColl.findOne({ companyId: Number(connection.user_connect) })
-            }
 
-            if (company) {
-              connectionsWithUserData.push({
-                ...connection,
-                ...company,
-                _id: connection._id,
-                user_connect: connection.user_connect,
-                type: connection.type,
-              })
-            } else {
-              connectionsWithUserData.push({ ...connection })
-            }
-          } catch (e) {
-            connectionsWithUserData.push({ ...connection })
-          }
-        } else {
+          const fullName =
+            userData.fullName ||
+            `${userData.firstName || ""} ${userData.lastName || ""}`.trim() ||
+            "Unknown User"
+          const clerkUser = await clerkclient.users.getUser(userData.clerkId)
+          const profileImageUrl = clerkUser.imageUrl || userData.profileImageUrl || userData.imageUrl || null
+          const email = userData.email || "No email"
+          connectionsWithUserData.push({
+            ...connection,
+            ...userData,
+            fullName,
+            profileImageUrl,
+            email,
+          })
+        } catch (e) {
           connectionsWithUserData.push({ ...connection })
         }
       }
 
-      //   console.log("Connections with user data fetched successfully:", connectionsWithUserData);
-
-      return NextResponse.json({ success: true, data: connectionsWithUserData })
+      return NextResponse.json({
+        success: true,
+        data: {
+          connections: connectionsWithUserData,
+          pendingConnections: pendingIncomingConnections,
+        },
+      })
     } else {
       return NextResponse.json({
         success: false,

@@ -148,10 +148,10 @@ export default function CompanyFormDialog({
     const nextErrors: string[] = []
 
     if (!form.name.trim()) nextErrors.push("Company name is required")
-    if (!form.imageUrl.trim()) nextErrors.push("Company image is required")
+    // if (!form.imageUrl.trim()) nextErrors.push("Company image is required")
     if (!form.logoUrl.trim()) nextErrors.push("Company logo is required")
     if (!form.companyEmail.trim()) nextErrors.push("Company email is required")
-    if (!form.description.trim()) nextErrors.push("Description is required")
+    // if (!form.description.trim()) nextErrors.push("Description is required")
 
     const validModeratorEmails = form.moderatorEmails
       .map((email) => email.trim())

@@ -3,7 +3,7 @@ import { Collection, ObjectId } from "mongodb"
 import { NextRequest, NextResponse } from "next/server"
 
 import clientPromise from "@/lib/mongodb"
-import { type ManagementAccessMetadata } from "@/lib/management-access"
+import { getManagementPageAccessState, type ManagementAccessMetadata } from "@/lib/management-access"
 
 type CompanyRecord = {
 	_id: string | ObjectId
@@ -85,33 +85,40 @@ export async function GET(request: NextRequest) {
 		const { sessionClaims, userId } = await auth()
 		const metadata = sessionClaims?.publicMetadata as ManagementAccessMetadata | undefined
 
-		if (!userId || !isAuthorized(metadata)) {
+		if (!userId || !isAuthorized(metadata) || !getManagementPageAccessState(metadata, "company", ["/company/dashboard", "company/dashboard"]).canView) {
 			return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 403 })
 		}
 
 		const requestedCompanyId = request.nextUrl.searchParams.get("companyId") || ""
 		const isSuperAdmin = metadata?.adminRole === "superadmin"
 		const assignedCompany = asString(metadata?.assignedCompany).trim()
-		let companyScope = isSuperAdmin ? asString(requestedCompanyId || assignedCompany) : assignedCompany
+		const requestedScope = asString(requestedCompanyId).trim()
 
 		const client = await clientPromise
 		const db = client.db(process.env.MONGODB_DATABASE)
 		const companiesCollection = db.collection("companies") as Collection<CompanyRecord>
 		const checkInsCollection = db.collection("companyCheckins") as Collection<CompanyCheckInRecord>
 		const connectCollection = db.collection("connect") as Collection<ConnectRecord>
-		const availableCompanies = isSuperAdmin
+		const canBrowseCompanies = isSuperAdmin || (!assignedCompany && getManagementPageAccessState(metadata, "company", ["/company/dashboard", "company/dashboard"]).canView)
+		const availableCompanies = canBrowseCompanies
 			? await companiesCollection.find({}).sort({ name: 1 }).toArray()
 			: []
 
-		if (isSuperAdmin && !companyScope) {
-			companyScope = asString(availableCompanies[0]?._id)
+		let companyScope = ""
+
+		if (isSuperAdmin) {
+			companyScope = requestedScope || assignedCompany || asString(availableCompanies[0]?._id)
+		} else if (assignedCompany) {
+			companyScope = requestedScope && requestedScope !== assignedCompany ? "__forbidden__" : assignedCompany
+		} else {
+			companyScope = requestedScope || asString(availableCompanies[0]?._id)
 		}
 
 		if (!companyScope) {
 			return NextResponse.json({ success: false, error: "Company access is required" }, { status: 403 })
 		}
 
-		if (!isSuperAdmin && requestedCompanyId && requestedCompanyId !== companyScope) {
+		if (companyScope === "__forbidden__") {
 			return NextResponse.json({ success: false, error: "You can only view your assigned company" }, { status: 403 })
 		}
 

@@ -3,7 +3,7 @@ import { Collection, ObjectId } from "mongodb"
 import { NextRequest, NextResponse } from "next/server"
 
 import clientPromise from "@/lib/mongodb"
-import { canAccessManagementPath, type ManagementAccessMetadata } from "@/lib/management-access"
+import { canAccessManagementPath, getManagementPageAccessState, type ManagementAccessMetadata } from "@/lib/management-access"
 import { syncSignupMissionProgress } from "@/lib/signup-mission-progress"
 
 type MongoUserRecord = {
@@ -133,6 +133,14 @@ function isAuthorized(metadata: ManagementAccessMetadata | undefined) {
   return Boolean(metadata?.isAdmin) && canAccessManagementPath("/company/check-ins", metadata?.pageAccess ?? undefined, metadata?.adminRole, metadata?.assignedCompany)
 }
 
+function canViewCompanyCheckIns(metadata: ManagementAccessMetadata | undefined) {
+  return getManagementPageAccessState(metadata, "company", ["/company/check-ins", "company/check-ins"]).canView
+}
+
+function canEditCompanyCheckIns(metadata: ManagementAccessMetadata | undefined) {
+  return getManagementPageAccessState(metadata, "company", ["/company/check-ins", "company/check-ins"]).canEdit
+}
+
 function toResponse(record: CompanyCheckInDbRecord | null): CompanyCheckInResponseRecord | null {
   if (!record) return null
 
@@ -167,14 +175,18 @@ function getCompanyScope(metadata: ManagementAccessMetadata | undefined, request
 
   if (isSuperAdmin) {
     if (!requested || requested === "all") {
-      return ""
+      return "all"
     }
 
     return requested
   }
 
   if (!assignedCompany) {
-    return ""
+    if (!requested || requested === "all") {
+      return "all"
+    }
+
+    return requested
   }
 
   if (requested && requested !== assignedCompany) {
@@ -237,14 +249,14 @@ export async function GET(request: NextRequest) {
     const { sessionClaims, userId } = await auth()
     const metadata = sessionClaims?.publicMetadata as ManagementAccessMetadata | undefined
 
-    if (!userId || !isAuthorized(metadata)) {
+    if (!userId || !isAuthorized(metadata) || !canViewCompanyCheckIns(metadata)) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 403 })
     }
 
     const requestedCompanyId = request.nextUrl.searchParams.get("companyId") || ""
     const companyScope = getCompanyScope(metadata, requestedCompanyId)
 
-    if (!companyScope && metadata?.adminRole !== "superadmin") {
+    if (!companyScope) {
       return NextResponse.json({ success: false, error: "Company access is required" }, { status: 403 })
     }
 
@@ -259,13 +271,13 @@ export async function GET(request: NextRequest) {
     const checkInsCollection = db.collection("companyCheckins") as Collection<CompanyCheckInDbRecord>
 
     const [companyRows, userRows, checkInRows] = await Promise.all([
-      metadata?.adminRole === "superadmin"
-        ? companiesCollection.find({}).toArray()
+      companyScope === "all"
+        ? companiesCollection.find({}).sort({ name: 1 }).toArray()
         : companyScope
           ? companiesCollection.find({ _id: companyScope }).toArray()
           : [],
       usersCollection.find({}).toArray(),
-      checkInsCollection.find(buildFilterQuery(companyScope)).toArray(),
+      checkInsCollection.find(buildFilterQuery(companyScope === "all" ? "" : companyScope)).toArray(),
     ])
 
     const companyById = new Map<string, CompanyRecord>()
@@ -319,7 +331,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       data: {
-        company: companyScope ? companyById.get(companyScope) ?? null : null,
+        company: companyScope !== "all" ? companyById.get(companyScope) ?? null : null,
         companies: Array.from(companyById.values()).map((company) => ({
           id: asString(company._id),
           name: company.name || "Unnamed company",
@@ -339,7 +351,7 @@ export async function POST(request: NextRequest) {
     const { sessionClaims, userId } = await auth()
     const metadata = sessionClaims?.publicMetadata as ManagementAccessMetadata | undefined
 
-    if (!userId || !isAuthorized(metadata)) {
+    if (!userId || !isAuthorized(metadata) || !canEditCompanyCheckIns(metadata)) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 403 })
     }
 
@@ -350,7 +362,7 @@ export async function POST(request: NextRequest) {
     const requestedCompanyId = asString(body?.companyId)
     const companyScope = getCompanyScope(metadata, requestedCompanyId)
 
-    if (!companyScope) {
+    if (!companyScope || companyScope === "all") {
       return NextResponse.json({ success: false, error: "Company access is required" }, { status: 403 })
     }
 
@@ -507,7 +519,7 @@ export async function PATCH(request: NextRequest) {
     const { sessionClaims, userId } = await auth()
     const metadata = sessionClaims?.publicMetadata as ManagementAccessMetadata | undefined
 
-    if (!userId || metadata?.adminRole !== "superadmin") {
+    if (!userId || !canEditCompanyCheckIns(metadata)) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 403 })
     }
 
@@ -560,7 +572,7 @@ export async function DELETE(request: NextRequest) {
     const { sessionClaims, userId } = await auth()
     const metadata = sessionClaims?.publicMetadata as ManagementAccessMetadata | undefined
 
-    if (!userId || metadata?.adminRole !== "superadmin") {
+    if (!userId || !canEditCompanyCheckIns(metadata)) {
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 403 })
     }
 

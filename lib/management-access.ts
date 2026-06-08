@@ -271,10 +271,6 @@ export function canAccessManagementPath(
     return true
   }
 
-  if (pathname.startsWith("/company/") && !String(assignedCompany || "").trim()) {
-    return false
-  }
-
   const sectionAccess = pageAccess?.[page.section]
   if (!sectionAccess) {
     return false

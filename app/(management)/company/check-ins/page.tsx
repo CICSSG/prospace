@@ -1,6 +1,7 @@
 "use client"
 
 import { useUser } from "@clerk/nextjs"
+import * as XLSX from "xlsx"
 import { Download, Plus, QrCode, RefreshCw, Search, Trash2 } from "lucide-react"
 import { Scanner } from "@yudiel/react-qr-scanner"
 import { useEffect, useMemo, useState } from "react"
@@ -124,6 +125,40 @@ function getUserProfileUrl(record: Pick<CheckInRecord, "userId" | "clerkId">) {
 
 function getResumeUrl(record: Pick<CheckInRecord, "portfolioLink">) {
 	return record.portfolioLink?.trim() || ""
+}
+
+function formatExportDate(date = new Date()) {
+	const year = date.getFullYear()
+	const month = String(date.getMonth() + 1).padStart(2, "0")
+	const day = String(date.getDate()).padStart(2, "0")
+	const hours = String(date.getHours()).padStart(2, "0")
+	const minutes = String(date.getMinutes()).padStart(2, "0")
+	return `${year}${month}${day}-${hours}${minutes}`
+}
+
+function buildCheckInExportRows(records: CheckInRecord[]) {
+	return records.map((record) => ({
+		id: record.id,
+		companyId: record.companyId,
+		companyName: record.companyName,
+		checkInKey: record.checkInKey,
+		userId: record.userId ?? "",
+		clerkId: record.clerkId,
+		firstName: record.firstName,
+		lastName: record.lastName,
+		fullName: record.fullName,
+		email: record.email,
+		course: record.course,
+		shortBio: record.shortBio,
+		portfolioLink: record.portfolioLink,
+		socialLinks: Array.isArray(record.socialLinks) ? record.socialLinks.join(" | ") : "",
+		checkInAt: record.checkInAt,
+		checkInDate: record.checkInDate,
+		checkInTime: record.checkInTime,
+		source: record.source,
+		createdAt: record.createdAt,
+		updatedAt: record.updatedAt,
+	}))
 }
 
 function CheckInProfileDialog({
@@ -547,7 +582,9 @@ export default function CompanyCheckInsPage() {
 	const [profileRecord, setProfileRecord] = useState<CheckInRecord | null>(null)
 	const [editRecord, setEditRecord] = useState<CheckInRecord | null>(null)
 	const resolvedSelectedCompanyId = isSuperAdmin ? selectedCompanyId : selectedCompanyId || assignedCompanyId
-	const selectedCompanyScope = isSuperAdmin ? resolvedSelectedCompanyId || "all" : resolvedSelectedCompanyId
+	const selectedCompanyScope = isSuperAdmin
+		? resolvedSelectedCompanyId || "all"
+		: selectedCompanyId || assignedCompanyId || "all"
 	const selectedCompanyForActions = resolvedSelectedCompanyId
 
 	const loadCheckIns = async (companyId = resolvedSelectedCompanyId) => {
@@ -623,6 +660,45 @@ export default function CompanyCheckInsPage() {
 		: ""
 
 	const canUseActionButtons = canEdit && (!isSuperAdmin || Boolean(resolvedSelectedCompanyId))
+	const canExportCheckIns = canEdit
+
+	const handleExportExcel = () => {
+		if (!canExportCheckIns) {
+			toast.error("You do not have permission to export check-ins")
+			return
+		}
+
+		if (!checkIns.length) {
+			toast.error("No check-ins available to export")
+			return
+		}
+
+		try {
+			const workbook = XLSX.utils.book_new()
+			const worksheet = XLSX.utils.json_to_sheet(buildCheckInExportRows(checkIns))
+			const scopeLabel = selectedCompanyScope === "all" ? "all-companies" : (selectedCompanyLabel || "selected-company").toLowerCase().replace(/[^a-z0-9]+/g, "-")
+
+			XLSX.utils.book_append_sheet(workbook, worksheet, "Check-ins")
+
+			const output = XLSX.write(workbook, { bookType: "xlsx", type: "array" })
+			const blob = new Blob([output], {
+				type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+			})
+			const url = URL.createObjectURL(blob)
+			const link = document.createElement("a")
+			link.href = url
+			link.download = `check-ins-${scopeLabel}-${formatExportDate()}.xlsx`
+			document.body.appendChild(link)
+			link.click()
+			link.remove()
+			URL.revokeObjectURL(url)
+
+			toast.success(`Exported ${checkIns.length} check-in${checkIns.length === 1 ? "" : "s"}`)
+		} catch (error) {
+			console.error("Failed to export check-ins:", error)
+			toast.error(error instanceof Error ? error.message : "Failed to export check-ins")
+		}
+	}
 
 	const openManualCheckIn = () => {
 		if (!canUseActionButtons) {
@@ -778,6 +854,22 @@ export default function CompanyCheckInsPage() {
 				<div className="flex flex-wrap items-center gap-2">
 					<button
 						type="button"
+						onClick={handleExportExcel}
+						disabled={!canExportCheckIns || !checkIns.length}
+						className="inline-flex items-center gap-2 rounded-lg border border-white/15 bg-white/10 px-3 py-2 text-sm text-foreground hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-60"
+						title={
+							isSuperAdmin
+								? selectedCompanyScope === "all"
+									? "Export all check-ins currently loaded"
+									: `Export check-ins for ${selectedCompanyLabel}`
+								: `Export check-ins for ${selectedCompanyLabel}`
+						}
+					>
+						<Download className="size-4" />
+						Export Excel
+					</button>
+					<button
+						type="button"
 						onClick={() => {
 							if (!downloadResumesUrl) {
 								toast.error(isSuperAdmin ? "Select a company first" : "No company selected")
@@ -794,11 +886,11 @@ export default function CompanyCheckInsPage() {
 						Download all resumes
 					</button>
 
-					{isSuperAdmin && (
+					{(isSuperAdmin || !assignedCompanyId) && (
 						<select
 							value={selectedCompanyScope}
 							onChange={(event) => setSelectedCompanyId(event.target.value === "all" ? "" : event.target.value)}
-							className="h-10 min-w-52 rounded-lg border border-input bg-transparent px-3 text-sm"
+							className="h-10 min-w-52 rounded-lg border border-input bg-transparent px-3 text-sm *:text-black"
 						>
 							<option value="all">All companies</option>
 							{companies.map((company) => (

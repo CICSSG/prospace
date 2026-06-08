@@ -49,7 +49,8 @@ export default function MissionsList() {
     title?: string
     missionTitle?: string
     description?: string
-    completionMethod?: "qr-scanning" | "help-desk"
+    completionMethod?: "qr-scanning" | "help-desk" | "sign-up"
+    requiredSignups?: number | null
     missionLink?: string
     missionLinks?: string[]
     links?: MissionLink[]
@@ -83,6 +84,7 @@ export default function MissionsList() {
             missionTitle: item.missionTitle || item.title || "",
             description: item.description || "",
             completionMethod: item.completionMethod || "qr-scanning",
+            requiredSignups: item.requiredSignups ?? undefined,
             links: normalizedLinks,
             missionLinks: normalizedLinks.map((linkItem) => linkItem.link),
             missionLink: normalizedLinks[0]?.link || "",
@@ -229,6 +231,7 @@ export default function MissionsList() {
                 <option value="">All completion types</option>
                 <option value="qr-scanning">QR Scanning</option>
                 <option value="help-desk">Help Desk</option>
+                <option value="sign-up">Sign-up</option>
               </select>
 
               <div className="inline-flex items-center text-nowrap justify-center rounded-xl border bg-muted/30 px-4 py-2.5 text-sm text-muted-foreground">
@@ -263,9 +266,20 @@ export default function MissionsList() {
                         <div className="text-sm text-muted-foreground">{mission.categoryName || "—"}</div>
                       </TableCell>
                       <TableCell className="md:hidden xl:block">
-                        <span className="inline-flex rounded-full border bg-muted/40 px-3 py-1 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
-                          {mission.completionMethod === "help-desk" ? "Help Desk" : "QR Scanning"}
-                        </span>
+                        <div className="flex flex-col gap-1">
+                          <span className="inline-flex rounded-full border bg-muted/40 px-3 py-1 text-xs font-medium uppercase tracking-[0.18em] text-muted-foreground">
+                            {mission.completionMethod === "help-desk"
+                              ? "Help Desk"
+                              : mission.completionMethod === "sign-up"
+                                ? "Sign-up"
+                                : "QR Scanning"}
+                          </span>
+                          {mission.completionMethod === "sign-up" ? (
+                            <span className="text-xs text-muted-foreground">
+                              {mission.requiredSignups || 1} company sign-ups required
+                            </span>
+                          ) : null}
+                        </div>
                       </TableCell>
                       <TableCell>
                         <div className="max-w-80 text-sm text-muted-foreground line-clamp-2">

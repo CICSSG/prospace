@@ -17,7 +17,8 @@ type MissionFormDialogProps = {
 type MissionFormState = {
   missionTitle: string
   description: string
-  completionMethod: "qr-scanning" | "help-desk"
+  completionMethod: "qr-scanning" | "help-desk" | "sign-up"
+  requiredSignups: string
   links: MissionLink[]
   categoryId?: string
 }
@@ -26,6 +27,7 @@ const emptyForm = (): MissionFormState => ({
   missionTitle: "",
   description: "",
   completionMethod: "qr-scanning",
+  requiredSignups: "1",
   links: [{ title: "", link: "" }],
   categoryId: "",
 })
@@ -47,6 +49,7 @@ function createInitialForm(mission?: Mission | null): MissionFormState {
         missionTitle: mission.missionTitle || "",
         description: mission.description || "",
         completionMethod: mission.completionMethod || "qr-scanning",
+        requiredSignups: mission.requiredSignups ? String(mission.requiredSignups) : "1",
         links: initialLinks,
         categoryId: mission.categoryId || "",
       }
@@ -81,6 +84,12 @@ export default function MissionFormDialog({
     const nextErrors: string[] = []
 
     if (!form.missionTitle.trim()) nextErrors.push("Mission title is required")
+    if (form.completionMethod === "sign-up") {
+      const requiredSignups = Number.parseInt(form.requiredSignups, 10)
+      if (!Number.isInteger(requiredSignups) || requiredSignups < 1) {
+        nextErrors.push("Sign-up missions need a valid required sign-up count")
+      }
+    }
 
     setErrors(nextErrors)
     return nextErrors.length === 0
@@ -105,6 +114,7 @@ export default function MissionFormDialog({
           missionTitle: form.missionTitle,
           description: form.description,
           completionMethod: form.completionMethod,
+          requiredSignups: form.completionMethod === "sign-up" ? Number.parseInt(form.requiredSignups, 10) : null,
           links: form.links
             .map((item) => ({
               title: item.title.trim(),
@@ -193,6 +203,7 @@ export default function MissionFormDialog({
               {[
                 { value: "qr-scanning", label: "QR Scanning" },
                 { value: "help-desk", label: "Help Desk" },
+                { value: "sign-up", label: "Sign-up" },
               ].map((option) => (
                 <label
                   key={option.value}
@@ -208,7 +219,7 @@ export default function MissionFormDialog({
                     onChange={() =>
                       setForm((current) => ({
                         ...current,
-                        completionMethod: option.value as "qr-scanning" | "help-desk",
+                        completionMethod: option.value as "qr-scanning" | "help-desk" | "sign-up",
                       }))
                     }
                     className="h-4 w-4"
@@ -222,6 +233,26 @@ export default function MissionFormDialog({
               <p className="text-xs text-muted-foreground">
                 QR code actions will be available after the mission is saved.
               </p>
+            ) : form.completionMethod === "sign-up" ? (
+              <div className="space-y-2">
+                <p className="text-xs text-muted-foreground">
+                  This mission is completed automatically when the user signs up with enough companies.
+                </p>
+                <label className="text-sm font-medium">Required company sign-ups</label>
+                <input
+                  type="number"
+                  min={1}
+                  step={1}
+                  value={form.requiredSignups}
+                  onChange={(event) =>
+                    setForm((current) => ({
+                      ...current,
+                      requiredSignups: event.target.value,
+                    }))
+                  }
+                  className="w-full rounded-lg border bg-background px-3 py-2 text-sm"
+                />
+              </div>
             ) : (
               <p className="text-xs text-muted-foreground">
                 This mission will be marked as completed through Help Desk.

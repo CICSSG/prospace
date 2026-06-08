@@ -7,7 +7,8 @@ export type Mission = {
   id: string
   missionTitle: string
   description?: string
-  completionMethod?: "qr-scanning" | "help-desk"
+  completionMethod?: "qr-scanning" | "help-desk" | "sign-up"
+  requiredSignups?: number | null
   links?: MissionLink[]
   missionLinks?: string[]
   missionLink?: string

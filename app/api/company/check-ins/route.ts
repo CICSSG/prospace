@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server"
 
 import clientPromise from "@/lib/mongodb"
 import { canAccessManagementPath, type ManagementAccessMetadata } from "@/lib/management-access"
+import { syncSignupMissionProgress } from "@/lib/signup-mission-progress"
 
 type MongoUserRecord = {
   _id: string
@@ -477,6 +478,15 @@ export async function POST(request: NextRequest) {
       }
     } catch (err) {
       console.error("Failed to create connect record for check-in:", err)
+    }
+
+    try {
+      await syncSignupMissionProgress(db, {
+        userId: user.userId ?? user.clerkId ?? null,
+        clerkId: user.clerkId || null,
+      })
+    } catch (err) {
+      console.error("Failed to sync signup mission progress after check-in:", err)
     }
 
     return NextResponse.json({

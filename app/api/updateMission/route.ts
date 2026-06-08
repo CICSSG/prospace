@@ -8,6 +8,7 @@ export async function PUT(req: Request) {
       title,
       description,
       completionMethod,
+      requiredSignups,
       links,
       missionLinks,
       missionLink,
@@ -55,6 +56,18 @@ export async function PUT(req: Request) {
           ? [{ title: "Visit Link", link: missionLink.trim() }]
           : []
 
+    const parsedRequiredSignups = Number.parseInt(
+      typeof requiredSignups === "number"
+        ? String(requiredSignups)
+        : typeof requiredSignups === "string"
+          ? requiredSignups
+          : "",
+      10
+    )
+    const missionRequiredSignups = Number.isFinite(parsedRequiredSignups) && parsedRequiredSignups > 0
+      ? Math.floor(parsedRequiredSignups)
+      : 1
+
     const normalizedTitle = typeof missionTitle === "string" && missionTitle.trim()
       ? missionTitle.trim()
       : typeof title === "string"
@@ -65,7 +78,8 @@ export async function PUT(req: Request) {
       missionTitle: normalizedTitle,
       title: normalizedTitle,
       description: typeof description === "string" ? description.trim() : "",
-      completionMethod: completionMethod === "help-desk" ? "help-desk" : "qr-scanning",
+      completionMethod: completionMethod === "help-desk" || completionMethod === "sign-up" ? completionMethod : "qr-scanning",
+      requiredSignups: completionMethod === "sign-up" ? missionRequiredSignups : null,
       links: normalizedLinks,
       missionLinks: (normalizedLinks as { title: string; link: string }[]).map((item) => item.link),
       // legacy fallback for code paths still reading a single link

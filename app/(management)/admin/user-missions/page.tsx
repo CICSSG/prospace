@@ -305,7 +305,76 @@ export default function UserMissionsPage() {
 
 	const normalizedSearch = search.trim().toLowerCase()
 
+	const missionsForFilter = useMemo(() => {
+		// Only consider one non-default filter at a time (priority: mission > category > method).
+		const activeFilter: "mission" | "category" | "method" | null = selectedMissionId
+			? "mission"
+			: selectedCategoryId
+			? "category"
+			: selectedCompletionMethod
+			? "method"
+			: null
+
+		const baseUsers = sortedUsers.filter((userMission) => {
+			const userSearchBlob = [
+				userMission.fullName,
+				userMission.email,
+				userMission.course,
+				String(userMission.userId ?? ""),
+				userMission.completedMissions.map((mission) => `${mission.title} ${mission.categoryName} ${mission.completionMethod}`).join(" "),
+			]
+				.join(" ")
+				.toLowerCase()
+
+			const matchesSearch = !normalizedSearch || userSearchBlob.includes(normalizedSearch)
+			const matchesCategory = !selectedCategoryId || userMission.completedMissions.some((mission) => mission.categoryId === selectedCategoryId)
+			const matchesCompletionMethod = !selectedCompletionMethod || userMission.completedMissions.some((mission) => mission.completionMethod === selectedCompletionMethod)
+			const matchesMission = !selectedMissionId || userMission.completedMissionIds.includes(selectedMissionId)
+
+			if (activeFilter === "mission") return matchesSearch && matchesMission
+			if (activeFilter === "category") return matchesSearch && matchesCategory
+			if (activeFilter === "method") return matchesSearch && matchesCompletionMethod
+
+			// no specific active filter: respect all filters (original behavior)
+			return matchesSearch && matchesCategory && matchesCompletionMethod && matchesMission
+		})
+
+		const ids = new Set<string>()
+
+		if (activeFilter === "mission") {
+			if (selectedMissionId) ids.add(selectedMissionId)
+		} else if (activeFilter === "category") {
+			for (const u of baseUsers) {
+				for (const m of u.completedMissions) {
+					if (m && m.missionId && m.categoryId === selectedCategoryId) ids.add(m.missionId)
+				}
+			}
+		} else if (activeFilter === "method") {
+			for (const u of baseUsers) {
+				for (const m of u.completedMissions) {
+					if (m && m.missionId && m.completionMethod === selectedCompletionMethod) ids.add(m.missionId)
+				}
+			}
+		} else {
+			for (const u of baseUsers) {
+				for (const m of u.completedMissions) {
+					if (m && m.missionId) ids.add(m.missionId)
+				}
+			}
+		}
+
+		return ids
+	}, [sortedUsers, normalizedSearch, selectedCategoryId, selectedCompletionMethod, selectedMissionId])
+
 	const filteredUsers = useMemo(() => {
+		const activeFilter: "mission" | "category" | "method" | null = selectedMissionId
+			? "mission"
+			: selectedCategoryId
+			? "category"
+			: selectedCompletionMethod
+			? "method"
+			: null
+
 		return sortedUsers.filter((userMission) => {
 			const userSearchBlob = [
 				userMission.fullName,
@@ -322,9 +391,25 @@ export default function UserMissionsPage() {
 			const matchesMission = !selectedMissionId || userMission.completedMissionIds.includes(selectedMissionId)
 			const matchesCompletionMethod = !selectedCompletionMethod || userMission.completedMissions.some((mission) => mission.completionMethod === selectedCompletionMethod)
 
+			if (activeFilter === "mission") return matchesSearch && matchesMission
+			if (activeFilter === "category") return matchesSearch && matchesCategory
+			if (activeFilter === "method") return matchesSearch && matchesCompletionMethod
+
 			return matchesSearch && matchesCategory && matchesMission && matchesCompletionMethod
 		})
 	}, [normalizedSearch, selectedCategoryId, selectedCompletionMethod, selectedMissionId, sortedUsers])
+
+	const missionsForSelect = useMemo(() => {
+		// Use computed set to limit missions shown in the missions dropdown.
+		// Always include the currently selected mission so the select doesn't lose its value.
+		if (!missions || missions.length === 0) return []
+		return missions.filter((m) => {
+			if (!m || !m.id) return false
+			if (m.id === selectedMissionId) return true
+			if (missionsForFilter.size === 0) return true
+			return missionsForFilter.has(m.id)
+		})
+	}, [missions, missionsForFilter, selectedMissionId])
 
 	const totalPages = Math.max(1, Math.ceil(filteredUsers.length / itemsPerPage))
 	const currentPage = Math.min(page, totalPages)
@@ -448,10 +533,27 @@ export default function UserMissionsPage() {
 										<TableCell><Badge variant="default" className="px-3 py-1 text-xs">{record.completedCount} completed</Badge></TableCell>
 										<TableCell>
 											<div className="flex max-w-136 flex-wrap gap-2">
-												{record.completedMissions.slice(0, 3).map((mission) => (
-													<Badge key={mission.missionId} variant="outline" className="max-w-full border-muted-foreground/30 text-xs"><span className="max-w-44 truncate">{mission.title}</span></Badge>
-												))}
-												{record.completedMissions.length > 3 ? <Badge variant="outline" className="border-muted-foreground/30 text-xs">+{record.completedMissions.length - 3} more</Badge> : null}
+												{(() => {
+													const badgesToShow = record.completedMissions.filter((mission) => {
+														if (!mission || !mission.missionId) return false
+														// include if mission id is in the computed set for the current table filters
+														if (missionsForFilter.size === 0) return true
+														if (missionsForFilter.has(mission.missionId)) return true
+														// also include the currently selected mission so it doesn't disappear from the select
+														if (mission.missionId === selectedMissionId) return true
+														return false
+													})
+
+													const shown = badgesToShow.slice(0, 3)
+													return (
+														<>
+															{shown.map((mission) => (
+																<Badge key={mission.missionId} variant="outline" className="max-w-full border-muted-foreground/30 text-xs"><span className="max-w-44 truncate">{mission.title}</span></Badge>
+															))}
+															{badgesToShow.length > shown.length ? <Badge variant="outline" className="border-muted-foreground/30 text-xs">+{badgesToShow.length - shown.length} more</Badge> : null}
+														</>
+													)
+												})()}
 											</div>
 										</TableCell>
 										<TableCell>

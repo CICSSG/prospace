@@ -1,4 +1,5 @@
 "use client"
+import EventMapComponent from "@/components/prospace/event-map";
 import EventScheduleComponent from "@/components/prospace/event-schedule"
 import { moscaLaroke } from "@/components/prospace/fonts"
 import { motion } from "framer-motion"
@@ -117,7 +118,7 @@ const AboutPage = () => {
         </div>
       </div>
 
-      <div className="relative mx-8 my-8 flex w-full flex-col gap-3">
+      <div className="relative mx-8 my-8 flex w-full flex-col items-center gap-3">
         <div className="absolute top-1/2 left-1/2 z-1 h-120 w-[calc(80vw)] -translate-1/2 rounded-[50%] bg-linear-to-b from-[#FFC5DD] to-[#680F34] opacity-40 blur-[120px] select-none" />
         <div className="absolute top-1/2 left-1/2 h-220 w-[calc(100vw)] -translate-1/2 rounded-[50%] bg-linear-to-b from-[#BCA4FF] to-[#05091D] opacity-30 blur-[100px] select-none" />
 
@@ -134,8 +135,8 @@ const AboutPage = () => {
         <h1 className="z-10 text-center text-2xl font-thin tracking-[0.25rem]">
           EVENT MAP
         </h1>
-        {/* <EventMapComponent /> */}
-        <p className="z-10 text-center text-white/80 font-light text-lg">Coming Soon</p>
+        <EventMapComponent />
+        {/* <p className="z-10 text-center text-white/80 font-light text-lg">Coming Soon</p> */}
         {/* <div className="z-10 mx-auto aspect-video w-full max-w-200 rounded-xl border border-white/40 bg-linear-to-r from-[#7B4DFF]/22"></div> */}
       </div>
 

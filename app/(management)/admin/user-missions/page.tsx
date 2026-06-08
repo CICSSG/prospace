@@ -2,8 +2,10 @@
 
 import { useUser } from "@clerk/nextjs"
 import { useEffect, useMemo, useState } from "react"
-import { FilterX, PencilLine, RefreshCw, Search } from "lucide-react"
+import { Camera, FilterX, PencilLine, RefreshCw, Search, X } from "lucide-react"
+import { Scanner } from "@yudiel/react-qr-scanner"
 import { toast } from "sonner"
+import * as XLSX from "xlsx"
 
 import { PaginationComponent } from "@/components/pagination"
 import { Badge } from "@/components/ui/badge"
@@ -71,6 +73,13 @@ type UserMissionsResponse = {
 	lastUpdated?: string
 }
 
+const scannerConstraints: MediaTrackConstraints = {
+	facingMode: { ideal: "environment" },
+	width: { ideal: 1280 },
+	height: { ideal: 720 },
+	aspectRatio: 1,
+}
+
 function getFullName(user: Pick<UserMissionRecord, "firstName" | "lastName" | "email" | "userId">) {
 	const name = `${user.firstName || ""} ${user.lastName || ""}`.trim()
 	return name || user.email || `User-${user.userId ?? "unknown"}`
@@ -85,6 +94,57 @@ function getCompletionMethodLabel(method: string) {
 
 function formatUserId(userId: string | number | null) {
 	return userId == null ? "" : `User-${userId}`
+}
+
+function formatExportDate(date = new Date()) {
+	const year = date.getFullYear()
+	const month = String(date.getMonth() + 1).padStart(2, "0")
+	const day = String(date.getDate()).padStart(2, "0")
+	const hours = String(date.getHours()).padStart(2, "0")
+	const minutes = String(date.getMinutes()).padStart(2, "0")
+	return `${year}${month}${day}-${hours}${minutes}`
+}
+
+function buildFilteredMissionExportRows(users: UserMissionRecord[]) {
+	const userRows = users.map((user) => ({
+		userId: user.userId ?? "",
+		fullName: user.fullName,
+		firstName: user.firstName,
+		lastName: user.lastName,
+		email: user.email,
+		course: user.course,
+		shortBio: user.shortBio,
+		completedCount: user.completedCount,
+		completedMissionIds: user.completedMissionIds.join(", "),
+		completedMissionsJson: JSON.stringify(user.completedMissions),
+	}))
+
+	const missionRows = users.flatMap((user) =>
+		user.completedMissions.map((mission) => ({
+			userId: user.userId ?? "",
+			fullName: user.fullName,
+			email: user.email,
+			course: user.course,
+			missionId: mission.missionId,
+			missionTitle: mission.title,
+			missionDescription: mission.description,
+			categoryId: mission.categoryId,
+			categoryName: mission.categoryName,
+			completionMethod: mission.completionMethod,
+			completedAt: mission.completedAt,
+		}))
+	)
+
+	return { userRows, missionRows }
+}
+
+function getUserIdFromQrValue(rawValue: string) {
+	try {
+		const parsedUrl = new URL(rawValue, window.location.origin)
+		return parsedUrl.searchParams.get("id")?.trim() || null
+	} catch {
+		return null
+	}
 }
 
 function UserMissionEditorDialog({
@@ -257,6 +317,8 @@ export default function UserMissionsPage() {
 	const [itemsPerPage, setItemsPerPage] = useState(10)
 	const [activeUser, setActiveUser] = useState<UserMissionRecord | null>(null)
 	const [lastUpdated, setLastUpdated] = useState<string | null>(null)
+	const [scannerOpen, setScannerOpen] = useState(false)
+	const [scannerMessage, setScannerMessage] = useState<string | null>(null)
 
 	const loadData = async () => {
 		setLoading(true)
@@ -434,6 +496,85 @@ export default function UserMissionsPage() {
 		setPage(1)
 	}
 
+	const openUserMissionEditorById = (userId: string) => {
+		const normalizedUserId = userId.trim()
+		if (!normalizedUserId) {
+			toast.error("Scanned QR code did not include a user id")
+			return
+		}
+
+		const matchedUser = users.find((user) => String(user.userId ?? "") === normalizedUserId)
+		if (!matchedUser) {
+			toast.error(`No user found for id ${normalizedUserId}`)
+			return
+		}
+
+		const matchedPage = Math.max(1, Math.ceil((filteredUsers.findIndex((user) => user.id === matchedUser.id) + 1) / itemsPerPage))
+		setPage(matchedPage)
+		setActiveUser(matchedUser)
+	}
+
+	const handleScannerScan = (detectedCodes: any) => {
+		const rawValue = detectedCodes?.[0]?.rawValue
+		if (!rawValue) return
+
+		const userId = getUserIdFromQrValue(String(rawValue))
+		setScannerOpen(false)
+		setScannerMessage(null)
+
+		if (!userId) {
+			toast.error("Scanned QR code did not contain a valid user id")
+			return
+		}
+
+		openUserMissionEditorById(userId)
+	}
+
+	const handleScannerError = (error: unknown) => {
+		const message = error instanceof Error ? error.message : "Camera access was blocked or unavailable."
+		setScannerMessage(
+			message.includes("permission") || message.includes("secure context")
+				? "Allow camera access in your browser, then reopen the scanner. If you denied access earlier, enable Camera permissions in browser settings."
+				: "Camera could not start on this device. Make sure you are using HTTPS and allow camera access."
+		)
+		console.error("Scanner error:", error)
+	}
+
+	const handleExportExcel = () => {
+		if (!filteredUsers.length) {
+			toast.error("No filtered user missions to export")
+			return
+		}
+
+		try {
+			const { userRows, missionRows } = buildFilteredMissionExportRows(filteredUsers)
+			const workbook = XLSX.utils.book_new()
+			const userSheet = XLSX.utils.json_to_sheet(userRows)
+			const missionSheet = XLSX.utils.json_to_sheet(missionRows)
+
+			XLSX.utils.book_append_sheet(workbook, userSheet, "Filtered Users")
+			XLSX.utils.book_append_sheet(workbook, missionSheet, "Filtered Missions")
+
+			const output = XLSX.write(workbook, { bookType: "xlsx", type: "array" })
+			const blob = new Blob([output], {
+				type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+			})
+			const url = URL.createObjectURL(blob)
+			const link = document.createElement("a")
+			link.href = url
+			link.download = `user-missions-${formatExportDate()}.xlsx`
+			document.body.appendChild(link)
+			link.click()
+			link.remove()
+			URL.revokeObjectURL(url)
+
+			toast.success(`Exported ${filteredUsers.length} filtered user${filteredUsers.length === 1 ? "" : "s"}`)
+		} catch (error) {
+			console.error("Failed to export user missions:", error)
+			toast.error(error instanceof Error ? error.message : "Failed to export user missions")
+		}
+	}
+
 	if (!isLoaded) {
 		return <div className="p-4 text-sm text-muted-foreground">Loading access...</div>
 	}
@@ -452,11 +593,57 @@ export default function UserMissionsPage() {
 				</div>
 
 				<div className="flex flex-wrap gap-2">
+					<button
+						type="button"
+						onClick={() => {
+							setScannerMessage(null)
+							setScannerOpen(true)
+						}}
+						className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm hover:bg-muted"
+					>
+						<Camera size={16} />
+						Scanner
+					</button>
+					<button type="button" onClick={handleExportExcel} className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm hover:bg-muted">
+						Export Excel
+					</button>
 					<button type="button" onClick={() => void loadData()} className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm hover:bg-muted">
 						<RefreshCw size={16} /> Refresh
 					</button>
 				</div>
 			</div>
+
+			{scannerOpen ? (
+				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-3">
+					<button
+						type="button"
+						aria-label="Close scanner"
+						onClick={() => {
+							setScannerOpen(false)
+							setScannerMessage(null)
+						}}
+						className="absolute top-4 right-4 rounded-full bg-white/10 p-3 text-white backdrop-blur-sm transition hover:bg-white/20"
+					>
+						<X size={18} />
+					</button>
+
+					{scannerMessage ? (
+						<div className="absolute top-16 right-4 left-4 rounded-2xl border border-white/10 bg-black/80 px-4 py-3 text-sm text-white shadow-2xl backdrop-blur-sm sm:top-4 sm:right-4 sm:left-auto sm:max-w-sm">
+							{scannerMessage}
+						</div>
+					) : null}
+
+					<div className="overflow-hidden rounded-2xl border border-white/10 bg-black/60 shadow-2xl backdrop-blur-sm">
+						<Scanner
+							onScan={handleScannerScan}
+							onError={handleScannerError}
+							constraints={scannerConstraints}
+							components={{ finder: true }}
+							sound={false}
+						/>
+					</div>
+				</div>
+			) : null}
 
 			<section className="rounded-2xl border bg-card p-4 shadow-sm">
 				<div className="mb-4 space-y-3">

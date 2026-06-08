@@ -10,7 +10,7 @@ import { toast } from "sonner"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { getManagementPageAccessState, type ManagementAccessMetadata } from "@/lib/management-access"
+import { getAssignedCompanyIds, getManagementPageAccessState, type ManagementAccessMetadata } from "@/lib/management-access"
 
 type SocialLink = {
 	platform: string
@@ -130,7 +130,9 @@ export default function CompanyDashboardPage() {
 	const { user } = useUser()
 	const metadata = user?.publicMetadata as ManagementAccessMetadata | undefined
 	const assignedCompanyId = metadata?.assignedCompany?.trim() || ""
+	const assignedCompanyList = getAssignedCompanyIds(metadata)
 	const isSuperAdmin = metadata?.adminRole === "superadmin"
+	const isMultiCompany = !isSuperAdmin && assignedCompanyList.length > 1
 	const { canEdit } = getManagementPageAccessState(metadata, "company", ["/company/dashboard", "company/dashboard"])
 
 	const [dashboard, setDashboard] = useState<DashboardResponse | null>(null)
@@ -333,7 +335,7 @@ export default function CompanyDashboardPage() {
 				</div>
 
 				<div className="flex flex-wrap items-center gap-2">
-					{(isSuperAdmin || !assignedCompanyId) && dashboard.availableCompanies.length > 0 ? (
+					{(isSuperAdmin || isMultiCompany) && dashboard.availableCompanies.length > 0 ? (
 						<select
 							value={resolvedSelectedCompanyId || dashboard.selectedCompanyId}
 							onChange={(event) => setSelectedCompanyId(event.target.value)}
@@ -561,7 +563,7 @@ export default function CompanyDashboardPage() {
 
 									<div className="space-y-3">
 										{form.socialLinks.map((link, index) => (
-											<div key={`${index}-${link.platform}`} className="space-y-2 rounded-lg border bg-background p-3">
+											<div key={index} className="space-y-2 rounded-lg border bg-background p-3">
 												<div className="flex flex-col gap-2 sm:flex-row">
 													<Input value={link.platform} onChange={(event) => updateSocialLink(index, "platform", event.target.value)} placeholder="Platform" className="min-w-0" />
 													<button type="button" onClick={() => removeSocialLink(index)} className="inline-flex items-center justify-center rounded-lg border border-destructive/40 px-3 py-2 text-destructive hover:bg-destructive hover:text-white sm:self-start">
@@ -587,7 +589,7 @@ export default function CompanyDashboardPage() {
 
 									<div className="space-y-3">
 										{form.moderatorEmails.map((email, index) => (
-											<div key={`${index}-${email}`} className="flex flex-col gap-2 rounded-lg border bg-background p-3 sm:flex-row">
+											<div key={index} className="flex flex-col gap-2 rounded-lg border bg-background p-3 sm:flex-row">
 												<Input value={email} onChange={(event) => updateModeratorEmail(index, event.target.value)} placeholder="moderator@example.com" className="min-w-0" />
 												<button type="button" onClick={() => removeModeratorEmail(index)} className="inline-flex items-center justify-center rounded-lg border border-destructive/40 px-3 py-2 text-destructive hover:bg-destructive hover:text-white sm:self-start">
 													<Trash2 className="size-4" />

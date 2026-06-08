@@ -17,10 +17,12 @@ export async function ensureCompanyModeratorAccounts({
   companyId,
   companyName,
   moderatorEmails,
+  passwords,
 }: {
   companyId: string
   companyName: string
   moderatorEmails: string[]
+  passwords?: Record<string, string>
 }) {
   const normalizedEmails = normalizeEmailList(moderatorEmails)
   if (normalizedEmails.length === 0) {
@@ -39,36 +41,32 @@ export async function ensureCompanyModeratorAccounts({
         limit: 1,
       })
 
+      const meta = {
+        role: "admin",
+        isAdmin: true,
+        adminRole: "admin",
+        companyId,
+        assignedCompany: companyId,
+        companyName,
+        pageAccess: companyModeratorPageAccess,
+      }
+
+      const password = passwords?.[email]
       let clerkUser
 
       if (existingUsers.data.length > 0) {
         const existingUser = existingUsers.data[0]
         clerkUser = await clerk.users.updateUser(existingUser.id, {
-          publicMetadata: {
-            ...(existingUser.publicMetadata ?? {}),
-            role: "admin",
-            isAdmin: true,
-            adminRole: "admin",
-            companyId,
-            assignedCompany: companyId,
-            companyName,
-            pageAccess: companyModeratorPageAccess,
-          },
+          publicMetadata: { ...(existingUser.publicMetadata ?? {}), ...meta },
+          ...(password ? { password } : {}),
         })
       } else {
         clerkUser = await clerk.users.createUser({
           firstName: companyName,
           lastName: "Moderator",
           emailAddress: [email],
-          publicMetadata: {
-            role: "admin",
-            isAdmin: true,
-            adminRole: "admin",
-            companyId,
-            assignedCompany: companyId,
-            companyName,
-            pageAccess: companyModeratorPageAccess,
-          },
+          ...(password ? { password } : {}),
+          publicMetadata: meta,
         })
       }
 

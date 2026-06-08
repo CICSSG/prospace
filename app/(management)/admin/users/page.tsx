@@ -13,7 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import * as XLSX from "xlsx"
-import { Download, Plus, RefreshCw, PencilLine, Trash2, Shield, Users2 } from "lucide-react"
+import { Download, Plus, RefreshCw, PencilLine, Trash2, Shield, Users2, Building2 } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
 import { toast } from "sonner"
 import { getCollectionData, inspectOrCreateMongoUserByEmail } from "../actions"
@@ -99,6 +99,10 @@ export default function UsersList() {
       manage?: PageAccessSection
       data?: PageAccessSection
     } | null
+    assignedCompany?: string | null
+    companyId?: string | null
+    companyName?: string | null
+    assignedCompanies?: Array<{ id: string; name: string }> | null
   }
 
   const getData = useCallback(() => {
@@ -120,6 +124,10 @@ export default function UsersList() {
             adminRole: item.adminRole || null,
             isAdmin: item.isAdmin || false,
             pageAccess: item.pageAccess || null,
+            assignedCompany: item.assignedCompany || null,
+            companyId: item.companyId || null,
+            companyName: item.companyName || null,
+            assignedCompanies: Array.isArray(item.assignedCompanies) ? item.assignedCompanies : null,
           }))
 
           setUsers(mappedUsers)
@@ -427,16 +435,32 @@ export default function UsersList() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div className="flex gap-1">
+                    <div className="flex flex-col gap-1">
                       {user.role === "admin" && user.adminRole === "superadmin" && (
                         <span className="inline-flex items-center gap-1 rounded-full bg-destructive/10 px-2 py-1 text-xs font-medium text-destructive">
                           <Shield size={12} /> Super Admin
                         </span>
                       )}
-                      {user.role === "admin" && user.adminRole === "admin" && (
+                      {user.role === "admin" && user.adminRole === "admin" && !user.assignedCompany && (
                         <span className="inline-flex items-center gap-1 rounded-full bg-destructive/10 px-2 py-1 text-xs font-medium text-destructive">
                           <Shield size={12} /> Admin
                         </span>
+                      )}
+                      {user.role === "admin" && user.adminRole === "admin" && user.assignedCompany && (
+                        <>
+                          <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-2 py-1 text-xs font-medium text-amber-600">
+                            <Building2 size={12} /> Company
+                          </span>
+                          {user.assignedCompanies && user.assignedCompanies.length > 0 ? (
+                            user.assignedCompanies.map((c) => (
+                              <span key={c.id} className="text-xs text-muted-foreground">
+                                {c.name}
+                              </span>
+                            ))
+                          ) : user.companyName ? (
+                            <span className="text-xs text-muted-foreground">{user.companyName}</span>
+                          ) : null}
+                        </>
                       )}
                       {user.role !== "admin" && (
                         <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/10 px-2 py-1 text-xs font-medium text-blue-600">

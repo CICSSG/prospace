@@ -24,6 +24,17 @@ export type ManagementAccessMetadata = {
   pageAccess?: PageAccess | null
   isAdmin?: boolean
   assignedCompany?: string | null
+  assignedCompanies?: Array<{ id: string; name: string }> | null
+  companyName?: string | null
+}
+
+export function getAssignedCompanyIds(metadata: ManagementAccessMetadata | undefined): string[] {
+  const list = metadata?.assignedCompanies
+  if (Array.isArray(list) && list.length > 0) {
+    return list.map((c) => String(c.id || "").trim()).filter(Boolean)
+  }
+  const single = String(metadata?.assignedCompany || "").trim()
+  return single ? [single] : []
 }
 
 export function buildExplicitPageAccess(pageAccess: PageAccess | null | undefined): PageAccess {

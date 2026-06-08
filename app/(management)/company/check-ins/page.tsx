@@ -26,7 +26,7 @@ import {
 	TableHeader,
 	TableRow,
 } from "@/components/ui/table"
-import { getManagementPageAccessState, type ManagementAccessMetadata } from "@/lib/management-access"
+import { getAssignedCompanyIds, getManagementPageAccessState, type ManagementAccessMetadata } from "@/lib/management-access"
 
 type CheckInRecord = {
 	id: string
@@ -330,6 +330,82 @@ function CheckInScannerDialog({
 	)
 }
 
+function ScannerCompanyDialog({
+	open,
+	companies,
+	onOpenChange,
+	onConfirm,
+	loading,
+}: {
+	open: boolean
+	companies: Array<{ id: string; name: string }>
+	onOpenChange: (open: boolean) => void
+	onConfirm: (companyId: string) => void
+	loading: boolean
+}) {
+	const [selectedId, setSelectedId] = useState("")
+
+	useEffect(() => {
+		if (!open) {
+			setSelectedId("")
+			return
+		}
+		if (companies.length === 1) {
+			setSelectedId(companies[0].id)
+		}
+	}, [open, companies])
+
+	return (
+		<Dialog open={open} onOpenChange={onOpenChange}>
+			<DialogContent className="sm:max-w-md bg-primary/40">
+				<DialogHeader>
+					<DialogTitle>Select company for check-in</DialogTitle>
+				</DialogHeader>
+
+				<div className="space-y-4 py-2">
+					<p className="text-sm text-white/75">QR code scanned. Select which company to check this user into.</p>
+
+					<div className="space-y-2">
+						{companies.map((c) => (
+							<label
+								key={c.id}
+								className="flex cursor-pointer items-center gap-3 rounded-lg border border-white/10 bg-white/5 p-3 hover:bg-white/10"
+							>
+								<input
+									type="radio"
+									name="scan-company"
+									checked={selectedId === c.id}
+									onChange={() => setSelectedId(c.id)}
+									className="accent-primary"
+								/>
+								<span className="text-sm text-white">{c.name}</span>
+							</label>
+						))}
+					</div>
+				</div>
+
+				<DialogFooter className="gap-2 sm:justify-end">
+					<button
+						type="button"
+						onClick={() => onOpenChange(false)}
+						className="rounded-lg border border-white/15 bg-white/5 px-4 py-2 text-sm text-white/85 hover:bg-white/10"
+					>
+						Cancel
+					</button>
+					<button
+						type="button"
+						onClick={() => onConfirm(selectedId)}
+						disabled={!selectedId || loading}
+						className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:cursor-not-allowed disabled:opacity-60"
+					>
+						{loading ? "Checking in..." : "Confirm check-in"}
+					</button>
+				</DialogFooter>
+			</DialogContent>
+		</Dialog>
+	)
+}
+
 function CheckInLookupDialog({
 	open,
 	preview,
@@ -337,30 +413,29 @@ function CheckInLookupDialog({
 	onLookup,
 	onConfirm,
 	onResetPreview,
-	companyLabel,
-	canConfirm,
+	companies,
 	lookupLoading,
 	confirmLoading,
 }: {
 	open: boolean
 	preview: CheckInPreviewResponse | null
 	onOpenChange: (open: boolean) => void
-	onLookup: (identifier: string) => Promise<void>
-	onConfirm: (identifier: string) => Promise<void>
+	onLookup: (identifier: string, companyId: string) => Promise<void>
+	onConfirm: (identifier: string, companyId: string) => Promise<void>
 	onResetPreview: () => void
-	companyLabel: string
-	canConfirm: boolean
+	companies: Array<{ id: string; name: string }>
 	lookupLoading: boolean
 	confirmLoading: boolean
 }) {
 	const [identifier, setIdentifier] = useState("")
+	const [dialogCompanyId, setDialogCompanyId] = useState("")
 
 	useEffect(() => {
 		if (!open) {
 			setIdentifier("")
+			setDialogCompanyId("")
 			return
 		}
-
 		if (!preview) {
 			setIdentifier("")
 		}
@@ -371,7 +446,16 @@ function CheckInLookupDialog({
 		setIdentifier(preview.user.email || preview.user.userId != null ? String(preview.user.userId ?? preview.user.email) : "")
 	}, [open, preview])
 
+	useEffect(() => {
+		if (!open) return
+		if (companies.length === 1) {
+			setDialogCompanyId(companies[0].id)
+		}
+	}, [open, companies])
+
+	const selectedCompanyName = companies.find((c) => c.id === dialogCompanyId)?.name || ""
 	const isPreviewMode = Boolean(preview)
+	const canProceed = Boolean(dialogCompanyId)
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
@@ -384,6 +468,29 @@ function CheckInLookupDialog({
 					{!isPreviewMode ? (
 						<>
 							<p className="text-sm text-white/75">Enter the user&apos;s email or userId to verify the user before checking them in.</p>
+
+							{companies.length > 1 && (
+								<div className="space-y-2">
+									<label className="text-sm text-white/80">Company</label>
+									<select
+										value={dialogCompanyId}
+										onChange={(e) => setDialogCompanyId(e.target.value)}
+										className="w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white *:text-black"
+									>
+										<option value="">Select a company...</option>
+										{companies.map((c) => (
+											<option key={c.id} value={c.id}>{c.name}</option>
+										))}
+									</select>
+								</div>
+							)}
+
+							{companies.length === 1 && selectedCompanyName && (
+								<div className="rounded-xl border border-white/10 bg-white/5 p-3 text-sm text-white/80">
+									Company: <span className="font-medium text-white">{selectedCompanyName}</span>
+								</div>
+							)}
+
 							<div className="space-y-2">
 								<label className="text-sm text-white/80">Email or userId</label>
 								<Input
@@ -398,7 +505,7 @@ function CheckInLookupDialog({
 						<>
 							<div className="rounded-xl border border-white/10 bg-white/5 p-4 text-sm text-white/80">
 								<p>
-									Company: <span className="font-medium text-white">{companyLabel}</span>
+									Company: <span className="font-medium text-white">{selectedCompanyName || preview?.company?.name || "Selected company"}</span>
 								</p>
 								<p className="mt-2">
 									User: <span className="font-medium text-white">{preview?.user.fullName || "Unknown"}</span>
@@ -431,8 +538,8 @@ function CheckInLookupDialog({
 							</button>
 							<button
 								type="button"
-								onClick={() => void onConfirm(identifier.trim())}
-								disabled={confirmLoading || !canConfirm || Boolean(preview?.existingCheckIn)}
+								onClick={() => void onConfirm(identifier.trim(), dialogCompanyId)}
+								disabled={confirmLoading || !canProceed || Boolean(preview?.existingCheckIn)}
 								className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:cursor-not-allowed disabled:opacity-60"
 							>
 								{confirmLoading ? "Checking in..." : "Confirm check-in"}
@@ -449,8 +556,8 @@ function CheckInLookupDialog({
 							</button>
 							<button
 								type="button"
-								onClick={() => void onLookup(identifier.trim())}
-								disabled={lookupLoading || !canConfirm}
+								onClick={() => void onLookup(identifier.trim(), dialogCompanyId)}
+								disabled={lookupLoading || !canProceed || !identifier.trim()}
 								className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:cursor-not-allowed disabled:opacity-60"
 							>
 								{lookupLoading ? "Looking up..." : "Check user"}
@@ -563,6 +670,8 @@ export default function CompanyCheckInsPage() {
 	const { user } = useUser()
 	const metadata = user?.publicMetadata as ManagementAccessMetadata | undefined
 	const assignedCompanyId = metadata?.assignedCompany?.trim() || ""
+	const assignedCompanyList = getAssignedCompanyIds(metadata)
+	const isMultiCompany = !metadata || metadata.adminRole !== "superadmin" ? assignedCompanyList.length > 1 : false
 	const { canView, canEdit } = getManagementPageAccessState(metadata, "company", ["/company/check-ins", "company/check-ins"])
 	const isSuperAdmin = metadata?.adminRole === "superadmin"
 
@@ -581,6 +690,9 @@ export default function CompanyCheckInsPage() {
 	const [scannerOpen, setScannerOpen] = useState(false)
 	const [profileRecord, setProfileRecord] = useState<CheckInRecord | null>(null)
 	const [editRecord, setEditRecord] = useState<CheckInRecord | null>(null)
+	const [pendingScannedUserId, setPendingScannedUserId] = useState<string | null>(null)
+	const [scanCompanyOpen, setScanCompanyOpen] = useState(false)
+	const [scanCompanyLoading, setScanCompanyLoading] = useState(false)
 	const resolvedSelectedCompanyId = isSuperAdmin ? selectedCompanyId : selectedCompanyId || assignedCompanyId
 	const selectedCompanyScope = isSuperAdmin
 		? resolvedSelectedCompanyId || "all"
@@ -654,6 +766,23 @@ export default function CompanyCheckInsPage() {
 		return companies.find((company) => company.id === selectedCompanyId)?.name || "Selected company"
 	}, [companies, selectedCompanyId, selectedCompanyScope])
 
+	const actionCompanies = useMemo<Array<{ id: string; name: string }>>(() => {
+		if (isSuperAdmin) {
+			if (!resolvedSelectedCompanyId) return []
+			const found = companies.find((c) => c.id === resolvedSelectedCompanyId)
+			return [{ id: resolvedSelectedCompanyId, name: found?.name || selectedCompanyLabel }]
+		}
+		const assignedFromMeta = metadata?.assignedCompanies
+		if (Array.isArray(assignedFromMeta) && assignedFromMeta.length > 0) {
+			return assignedFromMeta
+		}
+		if (assignedCompanyId) {
+			const found = companies.find((c) => c.id === assignedCompanyId)
+			return [{ id: assignedCompanyId, name: found?.name || selectedCompanyLabel }]
+		}
+		return []
+	}, [isSuperAdmin, resolvedSelectedCompanyId, companies, selectedCompanyLabel, metadata, assignedCompanyId])
+
 	const hasDownloadableResumes = useMemo(() => checkIns.some((record) => Boolean(getResumeUrl(record))), [checkIns])
 	const downloadResumesUrl = selectedCompanyForActions
 		? `/api/company/check-ins/resumes?companyId=${encodeURIComponent(selectedCompanyForActions)}`
@@ -710,14 +839,9 @@ export default function CompanyCheckInsPage() {
 		setManualOpen(true)
 	}
 
-	const handleManualLookup = async (identifier: string) => {
+	const handleManualLookup = async (identifier: string, companyId: string) => {
 		if (!identifier.trim()) {
 			toast.error("Email or userId is required")
-			return
-		}
-
-		if (!selectedCompanyForActions) {
-			toast.error("Select a company first")
 			return
 		}
 
@@ -729,7 +853,7 @@ export default function CompanyCheckInsPage() {
 				body: JSON.stringify({
 					mode: "preview",
 					identifier: identifier.trim(),
-					companyId: selectedCompanyForActions,
+					companyId,
 				}),
 			})
 
@@ -747,12 +871,7 @@ export default function CompanyCheckInsPage() {
 		}
 	}
 
-	const handleManualConfirm = async (identifier: string) => {
-		if (!selectedCompanyForActions) {
-			toast.error("Select a company first")
-			return
-		}
-
+	const handleManualConfirm = async (identifier: string, companyId: string) => {
 		setConfirmLoading(true)
 		try {
 			const response = await fetch("/api/company/check-ins", {
@@ -762,7 +881,7 @@ export default function CompanyCheckInsPage() {
 					mode: "checkin",
 					identifier: identifier.trim(),
 					source: "manual",
-					companyId: selectedCompanyForActions,
+					companyId,
 				}),
 			})
 
@@ -783,11 +902,7 @@ export default function CompanyCheckInsPage() {
 		}
 	}
 
-	const handleScannerCheckIn = async (scannedUserId: string) => {
-		if (!selectedCompanyForActions) {
-			throw new Error("Select a company first")
-		}
-
+	const handleScannerCheckIn = async (scannedUserId: string, companyId: string) => {
 		const response = await fetch("/api/company/check-ins", {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
@@ -795,7 +910,7 @@ export default function CompanyCheckInsPage() {
 				mode: "checkin",
 				identifier: scannedUserId,
 				source: "scanner",
-				companyId: selectedCompanyForActions,
+				companyId,
 			}),
 		})
 
@@ -807,6 +922,32 @@ export default function CompanyCheckInsPage() {
 		toast.success("Check-in logged from QR code")
 		setScannerOpen(false)
 		await loadCheckIns(selectedCompanyScope)
+	}
+
+	const handleScanned = async (scannedUserId: string) => {
+		if (actionCompanies.length > 1) {
+			setPendingScannedUserId(scannedUserId)
+			setScannerOpen(false)
+			setScanCompanyOpen(true)
+		} else if (actionCompanies.length === 1) {
+			await handleScannerCheckIn(scannedUserId, actionCompanies[0].id)
+		} else {
+			throw new Error("No company available for check-in")
+		}
+	}
+
+	const handleScanCompanyConfirm = async (companyId: string) => {
+		if (!pendingScannedUserId) return
+		setScanCompanyLoading(true)
+		try {
+			await handleScannerCheckIn(pendingScannedUserId, companyId)
+			setScanCompanyOpen(false)
+			setPendingScannedUserId(null)
+		} catch (error) {
+			toast.error(error instanceof Error ? error.message : "Failed to create check-in")
+		} finally {
+			setScanCompanyLoading(false)
+		}
 	}
 
 	const handleDelete = async (record: CheckInRecord) => {
@@ -886,13 +1027,13 @@ export default function CompanyCheckInsPage() {
 						Download all resumes
 					</button>
 
-					{(isSuperAdmin || !assignedCompanyId) && (
+					{(isSuperAdmin || isMultiCompany) && (
 						<select
 							value={selectedCompanyScope}
 							onChange={(event) => setSelectedCompanyId(event.target.value === "all" ? "" : event.target.value)}
 							className="h-10 min-w-52 rounded-lg border border-input bg-transparent px-3 text-sm *:text-black"
 						>
-							<option value="all">All companies</option>
+							{isSuperAdmin && <option value="all">All companies</option>}
 							{companies.map((company) => (
 								<option key={company.id} value={company.id}>
 									{company.name}
@@ -976,11 +1117,10 @@ export default function CompanyCheckInsPage() {
 					setManualOpen(open)
 					if (!open) setManualPreview(null)
 				}}
-						onLookup={handleManualLookup}
-						onConfirm={handleManualConfirm}
+				onLookup={handleManualLookup}
+				onConfirm={handleManualConfirm}
 				onResetPreview={() => setManualPreview(null)}
-				companyLabel={selectedCompanyLabel}
-				canConfirm={Boolean(selectedCompanyForActions)}
+				companies={actionCompanies}
 				lookupLoading={lookupLoading}
 				confirmLoading={confirmLoading}
 			/>
@@ -988,7 +1128,18 @@ export default function CompanyCheckInsPage() {
 			<CheckInScannerDialog
 				open={scannerOpen}
 				onOpenChange={setScannerOpen}
-				onScanned={handleScannerCheckIn}
+				onScanned={handleScanned}
+			/>
+
+			<ScannerCompanyDialog
+				open={scanCompanyOpen}
+				companies={actionCompanies}
+				onOpenChange={(open) => {
+					setScanCompanyOpen(open)
+					if (!open) setPendingScannedUserId(null)
+				}}
+				onConfirm={(companyId) => void handleScanCompanyConfirm(companyId)}
+				loading={scanCompanyLoading}
 			/>
 
 			<CheckInProfileDialog

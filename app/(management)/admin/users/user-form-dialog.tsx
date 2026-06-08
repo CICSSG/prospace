@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { toast } from "sonner"
+import { Building2, X } from "lucide-react"
 
 import {
   managementPageSections,
@@ -14,6 +15,7 @@ import {
   type PageAccessSection,
 } from "./permissions"
 import { User } from "./types"
+import { getCompaniesForAssignment } from "../actions"
 
 type UserFormDialogProps = {
   open: boolean
@@ -33,6 +35,8 @@ type UserFormState = {
 }
 
 type PermissionValue = "view" | "edit" | "false"
+type AdminRoleState = "superadmin" | "admin" | "company" | "none"
+type CompanyEntry = { id: string; name: string }
 
 function createEmptyAccess(): PageAccess {
   return managementPageSections.reduce<PageAccess>((sectionAccumulator, section) => {
@@ -40,7 +44,16 @@ function createEmptyAccess(): PageAccess {
       pageAccumulator[page.accessKeys[0] ?? page.url] = "false"
       return pageAccumulator
     }, {})
+    return sectionAccumulator
+  }, {})
+}
 
+function createCompanyAccess(): PageAccess {
+  return managementPageSections.reduce<PageAccess>((sectionAccumulator, section) => {
+    sectionAccumulator[section.key] = section.items.reduce<PageAccessSection>((pageAccumulator, page) => {
+      pageAccumulator[page.accessKeys[0] ?? page.url] = section.key === "company" ? "edit" : "false"
+      return pageAccumulator
+    }, {})
     return sectionAccumulator
   }, {})
 }
@@ -58,9 +71,22 @@ export default function UserFormDialog({ open, user, mode, onOpenChange, onSaved
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState<UserFormState>(() => emptyForm())
   const [role, setRole] = useState<"admin" | "user">("user")
-  const [adminRole, setAdminRole] = useState<"superadmin" | "admin" | "none">("none")
+  const [adminRole, setAdminRole] = useState<AdminRoleState>("none")
   const [pageAccess, setPageAccess] = useState<PageAccess>(() => createEmptyAccess())
   const [errors, setErrors] = useState<string[]>([])
+  const [selectedCompanies, setSelectedCompanies] = useState<CompanyEntry[]>([])
+  const [companies, setCompanies] = useState<CompanyEntry[]>([])
+  const [loadingCompanies, setLoadingCompanies] = useState(false)
+
+  useEffect(() => {
+    if (!open) return
+    setLoadingCompanies(true)
+    getCompaniesForAssignment()
+      .then((result) => {
+        if (result.success && result.data) setCompanies(result.data)
+      })
+      .finally(() => setLoadingCompanies(false))
+  }, [open])
 
   useEffect(() => {
     if (mode === "create") {
@@ -68,23 +94,38 @@ export default function UserFormDialog({ open, user, mode, onOpenChange, onSaved
       setRole("user")
       setAdminRole("none")
       setPageAccess(createEmptyAccess())
+      setSelectedCompanies([])
       return
     }
 
+    const isCompanyAccount = Boolean(user?.assignedCompany)
     setRole(user?.role === "admin" ? "admin" : "user")
-    setAdminRole((user?.adminRole as "superadmin" | "admin" | "none") || "none")
-    setPageAccess(() => {
-      const nextAccess = createEmptyAccess()
+    setAdminRole(isCompanyAccount ? "company" : ((user?.adminRole as AdminRoleState) || "none"))
 
-      for (const section of managementPageSections) {
-        nextAccess[section.key] = {
-          ...nextAccess[section.key],
-          ...(user?.pageAccess?.[section.key] ?? {}),
-        }
+    if (isCompanyAccount) {
+      setPageAccess(createCompanyAccess())
+      // Prefer the assignedCompanies array; fall back to the single legacy fields
+      if (Array.isArray(user?.assignedCompanies) && user.assignedCompanies.length > 0) {
+        setSelectedCompanies(user.assignedCompanies)
+      } else if (user?.assignedCompany) {
+        setSelectedCompanies([{ id: user.assignedCompany, name: user.companyName || "" }])
+      } else {
+        setSelectedCompanies([])
       }
+    } else {
+      setSelectedCompanies([])
+      setPageAccess(() => {
+        const nextAccess = createEmptyAccess()
+        for (const section of managementPageSections) {
+          nextAccess[section.key] = {
+            ...nextAccess[section.key],
+            ...(user?.pageAccess?.[section.key] ?? {}),
+          }
+        }
+        return nextAccess
+      })
+    }
 
-      return nextAccess
-    })
     setForm({
       firstName: user?.firstName || "",
       lastName: user?.lastName || "",
@@ -94,6 +135,23 @@ export default function UserFormDialog({ open, user, mode, onOpenChange, onSaved
       resumeLink: user?.resumeLink || "",
     })
   }, [mode, user, open])
+
+  const handleAdminRoleChange = (value: AdminRoleState) => {
+    setAdminRole(value)
+    if (value === "company") {
+      setPageAccess(createCompanyAccess())
+    } else {
+      setSelectedCompanies([])
+      setPageAccess(createEmptyAccess())
+    }
+  }
+
+  const toggleCompany = (company: CompanyEntry) => {
+    setSelectedCompanies((current) => {
+      const exists = current.some((c) => c.id === company.id)
+      return exists ? current.filter((c) => c.id !== company.id) : [...current, company]
+    })
+  }
 
   const validateForm = () => {
     const nextErrors: string[] = []
@@ -106,7 +164,11 @@ export default function UserFormDialog({ open, user, mode, onOpenChange, onSaved
       nextErrors.push("Select an admin type")
     }
 
-    if (role === "admin" && !hasAnyManagementPageAccess(pageAccess)) {
+    if (role === "admin" && adminRole === "company" && selectedCompanies.length === 0) {
+      nextErrors.push("Select at least one company to assign")
+    }
+
+    if (role === "admin" && adminRole !== "company" && !hasAnyManagementPageAccess(pageAccess)) {
       nextErrors.push("Grant at least one view or edit permission before saving an admin")
     }
 
@@ -130,46 +192,50 @@ export default function UserFormDialog({ open, user, mode, onOpenChange, onSaved
         resumeLink: form.resumeLink.trim(),
       }
 
+      const isCompanyAccount = adminRole === "company"
       const normalizedRole = role === "admin" ? "admin" : "user"
       const normalizedAdminRole =
-        normalizedRole === "admin"
-          ? adminRole === "superadmin"
-            ? "superadmin"
-            : "admin"
-          : null
+        normalizedRole === "admin" ? (adminRole === "superadmin" ? "superadmin" : "admin") : null
       const normalizedPageAccess =
-        normalizedRole === "admin"
-          ? {
-              ...pageAccess,
-            }
-          : null
+        normalizedRole === "admin" ? (isCompanyAccount ? createCompanyAccess() : { ...pageAccess }) : null
+
+      // Primary company (first selected) for backward-compat fields
+      const primaryCompany = isCompanyAccount ? (selectedCompanies[0] ?? null) : null
+      const assignedCompany = primaryCompany?.id ?? null
+      const companyId = assignedCompany
+      const companyName = primaryCompany?.name ?? null
+      const assignedCompanies = isCompanyAccount ? selectedCompanies : null
 
       const response =
         mode === "create"
           ? await fetch("/api/createUser", {
               method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
+              headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 value: payload,
                 role: normalizedRole,
                 adminRole: normalizedAdminRole,
                 isAdmin: normalizedRole === "admin",
                 pageAccess: normalizedPageAccess,
+                assignedCompany,
+                companyId,
+                companyName,
+                assignedCompanies,
               }),
             })
           : await fetch(`/api/updateUser?id=${user?.id}`, {
               method: "PUT",
-              headers: {
-                "Content-Type": "application/json",
-              },
+              headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 clerkId: user?.clerkId,
                 role: normalizedRole === "user" ? null : normalizedRole,
                 adminRole: normalizedAdminRole,
                 isAdmin: normalizedRole === "admin",
                 pageAccess: normalizedPageAccess,
+                assignedCompany,
+                companyId,
+                companyName,
+                assignedCompanies,
               }),
             })
 
@@ -290,7 +356,7 @@ export default function UserFormDialog({ open, user, mode, onOpenChange, onSaved
 
           <div className="space-y-3 rounded-lg border bg-muted/20 p-3">
             <div className="text-sm font-medium">User Role</div>
-            <RadioGroup value={role} onValueChange={(value: any) => setRole(value)}>
+            <RadioGroup value={role} onValueChange={(value: "admin" | "user") => setRole(value)}>
               <div className="space-y-2">
                 <div className="flex items-center gap-3 rounded-lg border bg-background p-3">
                   <RadioGroupItem value="user" id="role-user" />
@@ -318,7 +384,7 @@ export default function UserFormDialog({ open, user, mode, onOpenChange, onSaved
           {role === "admin" && (
             <div className="space-y-3 rounded-lg border bg-muted/20 p-3">
               <div className="text-sm font-medium">Admin Type</div>
-              <RadioGroup value={adminRole} onValueChange={(value: any) => setAdminRole(value)}>
+              <RadioGroup value={adminRole} onValueChange={(value: AdminRoleState) => handleAdminRoleChange(value)}>
                 <div className="space-y-2">
                   <div className="flex items-center gap-3 rounded-lg border bg-background p-3">
                     <RadioGroupItem value="admin" id="admin-type-admin" />
@@ -339,12 +405,87 @@ export default function UserFormDialog({ open, user, mode, onOpenChange, onSaved
                       </span>
                     </label>
                   </div>
+
+                  <div className="flex items-center gap-3 rounded-lg border bg-background p-3">
+                    <RadioGroupItem value="company" id="admin-type-company" />
+                    <label htmlFor="admin-type-company" className="flex flex-col cursor-pointer flex-1">
+                      <span className="text-sm font-medium flex items-center gap-1.5">
+                        <Building2 size={14} /> Company Account
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        Access limited to assigned company pages only
+                      </span>
+                    </label>
+                  </div>
                 </div>
               </RadioGroup>
             </div>
           )}
 
-          {role === "admin" && (
+          {role === "admin" && adminRole === "company" && (
+            <div className="space-y-3 rounded-lg border bg-muted/20 p-3">
+              <div className="text-sm font-medium">Company Assignment</div>
+              <div className="text-xs text-muted-foreground">
+                Select one or more companies. This account will have edit access to /company pages for all assigned companies.
+              </div>
+
+              {selectedCompanies.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {selectedCompanies.map((c) => (
+                    <span
+                      key={c.id}
+                      className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 px-2.5 py-1 text-xs font-medium text-amber-700"
+                    >
+                      <Building2 size={10} />
+                      {c.name}
+                      <button
+                        type="button"
+                        onClick={() => toggleCompany(c)}
+                        className="ml-0.5 rounded-full hover:text-amber-900"
+                      >
+                        <X size={10} />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {loadingCompanies ? (
+                <div className="text-sm text-muted-foreground">Loading companies...</div>
+              ) : companies.length === 0 ? (
+                <div className="text-sm text-muted-foreground">No companies found.</div>
+              ) : (
+                <div className="max-h-44 overflow-y-auto rounded-lg border bg-background">
+                  {companies.map((c) => {
+                    const isChecked = selectedCompanies.some((s) => s.id === c.id)
+                    return (
+                      <label
+                        key={c.id}
+                        className="flex cursor-pointer items-center gap-2.5 px-3 py-2 text-sm hover:bg-muted"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={() => toggleCompany(c)}
+                          className="h-4 w-4 rounded border accent-primary"
+                        />
+                        {c.name}
+                      </label>
+                    )
+                  })}
+                </div>
+              )}
+
+              <div className="rounded-lg border bg-background/60 p-3 space-y-1">
+                <div className="text-xs font-medium text-muted-foreground mb-1.5">Fixed page access for company accounts</div>
+                <div className="text-xs text-green-600">✓ /company/dashboard — Edit</div>
+                <div className="text-xs text-green-600">✓ /company/check-ins — Edit</div>
+                <div className="text-xs text-muted-foreground">All other management pages — No access</div>
+              </div>
+            </div>
+          )}
+
+          {role === "admin" && adminRole !== "company" && adminRole !== "none" && (
             <div className="space-y-3 rounded-lg border bg-muted/20 p-3">
               <div className="text-sm font-medium">Manage Page Access</div>
               <div className="space-y-4">
@@ -354,12 +495,11 @@ export default function UserFormDialog({ open, user, mode, onOpenChange, onSaved
                     <div className="grid gap-3 sm:grid-cols-2">
                       {section.items.map((page) => {
                         const pageKey = page.accessKeys[0] ?? page.url
-
                         return (
                           <label key={pageKey} className="space-y-2 text-sm">
                             <span className="font-medium">{page.title}</span>
                             <select
-                              value={((pageAccess[section.key]?.[pageKey] as PermissionValue) || "false")}
+                              value={(pageAccess[section.key]?.[pageKey] as PermissionValue) || "false"}
                               onChange={(event) =>
                                 setPageAccess((current) => ({
                                   ...current,

@@ -4,6 +4,7 @@ import { useUser } from "@clerk/nextjs"
 import { useEffect, useMemo, useState } from "react"
 import { FilterX, PencilLine, RefreshCw, Search } from "lucide-react"
 import { toast } from "sonner"
+import * as XLSX from "xlsx"
 
 import { PaginationComponent } from "@/components/pagination"
 import { Badge } from "@/components/ui/badge"
@@ -85,6 +86,48 @@ function getCompletionMethodLabel(method: string) {
 
 function formatUserId(userId: string | number | null) {
 	return userId == null ? "" : `User-${userId}`
+}
+
+function formatExportDate(date = new Date()) {
+	const year = date.getFullYear()
+	const month = String(date.getMonth() + 1).padStart(2, "0")
+	const day = String(date.getDate()).padStart(2, "0")
+	const hours = String(date.getHours()).padStart(2, "0")
+	const minutes = String(date.getMinutes()).padStart(2, "0")
+	return `${year}${month}${day}-${hours}${minutes}`
+}
+
+function buildFilteredMissionExportRows(users: UserMissionRecord[]) {
+	const userRows = users.map((user) => ({
+		userId: user.userId ?? "",
+		fullName: user.fullName,
+		firstName: user.firstName,
+		lastName: user.lastName,
+		email: user.email,
+		course: user.course,
+		shortBio: user.shortBio,
+		completedCount: user.completedCount,
+		completedMissionIds: user.completedMissionIds.join(", "),
+		completedMissionsJson: JSON.stringify(user.completedMissions),
+	}))
+
+	const missionRows = users.flatMap((user) =>
+		user.completedMissions.map((mission) => ({
+			userId: user.userId ?? "",
+			fullName: user.fullName,
+			email: user.email,
+			course: user.course,
+			missionId: mission.missionId,
+			missionTitle: mission.title,
+			missionDescription: mission.description,
+			categoryId: mission.categoryId,
+			categoryName: mission.categoryName,
+			completionMethod: mission.completionMethod,
+			completedAt: mission.completedAt,
+		}))
+	)
+
+	return { userRows, missionRows }
 }
 
 function UserMissionEditorDialog({
@@ -434,6 +477,41 @@ export default function UserMissionsPage() {
 		setPage(1)
 	}
 
+	const handleExportExcel = () => {
+		if (!filteredUsers.length) {
+			toast.error("No filtered user missions to export")
+			return
+		}
+
+		try {
+			const { userRows, missionRows } = buildFilteredMissionExportRows(filteredUsers)
+			const workbook = XLSX.utils.book_new()
+			const userSheet = XLSX.utils.json_to_sheet(userRows)
+			const missionSheet = XLSX.utils.json_to_sheet(missionRows)
+
+			XLSX.utils.book_append_sheet(workbook, userSheet, "Filtered Users")
+			XLSX.utils.book_append_sheet(workbook, missionSheet, "Filtered Missions")
+
+			const output = XLSX.write(workbook, { bookType: "xlsx", type: "array" })
+			const blob = new Blob([output], {
+				type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+			})
+			const url = URL.createObjectURL(blob)
+			const link = document.createElement("a")
+			link.href = url
+			link.download = `user-missions-${formatExportDate()}.xlsx`
+			document.body.appendChild(link)
+			link.click()
+			link.remove()
+			URL.revokeObjectURL(url)
+
+			toast.success(`Exported ${filteredUsers.length} filtered user${filteredUsers.length === 1 ? "" : "s"}`)
+		} catch (error) {
+			console.error("Failed to export user missions:", error)
+			toast.error(error instanceof Error ? error.message : "Failed to export user missions")
+		}
+	}
+
 	if (!isLoaded) {
 		return <div className="p-4 text-sm text-muted-foreground">Loading access...</div>
 	}
@@ -452,6 +530,9 @@ export default function UserMissionsPage() {
 				</div>
 
 				<div className="flex flex-wrap gap-2">
+					<button type="button" onClick={handleExportExcel} className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm hover:bg-muted">
+						Export Excel
+					</button>
 					<button type="button" onClick={() => void loadData()} className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm hover:bg-muted">
 						<RefreshCw size={16} /> Refresh
 					</button>

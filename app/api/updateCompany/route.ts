@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server"
 import clientPromise from "@/lib/mongodb"
 import { ObjectId } from "mongodb"
 import { ensureCompanyModeratorAccounts, normalizeEmailList, removeCompanyModeratorAccounts } from "../company-users"
+import { getManagementPageAccessState } from "@/lib/management-access"
 
 export async function PUT(req: Request) {
   try {
@@ -47,11 +48,24 @@ export async function PUT(req: Request) {
     const companyObjectId = new ObjectId(id)
     const companyId = companyObjectId.toString()
 
+    const canEditCompanyDashboard = getManagementPageAccessState(
+      metadata,
+      "company",
+      ["/company/dashboard", "company/dashboard"]
+    ).canEdit
+
     if (metadata?.adminRole !== "superadmin") {
       const assignedCompany = String(metadata?.assignedCompany || "").trim()
-      if (!assignedCompany || assignedCompany !== companyId) {
+      if (assignedCompany) {
+        if (assignedCompany !== companyId) {
+          return new Response(
+            JSON.stringify({ success: false, message: "You can only update your assigned company" }),
+            { status: 403 }
+          )
+        }
+      } else if (!canEditCompanyDashboard) {
         return new Response(
-          JSON.stringify({ success: false, message: "You can only update your assigned company" }),
+          JSON.stringify({ success: false, message: "You do not have permission to update companies" }),
           { status: 403 }
         )
       }

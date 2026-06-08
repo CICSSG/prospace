@@ -333,11 +333,11 @@ export default function CompanyDashboardPage() {
 				</div>
 
 				<div className="flex flex-wrap items-center gap-2">
-					{isSuperAdmin && dashboard.availableCompanies.length > 0 ? (
+					{(isSuperAdmin || !assignedCompanyId) && dashboard.availableCompanies.length > 0 ? (
 						<select
 							value={resolvedSelectedCompanyId || dashboard.selectedCompanyId}
 							onChange={(event) => setSelectedCompanyId(event.target.value)}
-							className="h-10 w-full rounded-lg border border-input bg-transparent px-3 text-sm sm:min-w-56 sm:w-auto"
+							className="h-10 w-full rounded-lg border border-input bg-transparent px-3 text-sm sm:min-w-56 sm:w-auto *:text-black"
 						>
 							{dashboard.availableCompanies.map((company) => (
 								<option key={company.id} value={company.id}>
@@ -386,7 +386,7 @@ export default function CompanyDashboardPage() {
 							</div>
 							<div className="min-w-0 space-y-4">
 								<div>
-									<Badge variant="outline">Assigned company: {dashboard.company.id.slice(0, 8)}</Badge>
+									<Badge variant="outline">{assignedCompanyId ? "Assigned company" : "Selected company"}: {dashboard.company.id.slice(0, 8)}</Badge>
 									<p className="mt-3 wrap-break-word text-sm text-muted-foreground">{dashboard.company.description || "No company description provided."}</p>
 								</div>
 								<div className="flex flex-col gap-2 text-sm text-muted-foreground sm:flex-row sm:flex-wrap">

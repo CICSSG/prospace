@@ -32,6 +32,7 @@ type MissionOption = {
 	categoryId: string
 	categoryName: string
 	completionMethod: string
+	requiredSignups?: number | null
 }
 
 type MissionCategoryOption = {
@@ -78,6 +79,7 @@ function getFullName(user: Pick<UserMissionRecord, "firstName" | "lastName" | "e
 function getCompletionMethodLabel(method: string) {
 	if (method === "qr-scanning") return "QR Scanning"
 	if (method === "help-desk") return "Help Desk"
+	if (method === "sign-up") return "Sign-up"
 	return method || "Unspecified"
 }
 
@@ -403,6 +405,7 @@ export default function UserMissionsPage() {
 							<option value="">All completion methods</option>
 							<option value="qr-scanning">QR Scanning</option>
 							<option value="help-desk">Help Desk</option>
+							<option value="sign-up">Sign-up</option>
 						</select>
 
 						{(search || selectedCategoryId || selectedMissionId || selectedCompletionMethod) ? (

@@ -19,6 +19,8 @@ type Mission = {
   links?: MissionLink[]
   categoryId?: string
   categoryName?: string
+  completionMethod?: "qr-scanning" | "help-desk" | "sign-up"
+  requiredSignups?: number | null
 }
 
 type MissionGroup = {
@@ -31,6 +33,8 @@ type MissionRecord = {
   missionTitle?: string
   title?: string
   description?: string
+  completionMethod?: "qr-scanning" | "help-desk" | "sign-up"
+  requiredSignups?: number | null
   links?: MissionLink[]
   missionLinks?: string[]
   missionLink?: string
@@ -46,6 +50,14 @@ type MissionCategoryRecord = {
 type MissionCompletionRecord = {
   userId?: string | number
   missionId?: string
+}
+
+type SignupMissionProgressRecord = {
+  missionId: string
+  title: string
+  requiredSignups: number
+  currentSignups: number
+  isComplete: boolean
 }
 
 const normalizeLinks = (mission: MissionRecord): MissionLink[] => {
@@ -76,6 +88,7 @@ const MissionsPage = () => {
   const [missions, setMissions] = useState<Mission[]>([])
   const [openGroups, setOpenGroups] = useState<string[]>([])
   const [completedMissionIds, setCompletedMissionIds] = useState<string[]>([])
+  const [signupProgressByMissionId, setSignupProgressByMissionId] = useState<Record<string, SignupMissionProgressRecord>>({})
   const [isLoading, setIsLoading] = useState(true)
 
   const missionGroups = useMemo(() => {
@@ -105,12 +118,15 @@ const MissionsPage = () => {
       }
 
       try {
-        const [missionsRes, categoriesRes, completionsRes, userRes] = await Promise.all([
+        const [missionsRes, categoriesRes, completionsRes, userRes, signupProgressRes] = await Promise.all([
           getCollectionData("missions"),
           getCollectionData("missionCategories"),
           getCollectionData("missionCompletions"),
           user?.id
             ? fetch(`/api/getUserInCollection?user_id=${encodeURIComponent(user.id)}`).then((res) => res.json())
+            : Promise.resolve({ success: false, data: null }),
+          user?.id
+            ? fetch("/api/signup-mission-progress").then((res) => res.json())
             : Promise.resolve({ success: false, data: null }),
         ])
 
@@ -122,6 +138,12 @@ const MissionsPage = () => {
           : []
         const completionRows = Array.isArray(completionsRes?.data)
           ? (completionsRes.data as MissionCompletionRecord[])
+          : []
+        const signupProgressRows = Array.isArray(signupProgressRes?.data?.progress)
+          ? (signupProgressRes.data.progress as SignupMissionProgressRecord[])
+          : []
+        const signupCompletedIds = Array.isArray(signupProgressRes?.data?.completedMissionIds)
+          ? (signupProgressRes.data.completedMissionIds as string[])
           : []
 
         const categoryById = new Map<string, string>()
@@ -137,6 +159,8 @@ const MissionsPage = () => {
           description: mission.description || "",
           links: normalizeLinks(mission),
           categoryId: mission.categoryId,
+          completionMethod: mission.completionMethod || "qr-scanning",
+          requiredSignups: mission.requiredSignups ?? undefined,
           categoryName:
             mission.categoryName ||
             (mission.categoryId ? categoryById.get(String(mission.categoryId)) : undefined) ||
@@ -144,23 +168,32 @@ const MissionsPage = () => {
         }))
 
         setMissions(normalizedMissions)
+        setSignupProgressByMissionId(
+          signupProgressRows.reduce<Record<string, SignupMissionProgressRecord>>((accumulator, item) => {
+            accumulator[item.missionId] = item
+            return accumulator
+          }, {})
+        )
         setOpenGroups(Array.from(new Set(normalizedMissions.map((mission) => mission.categoryName || "Uncategorized"))))
 
         const currentUserId = userRes?.success ? userRes?.data?.userId : null
+        const completed = new Set<string>(signupCompletedIds)
+
         if (currentUserId !== null && currentUserId !== undefined) {
-          const completed = completionRows
+          completionRows
             .filter((record) => String(record.userId) === String(currentUserId))
             .map((record) => record.missionId)
             .filter((missionId): missionId is string => Boolean(missionId))
-          setCompletedMissionIds(completed)
-        } else {
-          setCompletedMissionIds([])
+            .forEach((missionId) => completed.add(missionId))
         }
+
+        setCompletedMissionIds(Array.from(completed))
       } catch (error) {
         console.error("Failed to load missions:", error)
         if (isMounted) {
           setMissions([])
           setCompletedMissionIds([])
+          setSignupProgressByMissionId({})
           setOpenGroups([])
         }
       } finally {
@@ -304,6 +337,7 @@ const MissionsPage = () => {
                       {group.missions.sort((a, b) => a.title.localeCompare(b.title)).map((mission) => (
                         (() => {
                           const isCompleted = completedMissionIds.includes(mission.id)
+                          const signupProgress = signupProgressByMissionId[mission.id]
 
                           return (
                         <div
@@ -319,13 +353,44 @@ const MissionsPage = () => {
                               )}
                             </div>
                             <div className="min-w-0 flex-1">
-                              <p className={`text-[17px] font-semibold leading-tight ${sora.className} ${isCompleted ? 'line-through text-white/45' : ''}`}>
-                                {mission.title}
-                              </p>
+                              <div className="flex items-start justify-between gap-4">
+                                <p className={`text-[17px] font-semibold leading-tight ${sora.className} ${isCompleted ? 'line-through text-white/45' : ''}`}>
+                                  {mission.title}
+                                </p>
+
+                                {mission.completionMethod === "sign-up" && signupProgress ? (
+                                  <span className="shrink-0 whitespace-nowrap uppercase tracking-[0.18em] text-white/55 tabular-nums leading-none">
+                                    {signupProgress.currentSignups}/{signupProgress.requiredSignups}
+                                  </span>
+                                ) : null}
+                              </div>
+
+                              {mission.completionMethod === "sign-up" && signupProgress ? (
+                                <div className="mt-2 space-y-1">
+                                  <div className="h-2 overflow-hidden rounded-full bg-white/10">
+                                    <motion.div
+                                      className="h-full rounded-full bg-linear-to-r from-[#6F52FF] via-[#8B5CF6] to-[#C084FC]"
+                                      initial={{ width: 0 }}
+                                      animate={{
+                                        width: `${Math.min(100, (signupProgress.currentSignups / signupProgress.requiredSignups) * 100)}%`,
+                                      }}
+                                      transition={{ duration: 0.8, ease: "easeOut" }}
+                                    />
+                                  </div>
+                                </div>
+                              ) : null}
 
                               {mission.description ? (
                                 <p className="mt-1 text-sm leading-relaxed text-white/60">
                                   {mission.description}
+                                </p>
+                              ) : null}
+
+                              {mission.completionMethod === "sign-up" && signupProgress ? (
+                                <p className="mt-2 text-xs text-white/55">
+                                  {signupProgress.isComplete
+                                    ? "Requirement reached. This mission is complete."
+                                    : "Keep signing up with companies to complete this mission."}
                                 </p>
                               ) : null}
 

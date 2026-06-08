@@ -12,7 +12,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Plus, RefreshCw, PencilLine, Trash2, Shield, Users2 } from "lucide-react"
+import * as XLSX from "xlsx"
+import { Download, Plus, RefreshCw, PencilLine, Trash2, Shield, Users2 } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
 import { toast } from "sonner"
 import { getCollectionData, inspectOrCreateMongoUserByEmail } from "../actions"
@@ -48,7 +49,7 @@ export default function UsersList() {
   const [page, setPage] = useState(1)
   const [itemsPerPage, setItemsPerPage] = useState(10)
   const [search, setSearch] = useState("")
-  const [selectedDomains, setSelectedDomains] = useState<string[]>([])
+  const [domainFilters, setDomainFilters] = useState<Record<string, boolean>>({})
   const [createUserOpen, setCreateUserOpen] = useState(false)
   const [editUser, setEditUser] = useState<User | null>(null)
   const [deleteUser, setDeleteUser] = useState<User | null>(null)
@@ -155,9 +156,10 @@ export default function UsersList() {
       user.course.toLowerCase().includes(normalizedSearch)
 
     const userDomain = user.email.split("@")[1]
-    const matchesDomain =
-      selectedDomains.length === 0 || 
-      (userDomain && selectedDomains.includes(userDomain))
+    const activeDomains = Object.entries(domainFilters)
+      .filter(([, isEnabled]) => isEnabled)
+      .map(([domain]) => domain)
+    const matchesDomain = activeDomains.length === 0 || (userDomain && activeDomains.includes(userDomain))
 
     return matchesSearch && matchesDomain
   })
@@ -175,12 +177,59 @@ export default function UsersList() {
   }
 
   const toggleDomainFilter = (domain: string) => {
-    setSelectedDomains((prev) =>
-      prev.includes(domain)
-        ? prev.filter((d) => d !== domain)
-        : [...prev, domain]
-    )
+    setDomainFilters((prev) => ({
+      ...prev,
+      [domain]: !prev[domain],
+    }))
     setPage(1)
+  }
+
+  const clearDomainFilters = () => {
+    setDomainFilters({})
+    setPage(1)
+  }
+
+  const handleExportExcel = () => {
+    if (!filteredUsers.length) {
+      toast.error("No filtered users to export")
+      return
+    }
+
+    try {
+      const workbook = XLSX.utils.book_new()
+      const worksheet = XLSX.utils.json_to_sheet(
+        filteredUsers.map((user) => ({
+          Name: `${user.firstName} ${user.lastName}`.trim(),
+          Email: user.email,
+          Course: user.course,
+          Role: user.role === "admin" ? (user.adminRole === "superadmin" ? "Super Admin" : "Admin") : "User",
+          "User ID": user.id,
+          "Clerk ID": user.clerkId || "",
+          "Joined At": user.createdAt ? formatDate(user.createdAt) : "",
+          "Updated At": user.updatedAt ? formatDate(user.updatedAt) : "",
+        })),
+      )
+
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Filtered Users")
+
+      const output = XLSX.write(workbook, { bookType: "xlsx", type: "array" })
+      const blob = new Blob([output], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement("a")
+      link.href = url
+      link.download = `users-${new Date().toISOString().slice(0, 10)}.xlsx`
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      URL.revokeObjectURL(url)
+
+      toast.success(`Exported ${filteredUsers.length} filtered user${filteredUsers.length === 1 ? "" : "s"}`)
+    } catch (error) {
+      console.error("Failed to export users:", error)
+      toast.error(error instanceof Error ? error.message : "Failed to export users")
+    }
   }
 
   const handleItemsPerPageChange: React.Dispatch<React.SetStateAction<number>> = (value) => {
@@ -266,6 +315,14 @@ export default function UsersList() {
         <div className="flex flex-wrap gap-2">
           <button
             type="button"
+            onClick={handleExportExcel}
+            disabled={filteredUsers.length === 0}
+            className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <Download size={16} /> Export Excel
+          </button>
+          <button
+            type="button"
             onClick={() => setCreateUserOpen(true)}
             disabled={!canEditUsersPage}
             className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
@@ -317,7 +374,7 @@ export default function UsersList() {
                   type="button"
                   onClick={() => toggleDomainFilter(domain)}
                   className={`inline-flex items-center rounded-lg px-3 py-1.5 text-xs transition-colors ${
-                    selectedDomains.includes(domain)
+                    domainFilters[domain]
                       ? "bg-primary text-primary-foreground"
                       : "border bg-background hover:bg-muted"
                   }`}
@@ -325,10 +382,10 @@ export default function UsersList() {
                   {domain}
                 </button>
               ))}
-              {selectedDomains.length > 0 && (
+              {Object.values(domainFilters).some(Boolean) && (
                 <button
                   type="button"
-                  onClick={() => setSelectedDomains([])}
+                  onClick={clearDomainFilters}
                   className="inline-flex items-center rounded-lg border border-muted-foreground px-3 py-1.5 text-xs text-muted-foreground hover:bg-muted"
                 >
                   Clear filters

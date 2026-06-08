@@ -2,6 +2,7 @@
 import { auth, clerkClient } from "@clerk/nextjs/server"
 import { put } from "@vercel/blob"
 import { ObjectId } from "mongodb"
+import { headers } from "next/headers"
 
 import clientPromise from "@/lib/mongodb"
 import { canAccessManagementPath, type ManagementAccessMetadata } from "@/lib/management-access"
@@ -145,6 +146,7 @@ export type CompanyRecord = {
   socialLinks: CompanySocialLink[]
   companyEmail: string
   moderatorEmails: string[]
+  moderatorPasswords?: Record<string, string>
   description: string
 }
 
@@ -175,12 +177,16 @@ export async function updateCompanyInCollection(
   data: CompanyRecord
 ) {
   try {
+    const requestHeaders = await headers()
+    const cookieHeader = requestHeaders.get("cookie")
+
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_BASE_URL}/api/updateCompany`,
       {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
+          ...(cookieHeader ? { cookie: cookieHeader } : {}),
         },
         body: JSON.stringify({ id, ...data }),
       }
@@ -795,6 +801,36 @@ export async function scanClerkUsersToMongo(): Promise<{ success: boolean; total
   } catch (error) {
     console.error("Failed to scan Clerk users:", error)
     return { success: false, error: "Failed to scan Clerk users" }
+  }
+}
+
+export async function getCompaniesForAssignment(): Promise<{
+  success: boolean
+  data?: Array<{ id: string; name: string }>
+  error?: string
+}> {
+  try {
+    const { sessionClaims, userId } = await auth()
+    const metadata = sessionClaims?.publicMetadata as ManagementAccessMetadata | undefined
+
+    if (!userId || !Boolean(metadata?.isAdmin)) {
+      return { success: false, error: "Unauthorized" }
+    }
+
+    const client = await clientPromise
+    const db = client.db(process.env.MONGODB_DATABASE)
+    const companies = await db.collection("companies").find({}).project({ _id: 1, name: 1 }).sort({ name: 1 }).toArray()
+
+    return {
+      success: true,
+      data: companies.map((c) => ({
+        id: String(c._id),
+        name: String(c.name || ""),
+      })),
+    }
+  } catch (error) {
+    console.error("Failed to fetch companies for assignment:", error)
+    return { success: false, error: "Failed to fetch companies" }
   }
 }
 

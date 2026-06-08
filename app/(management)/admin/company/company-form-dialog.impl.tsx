@@ -1,11 +1,11 @@
 "use client"
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Company, SocialLink } from "./types"
 import { addCompanyToCollection, updateCompanyInCollection } from "../actions"
 import { useRef, useState } from "react"
 import { toast } from "sonner"
-import { Plus, Trash2 } from "lucide-react"
+import { KeyRound, Plus, Trash2 } from "lucide-react"
 import Image from "next/image"
 import { upload } from "@vercel/blob/client"
 
@@ -70,11 +70,61 @@ function isEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
 }
 
+function generatePassword() {
+  const digits = Math.floor(Math.random() * 1_000_000).toString().padStart(6, "0")
+  return `PROSPACE@${digits}`
+}
+
 async function uploadImageToBlobStorage(file: File, filename: string) {
   return upload(filename, file, {
     access: "public",
     handleUploadUrl: "/api/logo-loop/upload",
   })
+}
+
+function GeneratedAccountsModal({
+  accounts,
+  onClose,
+}: {
+  accounts: Array<{ email: string; password: string }>
+  onClose: () => void
+}) {
+  return (
+    <Dialog open={true} onOpenChange={(open) => { if (!open) onClose() }}>
+      <DialogContent className="sm:max-w-md bg-primary/40">
+        <DialogHeader>
+          <DialogTitle>Generated accounts</DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-4 py-2">
+          <p className="text-sm text-white/75">
+            Save these credentials — they won&apos;t be shown again.
+          </p>
+
+          <div className="space-y-3">
+            {accounts.map(({ email, password }) => (
+              <div key={email} className="rounded-xl border border-white/10 bg-white/5 p-3 text-sm">
+                <div className="text-xs text-white/50 mb-0.5">Email</div>
+                <div className="font-mono text-white mb-2 break-all">{email}</div>
+                <div className="text-xs text-white/50 mb-0.5">Password</div>
+                <div className="font-mono text-white font-medium">{password}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <DialogFooter>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
+          >
+            Done
+          </button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
 }
 
 export default function CompanyFormDialog({
@@ -91,6 +141,20 @@ export default function CompanyFormDialog({
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState(() => createInitialForm(company))
   const [errors, setErrors] = useState<string[]>([])
+  const [generatePasswordIndices, setGeneratePasswordIndices] = useState<Set<number>>(new Set())
+  const [generatedAccounts, setGeneratedAccounts] = useState<Array<{ email: string; password: string }> | null>(null)
+
+  const toggleGeneratePassword = (index: number) => {
+    setGeneratePasswordIndices((prev) => {
+      const next = new Set(prev)
+      if (next.has(index)) {
+        next.delete(index)
+      } else {
+        next.add(index)
+      }
+      return next
+    })
+  }
 
   const updateSocialLink = (index: number, key: keyof SocialLink, value: string) => {
     setForm((current) => ({
@@ -137,6 +201,14 @@ export default function CompanyFormDialog({
   const removeModeratorEmail = (index: number) => {
     setForm((current) => {
       const nextEmails = current.moderatorEmails.filter((_, itemIndex) => itemIndex !== index)
+      setGeneratePasswordIndices((prev) => {
+        const next = new Set<number>()
+        prev.forEach((i) => {
+          if (i < index) next.add(i)
+          else if (i > index) next.add(i - 1)
+        })
+        return next
+      })
       return {
         ...current,
         moderatorEmails: nextEmails.length > 0 ? nextEmails : [""],
@@ -150,7 +222,7 @@ export default function CompanyFormDialog({
     if (!form.name.trim()) nextErrors.push("Company name is required")
     // if (!form.imageUrl.trim()) nextErrors.push("Company image is required")
     if (!form.logoUrl.trim()) nextErrors.push("Company logo is required")
-    if (!form.companyEmail.trim()) nextErrors.push("Company email is required")
+    // if (!form.companyEmail.trim()) nextErrors.push("Company email is required")
     // if (!form.description.trim()) nextErrors.push("Description is required")
 
     const validModeratorEmails = form.moderatorEmails
@@ -215,6 +287,15 @@ export default function CompanyFormDialog({
       return
     }
 
+    // Build password map for emails that have generate-password toggled
+    const passwordMap: Record<string, string> = {}
+    form.moderatorEmails.forEach((email, index) => {
+      const trimmed = email.trim().toLowerCase()
+      if (trimmed && isEmail(trimmed) && generatePasswordIndices.has(index)) {
+        passwordMap[trimmed] = generatePassword()
+      }
+    })
+
     const payload = {
       imageUrl: form.imageUrl.trim(),
       name: form.name.trim(),
@@ -223,6 +304,7 @@ export default function CompanyFormDialog({
       companyEmail: form.companyEmail.trim(),
       moderatorEmails: form.moderatorEmails.map((email) => email.trim()).filter(Boolean),
       description: form.description.trim(),
+      ...(Object.keys(passwordMap).length > 0 ? { moderatorPasswords: passwordMap } : {}),
     }
 
     setSaving(true)
@@ -234,8 +316,15 @@ export default function CompanyFormDialog({
         await addCompanyToCollection(payload)
         toast.success("Company added successfully")
       }
-      onSaved()
-      onOpenChange(false)
+
+      if (Object.keys(passwordMap).length > 0) {
+        setGeneratedAccounts(
+          Object.entries(passwordMap).map(([email, password]) => ({ email, password }))
+        )
+      } else {
+        onSaved()
+        onOpenChange(false)
+      }
     } catch (error) {
       console.error("Error saving company:", error)
       toast.error(mode === "edit" ? "Failed to update company" : "Failed to add company")
@@ -245,201 +334,236 @@ export default function CompanyFormDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] w-[min(96vw,1100px)] overflow-y-auto sm:max-w-275 bg-primary/40">
-        <DialogHeader>
-          <DialogTitle>{mode === "edit" ? "Edit Company" : "Add Company"}</DialogTitle>
-        </DialogHeader>
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-h-[90vh] w-[min(96vw,1100px)] overflow-y-auto sm:max-w-275 bg-primary/40">
+          <DialogHeader>
+            <DialogTitle>{mode === "edit" ? "Edit Company" : "Add Company"}</DialogTitle>
+          </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="grid gap-4 lg:grid-cols-2">
-          <div className="space-y-4">
-            <label className="block text-sm font-medium">Company Name</label>
-            <input
-              value={form.name}
-              onChange={(e) => setForm((current) => ({ ...current, name: e.target.value }))}
-              className="w-full rounded-lg border bg-background px-3 py-2"
-              placeholder="Company name"
-            />
+          <form onSubmit={handleSubmit} className="grid gap-4 lg:grid-cols-2">
+            <div className="space-y-4">
+              <label className="block text-sm font-medium">Company Name</label>
+              <input
+                value={form.name}
+                onChange={(e) => setForm((current) => ({ ...current, name: e.target.value }))}
+                className="w-full rounded-lg border bg-background px-3 py-2"
+                placeholder="Company name"
+              />
 
-            <label className="block text-sm font-medium">Company Email</label>
-            <input
-              value={form.companyEmail}
-              onChange={(e) => setForm((current) => ({ ...current, companyEmail: e.target.value }))}
-              className="w-full rounded-lg border bg-background px-3 py-2"
-              placeholder="company@example.com"
-            />
+              <label className="block text-sm font-medium">Company Email</label>
+              <input
+                value={form.companyEmail}
+                onChange={(e) => setForm((current) => ({ ...current, companyEmail: e.target.value }))}
+                className="w-full rounded-lg border bg-background px-3 py-2"
+                placeholder="company@example.com"
+              />
 
-            <label className="block text-sm font-medium">Description</label>
-            <textarea
-              value={form.description}
-              onChange={(e) => setForm((current) => ({ ...current, description: e.target.value }))}
-              className="min-h-32 w-full rounded-lg border bg-background px-3 py-2"
-              placeholder="Company description"
-            />
+              <label className="block text-sm font-medium">Description</label>
+              <textarea
+                value={form.description}
+                onChange={(e) => setForm((current) => ({ ...current, description: e.target.value }))}
+                className="min-h-32 w-full rounded-lg border bg-background px-3 py-2"
+                placeholder="Company description"
+              />
 
-            {errors.length > 0 && (
-              <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
-                {errors.map((error) => (
-                  <div key={error}>{error}</div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="space-y-4">
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <label className="block text-sm font-medium">Company Image</label>
-                <input
-                  ref={imageInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={(event) => {
-                    const file = event.target.files?.[0]
-                    if (file) {
-                      void handleImageUpload(file)
-                    }
-                  }}
-                  className="w-full rounded-lg border bg-background px-3 py-2 text-sm"
-                />
-                {isUploadingImage && <p className="text-xs text-muted-foreground">Uploading image...</p>}
-                {form.imageUrl && (
-                  <Image
-                    src={form.imageUrl}
-                    alt="Company image"
-                    width={400}
-                    height={160}
-                    className="h-32 w-full rounded-lg object-cover"
-                  />
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <label className="block text-sm font-medium">Company Logo</label>
-                <input
-                  ref={logoInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={(event) => {
-                    const file = event.target.files?.[0]
-                    if (file) {
-                      void handleLogoUpload(file)
-                    }
-                  }}
-                  className="w-full rounded-lg border bg-background px-3 py-2 text-sm"
-                />
-                {isUploadingLogo && <p className="text-xs text-muted-foreground">Uploading logo...</p>}
-                {form.logoUrl && (
-                  <Image
-                    src={form.logoUrl}
-                    alt="Company logo"
-                    width={400}
-                    height={160}
-                    className="h-32 w-full rounded-lg object-contain"
-                  />
-                )}
-              </div>
-            </div>
-
-            <div className="space-y-3 rounded-xl border bg-muted/20 p-3 flex flex-col">
-              <div className="flex items-center justify-between gap-2">
-                <div>
-                  <div className="text-sm font-medium">Social Links</div>
-                  <div className="text-xs text-muted-foreground">Add any number of links</div>
+              {errors.length > 0 && (
+                <div className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
+                  {errors.map((error) => (
+                    <div key={error}>{error}</div>
+                  ))}
                 </div>
-                <button
-                  type="button"
-                  onClick={addSocialLink}
-                  className="inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-sm hover:bg-muted"
-                >
-                  <Plus size={14} /> Add link
-                </button>
-              </div>
-
-              <div className="space-y-3 grow-0 shrink flex flex-col">
-                {form.socialLinks.map((link, index) => (
-                  <div key={index} className="flex flex-row flex-wrap gap-2 rounded-lg border bg-background p-3">
-                    <input
-                      value={link.platform}
-                      onChange={(e) => updateSocialLink(index, "platform", e.target.value)}
-                      className="rounded-lg border bg-background px-3 py-2 text-sm grow"
-                      placeholder="Platform e.g. Facebook"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeSocialLink(index)}
-                      className="inline-flex items-center justify-center rounded-lg border border-destructive/40 px-3 py-2 text-destructive hover:bg-destructive hover:text-white w-fit"
-                      aria-label={`Remove social link ${index + 1}`}
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                    <input
-                      value={link.url}
-                      onChange={(e) => updateSocialLink(index, "url", e.target.value)}
-                      className="w-full rounded-lg border bg-background px-3 py-2 text-sm"
-                      placeholder="https://..."
-                    />
-                  </div>
-                ))}
-              </div>
+              )}
             </div>
 
-            <div className="space-y-3 rounded-xl border bg-muted/20 p-3 flex flex-col">
-              <div className="flex items-center justify-between gap-2">
-                <div>
-                  <div className="text-sm font-medium">Moderator Emails</div>
-                  <div className="text-xs text-muted-foreground">Add one or more moderators, or leave this empty for now</div>
+            <div className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium">Company Image</label>
+                  <input
+                    ref={imageInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={(event) => {
+                      const file = event.target.files?.[0]
+                      if (file) {
+                        void handleImageUpload(file)
+                      }
+                    }}
+                    className="w-full rounded-lg border bg-background px-3 py-2 text-sm"
+                  />
+                  {isUploadingImage && <p className="text-xs text-muted-foreground">Uploading image...</p>}
+                  {form.imageUrl && (
+                    <Image
+                      src={form.imageUrl}
+                      alt="Company image"
+                      width={400}
+                      height={160}
+                      className="h-32 w-full rounded-lg object-cover"
+                    />
+                  )}
                 </div>
-                <button
-                  type="button"
-                  onClick={addModeratorEmail}
-                  className="inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-sm hover:bg-muted"
-                >
-                  <Plus size={14} /> Add email
-                </button>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium">Company Logo</label>
+                  <input
+                    ref={logoInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={(event) => {
+                      const file = event.target.files?.[0]
+                      if (file) {
+                        void handleLogoUpload(file)
+                      }
+                    }}
+                    className="w-full rounded-lg border bg-background px-3 py-2 text-sm"
+                  />
+                  {isUploadingLogo && <p className="text-xs text-muted-foreground">Uploading logo...</p>}
+                  {form.logoUrl && (
+                    <Image
+                      src={form.logoUrl}
+                      alt="Company logo"
+                      width={400}
+                      height={160}
+                      className="h-32 w-full rounded-lg object-contain"
+                    />
+                  )}
+                </div>
               </div>
 
-              <div className="space-y-3">
-                {form.moderatorEmails.map((email, index) => (
-                  <div key={index} className="flex flex-row flex-nowrap gap-2 rounded-lg border bg-background p-3">
-                    <input
-                      value={email}
-                      onChange={(e) => updateModeratorEmail(index, e.target.value)}
-                      className="w-full rounded-lg border bg-background px-3 py-2 text-sm"
-                      placeholder="moderator@example.com"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeModeratorEmail(index)}
-                      className="inline-flex items-center justify-center rounded-lg border border-destructive/40 px-3 py-2 text-destructive hover:bg-destructive hover:text-white w-fit"
-                      aria-label={`Remove moderator email ${index + 1}`}
-                    >
-                      <Trash2 size={16} />
-                    </button>
+              <div className="space-y-3 rounded-xl border bg-muted/20 p-3 flex flex-col">
+                <div className="flex items-center justify-between gap-2">
+                  <div>
+                    <div className="text-sm font-medium">Social Links</div>
+                    <div className="text-xs text-muted-foreground">Add any number of links</div>
                   </div>
-                ))}
+                  <button
+                    type="button"
+                    onClick={addSocialLink}
+                    className="inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-sm hover:bg-muted"
+                  >
+                    <Plus size={14} /> Add link
+                  </button>
+                </div>
+
+                <div className="space-y-3 grow-0 shrink flex flex-col">
+                  {form.socialLinks.map((link, index) => (
+                    <div key={index} className="flex flex-row flex-wrap gap-2 rounded-lg border bg-background p-3">
+                      <input
+                        value={link.platform}
+                        onChange={(e) => updateSocialLink(index, "platform", e.target.value)}
+                        className="rounded-lg border bg-background px-3 py-2 text-sm grow"
+                        placeholder="Platform e.g. Facebook"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeSocialLink(index)}
+                        className="inline-flex items-center justify-center rounded-lg border border-destructive/40 px-3 py-2 text-destructive hover:bg-destructive hover:text-white w-fit"
+                        aria-label={`Remove social link ${index + 1}`}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                      <input
+                        value={link.url}
+                        onChange={(e) => updateSocialLink(index, "url", e.target.value)}
+                        className="w-full rounded-lg border bg-background px-3 py-2 text-sm"
+                        placeholder="https://..."
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-3 rounded-xl border bg-muted/20 p-3 flex flex-col">
+                <div className="flex items-center justify-between gap-2">
+                  <div>
+                    <div className="text-sm font-medium">Moderator Emails</div>
+                    <div className="text-xs text-muted-foreground">Add one or more moderators, or leave this empty for now</div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={addModeratorEmail}
+                    className="inline-flex items-center gap-1 rounded-lg border px-3 py-1.5 text-sm hover:bg-muted"
+                  >
+                    <Plus size={14} /> Add email
+                  </button>
+                </div>
+
+                <div className="space-y-3">
+                  {form.moderatorEmails.map((email, index) => {
+                    const willGenerate = generatePasswordIndices.has(index)
+                    return (
+                      <div key={index} className="space-y-1.5">
+                        <div className="flex flex-row flex-nowrap gap-2 rounded-lg border bg-background p-3">
+                          <input
+                            value={email}
+                            onChange={(e) => updateModeratorEmail(index, e.target.value)}
+                            className="w-full rounded-lg border bg-background px-3 py-2 text-sm"
+                            placeholder="moderator@example.com"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => toggleGeneratePassword(index)}
+                            title={willGenerate ? "Cancel password generation" : "Generate a random password for this account"}
+                            className={`inline-flex items-center justify-center rounded-lg border px-3 py-2 w-fit transition-colors ${
+                              willGenerate
+                                ? "border-amber-500/50 bg-amber-500/15 text-amber-400 hover:bg-amber-500/25"
+                                : "border-white/15 bg-transparent hover:bg-white/10"
+                            }`}
+                          >
+                            <KeyRound size={16} />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => removeModeratorEmail(index)}
+                            className="inline-flex items-center justify-center rounded-lg border border-destructive/40 px-3 py-2 text-destructive hover:bg-destructive hover:text-white w-fit"
+                            aria-label={`Remove moderator email ${index + 1}`}
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                        {willGenerate && (
+                          <p className="text-xs text-amber-400/80 px-1">
+                            A password will be generated for this account (format: PROSPACE@xxxxxx)
+                          </p>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className="lg:col-span-2 flex items-center justify-end gap-2 border-t pt-4">
-            <button
-              type="button"
-              onClick={() => onOpenChange(false)}
-              className="rounded-lg border px-4 py-2 text-sm hover:bg-muted"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={saving || isUploadingImage || isUploadingLogo}
-              className="rounded-lg bg-primary px-4 py-2 text-sm text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {saving ? "Saving..." : mode === "edit" ? "Update Company" : "Add Company"}
-            </button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+            <div className="lg:col-span-2 flex items-center justify-end gap-2 border-t pt-4">
+              <button
+                type="button"
+                onClick={() => onOpenChange(false)}
+                className="rounded-lg border px-4 py-2 text-sm hover:bg-muted"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={saving || isUploadingImage || isUploadingLogo}
+                className="rounded-lg bg-primary px-4 py-2 text-sm text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {saving ? "Saving..." : mode === "edit" ? "Update Company" : "Add Company"}
+              </button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {generatedAccounts && (
+        <GeneratedAccountsModal
+          accounts={generatedAccounts}
+          onClose={() => {
+            setGeneratedAccounts(null)
+            onSaved()
+            onOpenChange(false)
+          }}
+        />
+      )}
+    </>
   )
 }

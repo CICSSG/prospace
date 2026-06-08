@@ -15,4 +15,8 @@ export type User = {
   adminRole?: "superadmin" | "admin" | null
   isAdmin?: boolean
   pageAccess?: PageAccess | null
+  assignedCompany?: string | null
+  companyId?: string | null
+  companyName?: string | null
+  assignedCompanies?: Array<{ id: string; name: string }> | null
 }

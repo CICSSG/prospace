@@ -12,6 +12,7 @@ export async function PUT(req: Request) {
           role?: "user" | "admin" | null
           adminRole?: "superadmin" | "admin" | null
           assignedCompany?: string | null
+          assignedCompanies?: Array<{ id: string; name: string }> | null
           isAdmin?: boolean
         }
       | undefined
@@ -24,6 +25,7 @@ export async function PUT(req: Request) {
       socialLinks,
       companyEmail,
       moderatorEmails,
+      moderatorPasswords,
       description,
     } = await req.json()
 
@@ -34,7 +36,9 @@ export async function PUT(req: Request) {
       )
     }
 
-    if (!userId || !Boolean(metadata?.isAdmin)) {
+    const isAdminUser = Boolean(metadata?.isAdmin) || metadata?.role === "admin"
+
+    if (!userId || !isAdminUser) {
       return new Response(
         JSON.stringify({ success: false, message: "Unauthorized" }),
         { status: 403 }
@@ -55,11 +59,17 @@ export async function PUT(req: Request) {
     ).canEdit
 
     if (metadata?.adminRole !== "superadmin") {
-      const assignedCompany = String(metadata?.assignedCompany || "").trim()
-      if (assignedCompany) {
-        if (assignedCompany !== companyId) {
+      // Build the full list of company IDs this admin is allowed to edit
+      const assignedCompanyIds: string[] = Array.isArray(metadata?.assignedCompanies)
+        ? metadata.assignedCompanies.map((c) => String(c.id || "")).filter(Boolean)
+        : metadata?.assignedCompany
+          ? [String(metadata.assignedCompany).trim()]
+          : []
+
+      if (assignedCompanyIds.length > 0) {
+        if (!assignedCompanyIds.includes(companyId)) {
           return new Response(
-            JSON.stringify({ success: false, message: "You can only update your assigned company" }),
+            JSON.stringify({ success: false, message: "You can only update your assigned companies" }),
             { status: 403 }
           )
         }
@@ -107,6 +117,7 @@ export async function PUT(req: Request) {
       companyId,
       companyName: name,
       moderatorEmails: newModeratorEmails,
+      passwords: moderatorPasswords && typeof moderatorPasswords === "object" ? moderatorPasswords : undefined,
     })
 
     // Revert removed moderators back to user role

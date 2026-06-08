@@ -10,6 +10,7 @@ export async function POST(req: Request) {
       socialLinks,
       companyEmail,
       moderatorEmails,
+      moderatorPasswords,
       description,
     } = await req.json()
 
@@ -41,6 +42,7 @@ export async function POST(req: Request) {
         : typeof moderatorEmails === "string"
           ? [moderatorEmails]
           : [],
+      passwords: moderatorPasswords && typeof moderatorPasswords === "object" ? moderatorPasswords : undefined,
     })
 
     return new Response(

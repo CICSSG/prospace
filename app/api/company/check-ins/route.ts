@@ -3,7 +3,7 @@ import { Collection, ObjectId } from "mongodb"
 import { NextRequest, NextResponse } from "next/server"
 
 import clientPromise from "@/lib/mongodb"
-import { canAccessManagementPath, getManagementPageAccessState, type ManagementAccessMetadata } from "@/lib/management-access"
+import { canAccessManagementPath, getAssignedCompanyIds, getManagementPageAccessState, type ManagementAccessMetadata } from "@/lib/management-access"
 import { syncSignupMissionProgress } from "@/lib/signup-mission-progress"
 
 type MongoUserRecord = {
@@ -22,7 +22,7 @@ type MongoUserRecord = {
 }
 
 type CompanyRecord = {
-  _id: string
+  _id: string | ObjectId
   name?: string
   logoUrl?: string
   description?: string
@@ -169,31 +169,26 @@ function toResponse(record: CompanyCheckInDbRecord | null): CompanyCheckInRespon
 }
 
 function getCompanyScope(metadata: ManagementAccessMetadata | undefined, requestedCompanyId?: string) {
-  const assignedCompany = asString(metadata?.assignedCompany).trim()
   const isSuperAdmin = metadata?.adminRole === "superadmin"
   const requested = asString(requestedCompanyId).trim()
 
   if (isSuperAdmin) {
-    if (!requested || requested === "all") {
-      return "all"
-    }
-
+    if (!requested || requested === "all") return "all"
     return requested
   }
 
-  if (!assignedCompany) {
-    if (!requested || requested === "all") {
-      return "all"
-    }
+  const assignedIds = getAssignedCompanyIds(metadata)
 
+  if (assignedIds.length === 0) {
+    // Regular admin with company page access but no specific assignment — can browse all
+    if (!requested || requested === "all") return "all"
     return requested
   }
 
-  if (requested && requested !== assignedCompany) {
-    return "__forbidden__"
-  }
-
-  return assignedCompany
+  // Company account — can only access companies in their assigned list
+  if (!requested || requested === "all") return assignedIds[0]
+  if (!assignedIds.includes(requested)) return "__forbidden__"
+  return requested
 }
 
 function buildPreviewUser(user: MongoUserRecord): CheckInPreviewUser {
@@ -270,12 +265,22 @@ export async function GET(request: NextRequest) {
     const companiesCollection = db.collection("companies") as Collection<CompanyRecord>
     const checkInsCollection = db.collection("companyCheckins") as Collection<CompanyCheckInDbRecord>
 
-    const [companyRows, userRows, checkInRows] = await Promise.all([
+    const assignedIds = getAssignedCompanyIds(metadata)
+    const canBrowseAllCompanies = isAuthorized(metadata) && canViewCompanyCheckIns(metadata) && assignedIds.length === 0
+
+    const [companyRows, companyFilterRows, userRows, checkInRows] = await Promise.all([
       companyScope === "all"
         ? companiesCollection.find({}).sort({ name: 1 }).toArray()
         : companyScope
           ? companiesCollection.find({ _id: companyScope }).toArray()
           : [],
+      canBrowseAllCompanies
+        ? companiesCollection.find({}).sort({ name: 1 }).toArray()
+        : assignedIds.length > 1
+          ? companiesCollection.find({ _id: { $in: assignedIds.filter(id => ObjectId.isValid(id)).map(id => new ObjectId(id)) } }).sort({ name: 1 }).toArray()
+          : companyScope
+            ? companiesCollection.find({ _id: ObjectId.isValid(companyScope) ? new ObjectId(companyScope) : companyScope }).toArray()
+            : [],
       usersCollection.find({}).toArray(),
       checkInsCollection.find(buildFilterQuery(companyScope === "all" ? "" : companyScope)).toArray(),
     ])
@@ -332,7 +337,7 @@ export async function GET(request: NextRequest) {
       success: true,
       data: {
         company: companyScope !== "all" ? companyById.get(companyScope) ?? null : null,
-        companies: Array.from(companyById.values()).map((company) => ({
+        companies: companyFilterRows.map((company) => ({
           id: asString(company._id),
           name: company.name || "Unnamed company",
         })),

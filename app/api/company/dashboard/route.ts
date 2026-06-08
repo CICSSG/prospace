@@ -3,7 +3,7 @@ import { Collection, ObjectId } from "mongodb"
 import { NextRequest, NextResponse } from "next/server"
 
 import clientPromise from "@/lib/mongodb"
-import { getManagementPageAccessState, type ManagementAccessMetadata } from "@/lib/management-access"
+import { getAssignedCompanyIds, getManagementPageAccessState, type ManagementAccessMetadata } from "@/lib/management-access"
 
 type CompanyRecord = {
 	_id: string | ObjectId
@@ -91,7 +91,7 @@ export async function GET(request: NextRequest) {
 
 		const requestedCompanyId = request.nextUrl.searchParams.get("companyId") || ""
 		const isSuperAdmin = metadata?.adminRole === "superadmin"
-		const assignedCompany = asString(metadata?.assignedCompany).trim()
+		const assignedIds = getAssignedCompanyIds(metadata)
 		const requestedScope = asString(requestedCompanyId).trim()
 
 		const client = await clientPromise
@@ -99,17 +99,28 @@ export async function GET(request: NextRequest) {
 		const companiesCollection = db.collection("companies") as Collection<CompanyRecord>
 		const checkInsCollection = db.collection("companyCheckins") as Collection<CompanyCheckInRecord>
 		const connectCollection = db.collection("connect") as Collection<ConnectRecord>
-		const canBrowseCompanies = isSuperAdmin || (!assignedCompany && getManagementPageAccessState(metadata, "company", ["/company/dashboard", "company/dashboard"]).canView)
-		const availableCompanies = canBrowseCompanies
-			? await companiesCollection.find({}).sort({ name: 1 }).toArray()
-			: []
+
+		const canBrowseAllCompanies = isSuperAdmin || (assignedIds.length === 0 && getManagementPageAccessState(metadata, "company", ["/company/dashboard", "company/dashboard"]).canView)
+
+		let availableCompanies: CompanyRecord[] = []
+		if (canBrowseAllCompanies) {
+			availableCompanies = await companiesCollection.find({}).sort({ name: 1 }).toArray()
+		} else if (assignedIds.length > 1) {
+			const objectIds = assignedIds.filter((id) => ObjectId.isValid(id)).map((id) => new ObjectId(id))
+			availableCompanies = await companiesCollection.find({ _id: { $in: objectIds } }).sort({ name: 1 }).toArray()
+		}
 
 		let companyScope = ""
 
 		if (isSuperAdmin) {
-			companyScope = requestedScope || assignedCompany || asString(availableCompanies[0]?._id)
-		} else if (assignedCompany) {
-			companyScope = requestedScope && requestedScope !== assignedCompany ? "__forbidden__" : assignedCompany
+			companyScope = requestedScope || assignedIds[0] || asString(availableCompanies[0]?._id)
+		} else if (assignedIds.length > 0) {
+			// Company account — restrict to their assigned list
+			if (requestedScope && !assignedIds.includes(requestedScope)) {
+				companyScope = "__forbidden__"
+			} else {
+				companyScope = requestedScope || assignedIds[0]
+			}
 		} else {
 			companyScope = requestedScope || asString(availableCompanies[0]?._id)
 		}

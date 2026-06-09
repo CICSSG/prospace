@@ -60,6 +60,7 @@ export default function Connect() {
   const [selectedCompany, setSelectedCompany] = useState<ConnectRecord | null>(null)
   const [connectData, setConnectData] = useState<ConnectRecord | null>(null)
   const [pendingDialogOpen, setPendingDialogOpen] = useState(false)
+  const [checkInStatus, setCheckInStatus] = useState<"idle" | "loading" | "success" | "already_checked_in" | "error">("idle")
 
   const id = searchParams.get("id")
   const type = searchParams.get("type")
@@ -147,7 +148,33 @@ export default function Connect() {
     if (connectionRequestKey) {
       setDismissedConnectionRequestKey(connectionRequestKey)
     }
+    setCheckInStatus("idle")
     router.replace("/connect")
+  }
+
+  const onCheckIn = async () => {
+    if (!id) return
+    setCheckInStatus("loading")
+    try {
+      const response = await fetch("/api/company/check-ins/self", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ companyId: id }),
+      })
+      const data = await response.json().catch(() => null)
+      if (response.status === 409 || data?.alreadyCheckedIn) {
+        setCheckInStatus("already_checked_in")
+        return
+      }
+      if (!response.ok || !data?.success) {
+        throw new Error(data?.error || "Failed to create check-in")
+      }
+      setCheckInStatus("success")
+      toast.success(`Checked in to ${data.data?.companyName || "company"} successfully!`)
+    } catch (error) {
+      setCheckInStatus("error")
+      toast.error(error instanceof Error ? error.message : "Failed to create check-in")
+    }
   }
 
   const onConnect = async () => {
@@ -207,7 +234,9 @@ export default function Connect() {
           <DialogContent className="max-w-md overflow-hidden rounded-3xl border border-white/20 bg-linear-to-br from-[#1f1330]/95 via-primary/85 to-[#120a14] p-0 shadow-[0_30px_80px_rgba(0,0,0,0.5)] ring-1 ring-white/10 backdrop-blur-xl">
             <div className="border-b border-white/10 bg-linear-to-r from-[#FF5FA2]/20 via-white/5 to-transparent px-6 py-5">
               <div className="flex items-center justify-between gap-4">
-                <h2 className="uppercase tracking-[0.35em] text-white/60">Connection Request</h2>
+                <h2 className="uppercase tracking-[0.35em] text-white/60">
+                  {isCompanyRequest ? "Company Check-in" : "Connection Request"}
+                </h2>
                 <span className="rounded-full border border-white/15 bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.25em] text-white/75">
                   {isCompanyRequest ? "Company" : "User"}
                 </span>
@@ -227,22 +256,51 @@ export default function Connect() {
                       <Image src={modalImage} alt={modalDisplayName} width={68} height={68} className="relative h-17 w-17 rounded-full border border-white/25 object-cover shadow-lg" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs uppercase tracking-[0.2em] text-white/55">Review profile</p>
+                      <p className="text-xs uppercase tracking-[0.2em] text-white/55">
+                        {isCompanyRequest ? "Check in to" : "Review profile"}
+                      </p>
                       <p className="mt-1 truncate text-xl font-semibold leading-tight text-white">{modalDisplayName}</p>
                       <p className="mt-2 text-sm leading-snug text-white/75">
                         {isCompanyRequest ? connectData?.companyEmail || "No company email provided" : connectData?.course || "No course information provided"}
                       </p>
                     </div>
                   </div>
-                  <p className="mt-4 text-sm leading-6 text-white/75">This request will add them to your connections list if you continue.</p>
+
+                  {isCompanyRequest ? (
+                    checkInStatus === "success" ? (
+                      <p className="mt-4 rounded-xl border border-emerald-400/30 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-200">
+                        You have been checked in successfully.
+                      </p>
+                    ) : checkInStatus === "already_checked_in" ? (
+                      <p className="mt-4 rounded-xl border border-amber-400/30 bg-amber-400/10 px-4 py-3 text-sm text-amber-200">
+                        You have already checked in for this company.
+                      </p>
+                    ) : (
+                      <p className="mt-4 text-sm leading-6 text-white/75">Scan confirmed. Tap &quot;Check In&quot; to log your visit to this company.</p>
+                    )
+                  ) : (
+                    <p className="mt-4 text-sm leading-6 text-white/75">This request will add them to your connections list if you continue.</p>
+                  )}
                 </div>
                 <div className="flex flex-col-reverse gap-3 border-t border-white/10 bg-black/15 px-6 py-4 sm:flex-row sm:justify-end">
                   <button onClick={closeConnectionDialog} className="rounded-xl border border-white/15 bg-white/5 px-5 py-2.5 text-sm font-medium text-white/85 transition hover:bg-white/10 hover:text-white">
-                    Cancel
+                    {checkInStatus === "success" || checkInStatus === "already_checked_in" ? "Close" : "Cancel"}
                   </button>
-                  <button onClick={onConnect} disabled={isConnecting} className="cursor-pointer rounded-xl bg-linear-to-r from-[#FF5FA2] to-[#FF7C70] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(255,95,162,0.32)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60">
-                    {isConnecting ? "Connecting..." : "Connect"}
-                  </button>
+                  {isCompanyRequest ? (
+                    checkInStatus !== "success" && checkInStatus !== "already_checked_in" && (
+                      <button
+                        onClick={() => void onCheckIn()}
+                        disabled={checkInStatus === "loading"}
+                        className="cursor-pointer rounded-xl bg-linear-to-r from-[#FF5FA2] to-[#FF7C70] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(255,95,162,0.32)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {checkInStatus === "loading" ? "Checking in..." : "Check In"}
+                      </button>
+                    )
+                  ) : (
+                    <button onClick={onConnect} disabled={isConnecting} className="cursor-pointer rounded-xl bg-linear-to-r from-[#FF5FA2] to-[#FF7C70] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(255,95,162,0.32)] transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60">
+                      {isConnecting ? "Connecting..." : "Connect"}
+                    </button>
+                  )}
                 </div>
               </>
             ) : (

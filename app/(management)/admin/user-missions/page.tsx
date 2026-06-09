@@ -224,63 +224,71 @@ function UserMissionEditorDialog({
 
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-4xl bg-primary/40">
-				<DialogHeader>
-					<DialogTitle>{user ? `Edit missions for ${user.fullName}` : "Edit user missions"}</DialogTitle>
+			<DialogContent className="flex max-h-[92vh] w-[calc(100vw-1.5rem)] flex-col overflow-hidden p-0 sm:max-w-4xl bg-primary/40">
+				<DialogHeader className="shrink-0 border-b border-white/10 px-4 py-4 sm:px-6">
+					<DialogTitle className="text-base sm:text-lg">{user ? `Edit missions for ${user.fullName}` : "Edit user missions"}</DialogTitle>
 				</DialogHeader>
 
 				{user ? (
-					<div className="space-y-5 py-4">
-						<div className="flex flex-wrap items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/80">
-							<Badge variant="outline" className="border-white/15 text-white">
-								{formatUserId(user.userId)}
-							</Badge>
-							<span>{user.email || "No email on file"}</span>
-							<span className="text-white/50">|</span>
-							<span>{user.course || "No course on file"}</span>
-							<span className="text-white/50">|</span>
-							<span>{draftMissionIds.length} of {missions.length} missions selected</span>
+					<div className="flex min-h-0 flex-1 flex-col gap-4 overflow-hidden px-4 py-4 sm:px-6">
+						<div className="shrink-0 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/80">
+							<div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+								<Badge variant="outline" className="border-white/15 text-white">
+									{formatUserId(user.userId)}
+								</Badge>
+								<span className="truncate">{user.email || "No email on file"}</span>
+							</div>
+							<div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-white/60">
+								<span className="truncate">{user.course || "No course on file"}</span>
+								<span>{draftMissionIds.length} of {missions.length} selected</span>
+							</div>
 						</div>
 
-						<div className="grid gap-3 sm:grid-cols-[1fr_auto_auto] sm:items-center">
+						<div className="shrink-0 space-y-2">
 							<div className="relative">
 								<Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-white/45" />
 								<input
 									type="text"
 									value={search}
 									onChange={(event) => setSearch(event.target.value)}
-									placeholder="Search missions by title, category, or method"
+									placeholder="Search missions…"
 									className="w-full rounded-xl border border-white/10 bg-black/20 px-10 py-2.5 text-sm text-white placeholder:text-white/40 outline-none focus:border-white/30"
 								/>
 							</div>
-							<button type="button" onClick={() => setAllMissions(true)} className="inline-flex items-center justify-center rounded-xl border border-white/15 bg-white/10 px-4 py-2.5 text-sm text-white transition hover:bg-white/15">
-								Mark all complete
-							</button>
-							<button type="button" onClick={() => setAllMissions(false)} className="inline-flex items-center justify-center rounded-xl border border-white/15 bg-white/10 px-4 py-2.5 text-sm text-white transition hover:bg-white/15">
-								Clear all
-							</button>
+							<div className="flex gap-2">
+								<button type="button" onClick={() => setAllMissions(true)} className="flex-1 rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-sm text-white transition hover:bg-white/15 sm:flex-none sm:px-4">
+									Mark all
+								</button>
+								<button type="button" onClick={() => setAllMissions(false)} className="flex-1 rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-sm text-white transition hover:bg-white/15 sm:flex-none sm:px-4">
+									Clear all
+								</button>
+							</div>
 						</div>
 
-						<div className="max-h-[46vh] space-y-3 overflow-y-auto pr-1">
+						<div className="min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
 							{filteredMissions.length ? (
 								filteredMissions.map((mission) => {
 									const isCompleted = draftSet.has(mission.id)
 									return (
-										<div key={mission.id} className={`flex items-start gap-3 rounded-2xl border px-4 py-3 transition ${isCompleted ? "border-emerald-400/35 bg-emerald-400/10" : "border-white/10 bg-black/15"}`}>
-											<button type="button" onClick={() => toggleMission(mission.id)} aria-label={`Toggle mission ${mission.title}`} className={`mt-1 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-lg border transition ${isCompleted ? "border-primary bg-primary text-primary-foreground" : "border-white/20 bg-transparent text-transparent hover:border-white/40"}`}>
-												<span className="text-[10px] leading-none">✓</span>
-											</button>
-											<div className="min-w-0 flex-1 space-y-2">
-												<div className="flex flex-wrap items-center gap-2">
-													<p className="max-w-104 truncate text-sm font-medium text-white">{mission.title}</p>
-													<Badge variant="outline" className="border-white/15 text-white/85">{mission.categoryName}</Badge>
-													<Badge variant="outline" className="border-white/15 text-white/85">{getCompletionMethodLabel(mission.completionMethod)}</Badge>
+										<div key={mission.id} className={`rounded-2xl border px-4 py-3 transition ${isCompleted ? "border-emerald-400/35 bg-emerald-400/10" : "border-white/10 bg-black/15"}`}>
+											<div className="flex items-start gap-3">
+												<button type="button" onClick={() => toggleMission(mission.id)} aria-label={`Toggle mission ${mission.title}`} className={`mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-lg border transition ${isCompleted ? "border-primary bg-primary text-primary-foreground" : "border-white/20 bg-transparent text-transparent hover:border-white/40"}`}>
+													<span className="text-[10px] leading-none">✓</span>
+												</button>
+												<div className="min-w-0 flex-1">
+													<p className="truncate text-sm font-medium text-white">{mission.title}</p>
+													<div className="mt-1 flex flex-wrap gap-1.5">
+														<Badge variant="outline" className="border-white/15 text-white/85 text-xs">{mission.categoryName}</Badge>
+														<Badge variant="outline" className="border-white/15 text-white/85 text-xs">{getCompletionMethodLabel(mission.completionMethod)}</Badge>
+													</div>
+													{mission.description ? <p className="mt-1.5 line-clamp-2 text-xs leading-5 text-white/60">{mission.description}</p> : null}
 												</div>
-												{mission.description ? <p className="line-clamp-2 text-sm leading-6 text-white/70">{mission.description}</p> : null}
 											</div>
-											<button type="button" onClick={() => toggleMission(mission.id)} className={`mt-0.5 rounded-full px-3 py-1.5 text-xs font-medium transition ${isCompleted ? "bg-emerald-400/20 text-emerald-100 hover:bg-emerald-400/30" : "bg-white/10 text-white/80 hover:bg-white/15"}`}>
-												{isCompleted ? "Take back" : "Mark complete"}
-											</button>
+											<div className="mt-2.5 flex justify-end">
+												<button type="button" onClick={() => toggleMission(mission.id)} className={`rounded-full px-4 py-1.5 text-xs font-medium transition ${isCompleted ? "bg-emerald-400/20 text-emerald-100 hover:bg-emerald-400/30" : "bg-white/10 text-white/80 hover:bg-white/15"}`}>
+													{isCompleted ? "Take back" : "Mark complete"}
+												</button>
+											</div>
 										</div>
 									)
 								})
@@ -289,10 +297,10 @@ function UserMissionEditorDialog({
 							)}
 						</div>
 
-						<DialogFooter className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+						<div className="shrink-0 flex flex-col-reverse gap-2 border-t border-white/10 pt-4 sm:flex-row sm:justify-end">
 							<button type="button" onClick={() => onOpenChange(false)} className="rounded-xl border border-white/15 bg-white/5 px-4 py-2.5 text-sm text-white/85 transition hover:bg-white/10">Cancel</button>
 							<button type="button" onClick={handleSave} disabled={saving} className="rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60">{saving ? "Saving..." : "Save changes"}</button>
-						</DialogFooter>
+						</div>
 					</div>
 				) : null}
 			</DialogContent>

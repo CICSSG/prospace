@@ -83,21 +83,23 @@ export default function Connect() {
         })
         .finally(() => setIsLoading(false))
     } else if (type === "company") {
-      fetch(`/api/getCollectionData?collection=companies`)
-        .then((res) => res.json())
-        .then((response) => {
-          if (response.success && Array.isArray(response.data)) {
-            const found = response.data.find((company: ConnectRecord) => String(company.companyId) === String(id) || String(company._id) === String(id))
-            setConnectData(found || null)
-          } else {
-            setConnectData(null)
-          }
-        })
-        .catch((error) => {
-          console.error("Error fetching company data:", error)
-          setConnectData(null)
-        })
-        .finally(() => setIsLoading(false))
+      toast.error("Company check-in via qr-scanning is currently disabled.")
+      setIsLoading(false)
+      // fetch(`/api/getCollectionData?collection=companies`)
+      //   .then((res) => res.json())
+      //   .then((response) => {
+      //     if (response.success && Array.isArray(response.data)) {
+      //       const found = response.data.find((company: ConnectRecord) => String(company.companyId) === String(id) || String(company._id) === String(id))
+      //       setConnectData(found || null)
+      //     } else {
+      //       setConnectData(null)
+      //     }
+      //   })
+      //   .catch((error) => {
+      //     console.error("Error fetching company data:", error)
+      //     setConnectData(null)
+      //   })
+      //   .finally(() => setIsLoading(false))
     }
   }, [id, type])
 

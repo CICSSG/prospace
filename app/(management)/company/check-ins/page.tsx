@@ -365,7 +365,7 @@ function ScannerCompanyDialog({
 				<div className="space-y-4 py-2">
 					<p className="text-sm text-white/75">QR code scanned. Select which company to check this user into.</p>
 
-					<div className="space-y-2">
+					<div className="max-h-64 space-y-2 overflow-y-auto pr-1">
 						{companies.map((c) => (
 							<label
 								key={c.id}

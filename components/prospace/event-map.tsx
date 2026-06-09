@@ -32,7 +32,7 @@ const eventMap = [
   "PNP",
   "Philippine Army",
   "Philippine Navy",
-  "BIMP",
+  "BJMP",
   "Fujisash",
   "Super Shopping",
   "iQor RMS Collect",

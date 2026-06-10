@@ -362,7 +362,7 @@ const MissionsPage = () => {
                             <div className="min-w-0 flex-1">
                               <div className="flex items-start justify-between gap-4">
                                 <div className="flex flex-wrap items-center gap-2">
-                                  <p className={`text-[17px] font-semibold leading-tight ${sora.className} ${isCompleted ? 'line-through text-white/45' : ''}`}>
+                                  <p className={`text-[17px]  font-semibold leading-tight ${sora.className} ${isCompleted ? 'line-through text-gray-600' : 'text-white/95'}`}>
                                     {mission.title}
                                   </p>
                                   {mission.isRequired && (

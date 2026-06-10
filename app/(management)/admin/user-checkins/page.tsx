@@ -2,7 +2,8 @@
 
 import { useUser } from "@clerk/nextjs"
 import { useEffect, useMemo, useState } from "react"
-import { FilterX, PencilLine, RefreshCw, Search } from "lucide-react"
+import { Camera, FilterX, PencilLine, RefreshCw, Search, X } from "lucide-react"
+import { Scanner } from "@yudiel/react-qr-scanner"
 import { toast } from "sonner"
 
 import { PaginationComponent } from "@/components/pagination"
@@ -52,6 +53,22 @@ function getSourceLabel(source: string) {
 
 function formatUserId(userId: string | number | null) {
 	return userId == null ? "" : `User-${userId}`
+}
+
+const scannerConstraints: MediaTrackConstraints = {
+	facingMode: { ideal: "environment" },
+	width: { ideal: 1280 },
+	height: { ideal: 720 },
+	aspectRatio: 1,
+}
+
+function getUserIdFromQrValue(rawValue: string) {
+	try {
+		const parsedUrl = new URL(rawValue, window.location.origin)
+		return parsedUrl.searchParams.get("id")?.trim() || null
+	} catch {
+		return null
+	}
 }
 
 // ── Company Check-in Editor Dialog ────────────────────────────────────────────
@@ -273,6 +290,47 @@ export default function UserCheckInsPage() {
 	const [page, setPage] = useState(1)
 	const [itemsPerPage, setItemsPerPage] = useState(10)
 	const [activeUser, setActiveUser] = useState<UserCheckInRecord | null>(null)
+	const [scannerOpen, setScannerOpen] = useState(false)
+	const [scannerMessage, setScannerMessage] = useState<string | null>(null)
+
+	const openEditorById = (userId: string) => {
+		const normalizedUserId = userId.trim()
+		if (!normalizedUserId) {
+			toast.error("Scanned QR code did not include a user id")
+			return
+		}
+		const matchedUser = users.find((u) => String(u.userId ?? "") === normalizedUserId)
+		if (!matchedUser) {
+			toast.error(`No user found for id ${normalizedUserId}`)
+			return
+		}
+		const matchedPage = Math.max(1, Math.ceil((filteredUsers.findIndex((u) => u.id === matchedUser.id) + 1) / itemsPerPage))
+		setPage(matchedPage)
+		setActiveUser(matchedUser)
+	}
+
+	const handleScannerScan = (detectedCodes: any) => {
+		const rawValue = detectedCodes?.[0]?.rawValue
+		if (!rawValue) return
+		const userId = getUserIdFromQrValue(String(rawValue))
+		setScannerOpen(false)
+		setScannerMessage(null)
+		if (!userId) {
+			toast.error("Scanned QR code did not contain a valid user id")
+			return
+		}
+		openEditorById(userId)
+	}
+
+	const handleScannerError = (error: unknown) => {
+		const message = error instanceof Error ? error.message : "Camera access was blocked or unavailable."
+		setScannerMessage(
+			message.includes("permission") || message.includes("secure context")
+				? "Allow camera access in your browser, then reopen the scanner. If you denied access earlier, enable Camera permissions in browser settings."
+				: "Camera could not start on this device. Make sure you are using HTTPS and allow camera access."
+		)
+		console.error("Scanner error:", error)
+	}
 
 	const loadData = async () => {
 		setLoading(true)
@@ -353,14 +411,52 @@ export default function UserCheckInsPage() {
 						View and edit company check-ins per user. Add or remove check-ins in bulk.
 					</p>
 				</div>
-				<button
-					type="button"
-					onClick={() => void loadData()}
-					className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm hover:bg-muted"
-				>
-					<RefreshCw size={16} /> Refresh
-				</button>
+				<div className="flex flex-wrap gap-2">
+					<button
+						type="button"
+						onClick={() => { setScannerMessage(null); setScannerOpen(true) }}
+						className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm hover:bg-muted"
+					>
+						<Camera size={16} /> Scanner
+					</button>
+					<button
+						type="button"
+						onClick={() => void loadData()}
+						className="inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm hover:bg-muted"
+					>
+						<RefreshCw size={16} /> Refresh
+					</button>
+				</div>
 			</div>
+
+			{scannerOpen ? (
+				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-3">
+					<button
+						type="button"
+						aria-label="Close scanner"
+						onClick={() => { setScannerOpen(false); setScannerMessage(null) }}
+						className="absolute top-4 right-4 rounded-full bg-white/10 p-3 text-white backdrop-blur-sm transition hover:bg-white/20"
+					>
+						<X size={18} />
+					</button>
+
+					{scannerMessage ? (
+						<div className="absolute top-16 right-4 left-4 rounded-2xl border border-white/10 bg-black/80 px-4 py-3 text-sm text-white shadow-2xl backdrop-blur-sm sm:top-4 sm:right-4 sm:left-auto sm:max-w-sm">
+							{scannerMessage}
+						</div>
+					) : null}
+
+					<div className="overflow-hidden rounded-2xl border border-white/10 bg-black/60 shadow-2xl backdrop-blur-sm">
+						<Scanner
+							onScan={handleScannerScan}
+							onError={handleScannerError}
+							constraints={scannerConstraints}
+							components={{ finder: true }}
+							sound={false}
+						/>
+					</div>
+				</div>
+			) : null}
 
 			<section className="rounded-2xl border bg-card p-4 shadow-sm">
 				<div className="mb-4 space-y-3">

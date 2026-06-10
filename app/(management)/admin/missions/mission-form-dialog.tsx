@@ -19,6 +19,7 @@ type MissionFormState = {
   description: string
   completionMethod: "qr-scanning" | "help-desk" | "sign-up"
   requiredSignups: string
+  isRequired: boolean
   links: MissionLink[]
   categoryId?: string
 }
@@ -28,6 +29,7 @@ const emptyForm = (): MissionFormState => ({
   description: "",
   completionMethod: "qr-scanning",
   requiredSignups: "1",
+  isRequired: false,
   links: [{ title: "", link: "" }],
   categoryId: "",
 })
@@ -50,6 +52,7 @@ function createInitialForm(mission?: Mission | null): MissionFormState {
         description: mission.description || "",
         completionMethod: mission.completionMethod || "qr-scanning",
         requiredSignups: mission.requiredSignups ? String(mission.requiredSignups) : "1",
+        isRequired: mission.isRequired ?? false,
         links: initialLinks,
         categoryId: mission.categoryId || "",
       }
@@ -115,6 +118,7 @@ export default function MissionFormDialog({
           description: form.description,
           completionMethod: form.completionMethod,
           requiredSignups: form.completionMethod === "sign-up" ? Number.parseInt(form.requiredSignups, 10) : null,
+          isRequired: form.isRequired,
           links: form.links
             .map((item) => ({
               title: item.title.trim(),
@@ -350,6 +354,30 @@ export default function MissionFormDialog({
                 </option>
               ))}
             </select>
+          </div>
+
+          {/* Required Mission */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Required Mission</label>
+            <button
+              type="button"
+              onClick={() => setForm((current) => ({ ...current, isRequired: !current.isRequired }))}
+              className={`flex w-full items-center gap-3 rounded-lg border px-4 py-3 text-sm transition ${
+                form.isRequired ? "border-amber-500/50 bg-amber-500/10 text-amber-200" : "bg-background hover:bg-muted"
+              }`}
+            >
+              <span className={`inline-flex h-4 w-4 shrink-0 items-center justify-center rounded border transition ${
+                form.isRequired ? "border-amber-400 bg-amber-400 text-black" : "border-muted-foreground bg-transparent"
+              }`}>
+                {form.isRequired ? <span className="text-[10px] leading-none font-bold">✓</span> : null}
+              </span>
+              <span className="font-medium">
+                {form.isRequired ? "This is a required mission" : "Mark as required mission"}
+              </span>
+            </button>
+            <p className="text-xs text-muted-foreground">
+              Required missions are pinned to the top of their category and shown with an indicator.
+            </p>
           </div>
 
           {/* Actions */}

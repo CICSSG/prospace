@@ -1,8 +1,8 @@
 "use client"
 
 import { useUser } from "@clerk/nextjs"
-import { useEffect, useMemo, useState } from "react"
-import { Camera, FilterX, PencilLine, RefreshCw, Search, X } from "lucide-react"
+import { useEffect, useMemo, useRef, useState } from "react"
+import { Camera, ChevronDown, FilterX, PencilLine, RefreshCw, Search, X } from "lucide-react"
 import { Scanner } from "@yudiel/react-qr-scanner"
 import { toast } from "sonner"
 import * as XLSX from "xlsx"
@@ -145,6 +145,93 @@ function getUserIdFromQrValue(rawValue: string) {
 	} catch {
 		return null
 	}
+}
+
+function MissionMultiSelect({
+	missions,
+	selectedIds,
+	onChange,
+}: {
+	missions: MissionOption[]
+	selectedIds: Set<string>
+	onChange: (ids: Set<string>) => void
+}) {
+	const [open, setOpen] = useState(false)
+	const [search, setSearch] = useState("")
+	const ref = useRef<HTMLDivElement>(null)
+
+	useEffect(() => {
+		if (!open) return
+		const handler = (event: MouseEvent) => {
+			if (ref.current && !ref.current.contains(event.target as Node)) setOpen(false)
+		}
+		document.addEventListener("mousedown", handler)
+		return () => document.removeEventListener("mousedown", handler)
+	}, [open])
+
+	const filtered = useMemo(() => {
+		const q = search.trim().toLowerCase()
+		return q ? missions.filter((m) => m.title.toLowerCase().includes(q)) : missions
+	}, [missions, search])
+
+	const toggle = (id: string) => {
+		const next = new Set(selectedIds)
+		if (next.has(id)) next.delete(id)
+		else next.add(id)
+		onChange(next)
+	}
+
+	const label = selectedIds.size === 0 ? "All missions" : `${selectedIds.size} mission${selectedIds.size === 1 ? "" : "s"} selected`
+
+	return (
+		<div className="relative" ref={ref}>
+			<button
+				type="button"
+				onClick={() => setOpen((prev) => !prev)}
+				className="flex items-center gap-2 rounded-lg border bg-background px-3 py-2 text-sm"
+			>
+				{label}
+				<ChevronDown size={14} className={`transition-transform ${open ? "rotate-180" : ""}`} />
+			</button>
+
+			{open && (
+				<div className="absolute top-full left-0 z-20 mt-1 w-72 rounded-lg border bg-background shadow-lg">
+					<div className="border-b p-2">
+						<input
+							type="text"
+							value={search}
+							onChange={(e) => setSearch(e.target.value)}
+							placeholder="Search missions…"
+							className="w-full rounded border bg-muted/20 px-2 py-1.5 text-sm outline-none focus:ring-1 focus:ring-primary"
+						/>
+					</div>
+					<div className="max-h-52 overflow-y-auto p-1">
+						{filtered.length ? (
+							filtered.map((m) => (
+								<label key={m.id} className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-muted">
+									<input type="checkbox" checked={selectedIds.has(m.id)} onChange={() => toggle(m.id)} className="accent-primary" />
+									<span className="truncate">{m.title}</span>
+								</label>
+							))
+						) : (
+							<p className="px-2 py-3 text-sm text-muted-foreground">No missions found.</p>
+						)}
+					</div>
+					{selectedIds.size > 0 && (
+						<div className="border-t p-2">
+							<button
+								type="button"
+								onClick={() => onChange(new Set())}
+								className="w-full rounded px-2 py-1.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
+							>
+								Clear selection ({selectedIds.size})
+							</button>
+						</div>
+					)}
+				</div>
+			)}
+		</div>
+	)
 }
 
 function UserMissionEditorDialog({
@@ -319,7 +406,7 @@ export default function UserMissionsPage() {
 	const [loading, setLoading] = useState(true)
 	const [search, setSearch] = useState("")
 	const [selectedCategoryId, setSelectedCategoryId] = useState("")
-	const [selectedMissionId, setSelectedMissionId] = useState("")
+	const [selectedMissionIds, setSelectedMissionIds] = useState<Set<string>>(new Set())
 	const [selectedCompletionMethod, setSelectedCompletionMethod] = useState("")
 	const [page, setPage] = useState(1)
 	const [itemsPerPage, setItemsPerPage] = useState(10)
@@ -377,7 +464,7 @@ export default function UserMissionsPage() {
 
 	const missionsForFilter = useMemo(() => {
 		// Only consider one non-default filter at a time (priority: mission > category > method).
-		const activeFilter: "mission" | "category" | "method" | null = selectedMissionId
+		const activeFilter: "mission" | "category" | "method" | null = selectedMissionIds.size > 0
 			? "mission"
 			: selectedCategoryId
 			? "category"
@@ -399,7 +486,7 @@ export default function UserMissionsPage() {
 			const matchesSearch = !normalizedSearch || userSearchBlob.includes(normalizedSearch)
 			const matchesCategory = !selectedCategoryId || userMission.completedMissions.some((mission) => mission.categoryId === selectedCategoryId)
 			const matchesCompletionMethod = !selectedCompletionMethod || userMission.completedMissions.some((mission) => mission.completionMethod === selectedCompletionMethod)
-			const matchesMission = !selectedMissionId || userMission.completedMissionIds.includes(selectedMissionId)
+			const matchesMission = selectedMissionIds.size === 0 || [...selectedMissionIds].some((id) => userMission.completedMissionIds.includes(id))
 
 			if (activeFilter === "mission") return matchesSearch && matchesMission
 			if (activeFilter === "category") return matchesSearch && matchesCategory
@@ -412,7 +499,7 @@ export default function UserMissionsPage() {
 		const ids = new Set<string>()
 
 		if (activeFilter === "mission") {
-			if (selectedMissionId) ids.add(selectedMissionId)
+			for (const id of selectedMissionIds) ids.add(id)
 		} else if (activeFilter === "category") {
 			for (const u of baseUsers) {
 				for (const m of u.completedMissions) {
@@ -434,10 +521,10 @@ export default function UserMissionsPage() {
 		}
 
 		return ids
-	}, [sortedUsers, normalizedSearch, selectedCategoryId, selectedCompletionMethod, selectedMissionId])
+	}, [sortedUsers, normalizedSearch, selectedCategoryId, selectedCompletionMethod, selectedMissionIds])
 
 	const filteredUsers = useMemo(() => {
-		const activeFilter: "mission" | "category" | "method" | null = selectedMissionId
+		const activeFilter: "mission" | "category" | "method" | null = selectedMissionIds.size > 0
 			? "mission"
 			: selectedCategoryId
 			? "category"
@@ -458,7 +545,7 @@ export default function UserMissionsPage() {
 
 			const matchesSearch = !normalizedSearch || userSearchBlob.includes(normalizedSearch)
 			const matchesCategory = !selectedCategoryId || userMission.completedMissions.some((mission) => mission.categoryId === selectedCategoryId)
-			const matchesMission = !selectedMissionId || userMission.completedMissionIds.includes(selectedMissionId)
+			const matchesMission = selectedMissionIds.size === 0 || [...selectedMissionIds].some((id) => userMission.completedMissionIds.includes(id))
 			const matchesCompletionMethod = !selectedCompletionMethod || userMission.completedMissions.some((mission) => mission.completionMethod === selectedCompletionMethod)
 
 			if (activeFilter === "mission") return matchesSearch && matchesMission
@@ -467,19 +554,17 @@ export default function UserMissionsPage() {
 
 			return matchesSearch && matchesCategory && matchesMission && matchesCompletionMethod
 		})
-	}, [normalizedSearch, selectedCategoryId, selectedCompletionMethod, selectedMissionId, sortedUsers])
+	}, [normalizedSearch, selectedCategoryId, selectedCompletionMethod, selectedMissionIds, sortedUsers])
 
 	const missionsForSelect = useMemo(() => {
-		// Use computed set to limit missions shown in the missions dropdown.
-		// Always include the currently selected mission so the select doesn't lose its value.
 		if (!missions || missions.length === 0) return []
 		return missions.filter((m) => {
 			if (!m || !m.id) return false
-			if (m.id === selectedMissionId) return true
+			if (selectedMissionIds.has(m.id)) return true
 			if (missionsForFilter.size === 0) return true
 			return missionsForFilter.has(m.id)
 		})
-	}, [missions, missionsForFilter, selectedMissionId])
+	}, [missions, missionsForFilter, selectedMissionIds])
 
 	const totalPages = Math.max(1, Math.ceil(filteredUsers.length / itemsPerPage))
 	const currentPage = Math.min(page, totalPages)
@@ -494,7 +579,7 @@ export default function UserMissionsPage() {
 	const resetFilters = () => {
 		setSearch("")
 		setSelectedCategoryId("")
-		setSelectedMissionId("")
+		setSelectedMissionIds(new Set())
 		setSelectedCompletionMethod("")
 		setPage(1)
 	}
@@ -674,12 +759,11 @@ export default function UserMissionsPage() {
 							))}
 						</select>
 
-						<select value={selectedMissionId} onChange={(event) => { setSelectedMissionId(event.target.value); setPage(1) }} className="rounded-lg border bg-background px-3 py-2 text-sm">
-							<option value="">All missions</option>
-							{missions.map((mission) => (
-								<option key={mission.id} value={mission.id}>{mission.title}</option>
-							))}
-						</select>
+						<MissionMultiSelect
+							missions={missionsForSelect}
+							selectedIds={selectedMissionIds}
+							onChange={(ids) => { setSelectedMissionIds(ids); setPage(1) }}
+						/>
 
 						<select value={selectedCompletionMethod} onChange={(event) => { setSelectedCompletionMethod(event.target.value); setPage(1) }} className="rounded-lg border bg-background px-3 py-2 text-sm">
 							<option value="">All completion methods</option>
@@ -688,7 +772,7 @@ export default function UserMissionsPage() {
 							<option value="sign-up">Sign-up</option>
 						</select>
 
-						{(search || selectedCategoryId || selectedMissionId || selectedCompletionMethod) ? (
+						{(search || selectedCategoryId || selectedMissionIds.size > 0 || selectedCompletionMethod) ? (
 							<button type="button" onClick={resetFilters} className="inline-flex items-center gap-2 rounded-lg border border-muted-foreground px-3 py-2 text-sm text-muted-foreground hover:bg-muted">
 								<FilterX size={16} /> Clear filters
 							</button>
@@ -734,8 +818,8 @@ export default function UserMissionsPage() {
 														// include if mission id is in the computed set for the current table filters
 														if (missionsForFilter.size === 0) return true
 														if (missionsForFilter.has(mission.missionId)) return true
-														// also include the currently selected mission so it doesn't disappear from the select
-														if (mission.missionId === selectedMissionId) return true
+														// also include selected missions so they stay visible in badges
+														if (selectedMissionIds.has(mission.missionId)) return true
 														return false
 													})
 

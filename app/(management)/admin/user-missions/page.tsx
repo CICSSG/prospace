@@ -760,7 +760,7 @@ export default function UserMissionsPage() {
 						</select>
 
 						<MissionMultiSelect
-							missions={missionsForSelect}
+							missions={missions}
 							selectedIds={selectedMissionIds}
 							onChange={(ids) => { setSelectedMissionIds(ids); setPage(1) }}
 						/>

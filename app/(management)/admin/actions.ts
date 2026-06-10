@@ -290,17 +290,22 @@ export async function getAdminUserMissionsData(): Promise<{ success: boolean; er
     const client = await clientPromise
     const db = client.db(process.env.MONGODB_DATABASE)
 
-    const [userRows, missionRows, categoryRows, completionRows] = await Promise.all([
-      db.collection("users").find({}).toArray(),
-      db.collection("missions").find({}).toArray(),
-      db.collection("missionCategories").find({}).toArray(),
-      db.collection("missionCompletions").find({}).toArray(),
+    const [userRows, missionRows, categoryRows, completionGroups] = await Promise.all([
+      db.collection("users").find({}).project({ _id: 1, userId: 1, clerkId: 1, firstName: 1, lastName: 1, email: 1, course: 1, shortBio: 1 }).toArray(),
+      db.collection("missions").find({}).project({ _id: 1, missionTitle: 1, title: 1, description: 1, categoryId: 1, categoryName: 1, completionMethod: 1 }).toArray(),
+      db.collection("missionCategories").find({}).project({ _id: 1, categoryName: 1 }).toArray(),
+      // Group completions by userId in MongoDB so we transfer N user-groups instead of M individual records
+      db.collection("missionCompletions").aggregate([
+        { $project: { userId: 1, missionId: 1, createdAt: 1, updatedAt: 1 } },
+        { $group: { _id: "$userId", completions: { $push: { missionId: "$missionId", createdAt: "$createdAt", updatedAt: "$updatedAt" } } } },
+      ]).toArray(),
     ])
 
     const users = userRows as unknown as Array<{ _id: string; userId?: string | number; clerkId?: string; firstName?: string; lastName?: string; email?: string; course?: string; shortBio?: string }>
     const missionsSource = missionRows as unknown as Array<{ _id: string; missionTitle?: string; title?: string; description?: string; categoryId?: string; categoryName?: string; completionMethod?: string }>
     const categoriesSource = categoryRows as unknown as Array<{ _id: string; categoryName?: string }>
-    const completionsSource = completionRows as unknown as Array<{ _id: string; userId?: string | number; missionId?: string; createdAt?: string; updatedAt?: string }>
+    type CompletionGroup = { _id: string | number; completions: Array<{ missionId?: string; createdAt?: string; updatedAt?: string }> }
+    const groupedCompletions = completionGroups as unknown as CompletionGroup[]
 
     const categoryById = new Map<string, string>()
     const categories = categoriesSource
@@ -342,14 +347,15 @@ export async function getAdminUserMissionsData(): Promise<{ success: boolean; er
       .sort((left, right) => left.title.localeCompare(right.title, undefined, { sensitivity: "base" }))
 
     const completionsByUser = new Map<string, Map<string, { createdAt?: string; updatedAt?: string }>>()
-    for (const completion of completionsSource) {
-      const userKey = asString(completion.userId)
-      const missionKey = asString(completion.missionId)
-      if (!userKey || !missionKey) continue
-
-      const existing = completionsByUser.get(userKey) ?? new Map<string, { createdAt?: string; updatedAt?: string }>()
-      existing.set(missionKey, { createdAt: completion.createdAt, updatedAt: completion.updatedAt })
-      completionsByUser.set(userKey, existing)
+    for (const group of groupedCompletions) {
+      const userKey = asString(group._id)
+      if (!userKey) continue
+      const missionsMap = new Map<string, { createdAt?: string; updatedAt?: string }>()
+      for (const c of group.completions) {
+        const missionKey = asString(c.missionId)
+        if (missionKey) missionsMap.set(missionKey, { createdAt: c.createdAt, updatedAt: c.updatedAt })
+      }
+      completionsByUser.set(userKey, missionsMap)
     }
 
     const compiledUsers = users
@@ -379,7 +385,7 @@ export async function getAdminUserMissionsData(): Promise<{ success: boolean; er
           .sort((left, right) => left.title.localeCompare(right.title, undefined, { sensitivity: "base" }))
 
         return {
-          id: user._id,
+          id: asString(user._id),
           userId: user.userId ?? userKey,
           clerkId: user.clerkId || "",
           firstName: user.firstName || "",
@@ -433,17 +439,22 @@ export async function getDataUserMissionsData(): Promise<{ success: boolean; err
     const client = await clientPromise
     const db = client.db(process.env.MONGODB_DATABASE)
 
-    const [userRows, missionRows, categoryRows, completionRows] = await Promise.all([
-      db.collection("users").find({}).toArray(),
-      db.collection("missions").find({}).toArray(),
-      db.collection("missionCategories").find({}).toArray(),
-      db.collection("missionCompletions").find({}).toArray(),
+    const [userRows, missionRows, categoryRows, completionGroups] = await Promise.all([
+      db.collection("users").find({}).project({ _id: 1, userId: 1, clerkId: 1, firstName: 1, lastName: 1, email: 1, course: 1, shortBio: 1 }).toArray(),
+      db.collection("missions").find({}).project({ _id: 1, missionTitle: 1, title: 1, description: 1, categoryId: 1, categoryName: 1, completionMethod: 1 }).toArray(),
+      db.collection("missionCategories").find({}).project({ _id: 1, categoryName: 1 }).toArray(),
+      // Group completions by userId in MongoDB so we transfer N user-groups instead of M individual records
+      db.collection("missionCompletions").aggregate([
+        { $project: { userId: 1, missionId: 1, createdAt: 1, updatedAt: 1 } },
+        { $group: { _id: "$userId", completions: { $push: { missionId: "$missionId", createdAt: "$createdAt", updatedAt: "$updatedAt" } } } },
+      ]).toArray(),
     ])
 
     const users = userRows as unknown as Array<{ _id: string; userId?: string | number; clerkId?: string; firstName?: string; lastName?: string; email?: string; course?: string; shortBio?: string }>
     const missionsSource = missionRows as unknown as Array<{ _id: string; missionTitle?: string; title?: string; description?: string; categoryId?: string; categoryName?: string; completionMethod?: string }>
     const categoriesSource = categoryRows as unknown as Array<{ _id: string; categoryName?: string }>
-    const completionsSource = completionRows as unknown as Array<{ _id: string; userId?: string | number; missionId?: string; createdAt?: string; updatedAt?: string }>
+    type CompletionGroup = { _id: string | number; completions: Array<{ missionId?: string; createdAt?: string; updatedAt?: string }> }
+    const groupedCompletions = completionGroups as unknown as CompletionGroup[]
 
     const categoryById = new Map<string, string>()
     const categories = categoriesSource
@@ -485,14 +496,15 @@ export async function getDataUserMissionsData(): Promise<{ success: boolean; err
       .sort((left, right) => left.title.localeCompare(right.title, undefined, { sensitivity: "base" }))
 
     const completionsByUser = new Map<string, Map<string, { createdAt?: string; updatedAt?: string }>>()
-    for (const completion of completionsSource) {
-      const userKey = asString(completion.userId)
-      const missionKey = asString(completion.missionId)
-      if (!userKey || !missionKey) continue
-
-      const existing = completionsByUser.get(userKey) ?? new Map<string, { createdAt?: string; updatedAt?: string }>()
-      existing.set(missionKey, { createdAt: completion.createdAt, updatedAt: completion.updatedAt })
-      completionsByUser.set(userKey, existing)
+    for (const group of groupedCompletions) {
+      const userKey = asString(group._id)
+      if (!userKey) continue
+      const missionsMap = new Map<string, { createdAt?: string; updatedAt?: string }>()
+      for (const c of group.completions) {
+        const missionKey = asString(c.missionId)
+        if (missionKey) missionsMap.set(missionKey, { createdAt: c.createdAt, updatedAt: c.updatedAt })
+      }
+      completionsByUser.set(userKey, missionsMap)
     }
 
     const compiledUsers = users
@@ -522,7 +534,7 @@ export async function getDataUserMissionsData(): Promise<{ success: boolean; err
           .sort((left, right) => left.title.localeCompare(right.title, undefined, { sensitivity: "base" }))
 
         return {
-          id: user._id,
+          id: asString(user._id),
           userId: user.userId ?? userKey,
           clerkId: user.clerkId || "",
           firstName: user.firstName || "",
@@ -989,9 +1001,9 @@ export async function getAdminUserCheckInsData(): Promise<{
     const db = client.db(process.env.MONGODB_DATABASE)
 
     const [userRows, companyRows, checkInRows] = await Promise.all([
-      db.collection("users").find({}).toArray(),
+      db.collection("users").find({}).project({ _id: 1, userId: 1, clerkId: 1, firstName: 1, lastName: 1, email: 1, course: 1 }).toArray(),
       db.collection("companies").find({}).project({ _id: 1, name: 1 }).sort({ name: 1 }).toArray(),
-      db.collection("companyCheckins").find({}).toArray(),
+      db.collection("companyCheckins").find({}).project({ _id: 1, checkInKey: 1, companyId: 1, companyName: 1, checkInAt: 1, checkInDate: 1, source: 1 }).toArray(),
     ])
 
     const users = userRows as unknown as Array<{
@@ -1177,11 +1189,16 @@ export async function updateAdminUserCheckIns(data: {
 
       const userIdForConnect = user.clerkId || asString(user._id) || asString(user.userId)
       if (userIdForConnect) {
-        for (const companyId of toAdd) {
-          const existingConnect = await connectCollection.findOne({ user_id: userIdForConnect, user_connect: companyId, type: "company" })
-          if (!existingConnect) {
-            await connectCollection.insertOne({ user_id: userIdForConnect, user_connect: companyId, type: "company", createdAt: nowStr, updatedAt: nowStr })
-          }
+        const existingConnects = await connectCollection
+          .find({ user_id: userIdForConnect, user_connect: { $in: toAdd }, type: "company" })
+          .project({ user_connect: 1 })
+          .toArray()
+        const alreadyConnected = new Set(existingConnects.map((c) => String((c as { user_connect?: unknown }).user_connect ?? "")))
+        const connectsToInsert = toAdd
+          .filter((companyId) => !alreadyConnected.has(companyId))
+          .map((companyId) => ({ user_id: userIdForConnect, user_connect: companyId, type: "company", createdAt: nowStr, updatedAt: nowStr }))
+        if (connectsToInsert.length > 0) {
+          await connectCollection.insertMany(connectsToInsert)
         }
       }
     }

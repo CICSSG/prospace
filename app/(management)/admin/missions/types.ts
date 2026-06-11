@@ -9,6 +9,7 @@ export type Mission = {
   description?: string
   completionMethod?: "qr-scanning" | "help-desk" | "sign-up"
   requiredSignups?: number | null
+  isRequired?: boolean
   links?: MissionLink[]
   missionLinks?: string[]
   missionLink?: string

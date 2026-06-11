@@ -4,7 +4,7 @@ import { sora } from "@/components/prospace/fonts"
 
 export default function Footer() {
   return (
-    <footer className="relative w-full overflow-x-clip bg-linear-to-t pt-15 pb-10 bg-[#05091D] min-h-[45vh]">
+    <footer className="relative w-full z-9 overflow-x-clip bg-linear-to-t pt-15 pb-10 bg-[#05091D] min-h-[45vh]">
       <Image 
         src={"/images/HalfCircle.png"}
         width={2520}

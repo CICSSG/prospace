@@ -93,94 +93,6 @@ const SDGLogos = [
   "/images/SDG17.png",
 ]
 
-const IndustryPartners = [
-  {
-    name: "Bossjob",
-    logoUrl: "https://placehold.co/400/png",
-    description: "Job matching platform",
-  },
-  {
-    name: "Bossjob",
-    logoUrl: "https://placehold.co/400/png",
-    description: "Job matching platform",
-  },
-  {
-    name: "Bossjob",
-    logoUrl: "https://placehold.co/400/png",
-    description: "Job matching platform",
-  },
-  {
-    name: "Bossjob",
-    logoUrl: "https://placehold.co/400/png",
-    description: "Job matching platform",
-  },
-  {
-    name: "Bossjob",
-    logoUrl: "https://placehold.co/400/png",
-    description: "Job matching platform",
-  },
-  {
-    name: "Bossjob",
-    logoUrl: "https://placehold.co/400/png",
-    description: "Job matching platform",
-  },
-  {
-    name: "Bossjob",
-    logoUrl: "https://placehold.co/400/png",
-    description: "Job matching platform",
-  },
-  {
-    name: "Bossjob",
-    logoUrl: "https://placehold.co/400/png",
-    description: "Job matching platform",
-  },
-  {
-    name: "Bossjob",
-    logoUrl: "https://placehold.co/400/png",
-    description: "Job matching platform",
-  },
-  {
-    name: "Bossjob",
-    logoUrl: "https://placehold.co/400/png",
-    description: "Job matching platform",
-  },
-  {
-    name: "Bossjob",
-    logoUrl: "https://placehold.co/400/png",
-    description: "Job matching platform",
-  },
-  {
-    name: "Bossjob",
-    logoUrl: "https://placehold.co/400/png",
-    description: "Job matching platform",
-  },
-  {
-    name: "Bossjob",
-    logoUrl: "https://placehold.co/400/png",
-    description: "Job matching platform",
-  },
-  {
-    name: "Bossjob",
-    logoUrl: "https://placehold.co/400/png",
-    description: "Job matching platform",
-  },
-  {
-    name: "Bossjob",
-    logoUrl: "https://placehold.co/400/png",
-    description: "Job matching platform",
-  },
-  {
-    name: "Bossjob",
-    logoUrl: "https://placehold.co/400/png",
-    description: "Job matching platform",
-  },
-  {
-    name: "Bossjob",
-    logoUrl: "https://placehold.co/400/png",
-    description: "Job matching platform",
-  },
-]
-
 export default function Page() {
   const mode = process.env.NEXT_PUBLIC_MODE as WebMode
   const [animateHover, setAnimateHover] = useState(false)
@@ -891,7 +803,7 @@ export default function Page() {
       </div>
 
       {/* NAVIGATE */}
-      <div className="relative mx-8 my-8 flex flex-col gap-3">
+      <div className="relative z-10 mx-8 my-8 flex flex-col items-center gap-3">
         <div className="absolute top-1/2 left-1/2 h-[calc(140%)] w-[calc(100vw+30%)] -translate-1/2 rounded-[50%] bg-[#BCA4FF]/20 blur-[100px]" />
         <h1 className="text-center text-lg font-thin tracking-[0.2rem] lg:text-2xl">
           NAVIGATE
@@ -901,7 +813,7 @@ export default function Page() {
       </div>
 
       {/* EVENT MISSIONS */}
-      <div className="relative z-10 mx-auto my-8 flex max-w-5xl flex-col gap-3">
+      <div className="relative z-9 mx-auto my-8 flex max-w-5xl flex-col gap-3">
         <h1 className="text-center text-lg font-thin tracking-[0.2rem] lg:text-2xl">
           EVENT MISSIONS
         </h1>

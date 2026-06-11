@@ -8,6 +8,7 @@ export async function POST(req: Request) {
       description,
       completionMethod,
       requiredSignups,
+      isRequired,
       links,
       missionLinks,
       missionLink,
@@ -68,6 +69,7 @@ export async function POST(req: Request) {
       missionLinks: (normalizedLinks as { title: string; link: string }[]).map((item) => item.link),
       // legacy fallback for code paths still reading a single link
       missionLink: normalizedLinks[0]?.link || "",
+      isRequired: Boolean(isRequired),
       // store only the category id (string) to keep a normalized reference
       categoryId: categoryId || null,
       createdAt: new Date().toISOString(),

@@ -4,7 +4,7 @@ import { useUser } from "@clerk/nextjs"
 import * as XLSX from "xlsx"
 import { Download, Loader2, Plus, QrCode, RefreshCw, Search, Trash2 } from "lucide-react"
 import { Scanner } from "@yudiel/react-qr-scanner"
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { toast } from "sonner"
 
 import { PaginationComponent } from "@/components/pagination"
@@ -365,7 +365,7 @@ function ScannerCompanyDialog({
 				<div className="space-y-4 py-2">
 					<p className="text-sm text-white/75">QR code scanned. Select which company to check this user into.</p>
 
-					<div className="space-y-2">
+					<div className="max-h-64 space-y-2 overflow-y-auto pr-1">
 						{companies.map((c) => (
 							<label
 								key={c.id}
@@ -694,6 +694,8 @@ export default function CompanyCheckInsPage() {
 	const [scanCompanyOpen, setScanCompanyOpen] = useState(false)
 	const [scanCompanyLoading, setScanCompanyLoading] = useState(false)
 	const [downloadingResumes, setDownloadingResumes] = useState(false)
+	const [companiesReloading, setCompaniesReloading] = useState(false)
+	const companiesLoadedRef = useRef(false)
 	const resolvedSelectedCompanyId = isSuperAdmin ? selectedCompanyId : selectedCompanyId || assignedCompanyId
 	const selectedCompanyScope = isSuperAdmin
 		? resolvedSelectedCompanyId || "all"
@@ -714,7 +716,10 @@ export default function CompanyCheckInsPage() {
 
 			const payload = data.data as CheckInsResponse
 			setCheckIns(Array.isArray(payload.checkIns) ? payload.checkIns : [])
-			setCompanies(Array.isArray(payload.companies) ? payload.companies : [])
+			if (!companiesLoadedRef.current) {
+				setCompanies(Array.isArray(payload.companies) ? payload.companies : [])
+				companiesLoadedRef.current = true
+			}
 			setLastUpdated(payload.lastUpdated || "")
 
 			if (!companyId && !selectedCompanyId && !isSuperAdmin && payload.company?.id) {
@@ -951,6 +956,25 @@ export default function CompanyCheckInsPage() {
 		}
 	}
 
+	const handleReloadCompanies = async () => {
+		setCompaniesReloading(true)
+		try {
+			const queryCompanyId = resolvedSelectedCompanyId === "all" ? "" : resolvedSelectedCompanyId
+			const query = queryCompanyId ? `?companyId=${encodeURIComponent(queryCompanyId)}` : ""
+			const response = await fetch(`/api/company/check-ins${query}`)
+			const data = await response.json().catch(() => null)
+			if (!response.ok || !data?.success) throw new Error(data?.error || "Failed to reload companies")
+			const payload = data.data as CheckInsResponse
+			setCompanies(Array.isArray(payload.companies) ? payload.companies : [])
+			toast.success("Company list reloaded")
+		} catch (error) {
+			console.error("Failed to reload companies:", error)
+			toast.error(error instanceof Error ? error.message : "Failed to reload companies")
+		} finally {
+			setCompaniesReloading(false)
+		}
+	}
+
 	const handleDelete = async (record: CheckInRecord) => {
 		const confirmed = window.confirm(`Delete the check-in for ${record.fullName || record.email || "this user"}?`)
 		if (!confirmed) return
@@ -1048,10 +1072,21 @@ export default function CompanyCheckInsPage() {
 
 					<button
 						type="button"
-						onClick={() => void loadCheckIns(selectedCompanyScope)}
-						className="inline-flex items-center gap-2 rounded-lg border border-white/15 bg-white/10 px-3 py-2 text-sm text-foreground hover:bg-white/15"
+						onClick={() => void handleReloadCompanies()}
+						disabled={companiesReloading}
+						className="inline-flex items-center gap-2 rounded-lg border border-white/15 bg-white/10 px-3 py-2 text-sm text-foreground hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-60"
+						title="Reload the company list"
 					>
-						<RefreshCw className="size-4" />
+						<RefreshCw className={`size-4${companiesReloading ? " animate-spin" : ""}`} />
+						Reload companies
+					</button>
+					<button
+						type="button"
+						onClick={() => void loadCheckIns(selectedCompanyScope)}
+						disabled={loading}
+						className="inline-flex items-center gap-2 rounded-lg border border-white/15 bg-white/10 px-3 py-2 text-sm text-foreground hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-60"
+					>
+						<RefreshCw className={`size-4${loading ? " animate-spin" : ""}`} />
 						Refresh
 					</button>
 				</div>

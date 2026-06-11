@@ -6,7 +6,15 @@ if (!process.env.MONGODB_URI) {
 
 const uri = process.env.MONGODB_URI;
 const fallbackUri = process.env.MONGODB_URI_FALLBACK;
-const options = { appName: "devrel.template.nextjs" };
+const options = {
+  appName: "devrel.template.nextjs",
+  maxPoolSize: 10,
+  serverSelectionTimeoutMS: 10000,
+  connectTimeoutMS: 10000,
+  socketTimeoutMS: 15000,
+  retryReads: false,
+  readPreference: "secondaryPreferred" as const,
+};
 
 let clientPromise: Promise<MongoClient>;
 
@@ -35,17 +43,23 @@ const createClientPromise = async () => {
   }
 };
 
-if (process.env.NODE_ENV === "development") {
-  const globalWithMongo = global as typeof globalThis & {
-    _mongoClientPromise?: Promise<MongoClient>;
-  };
+// Use a global singleton in both development (survives HMR) and production
+// (survives multiple invocations of the same serverless function instance).
+const globalWithMongo = global as typeof globalThis & {
+  _mongoClientPromise?: Promise<MongoClient>;
+};
 
-  if (!globalWithMongo._mongoClientPromise) {
-    globalWithMongo._mongoClientPromise = createClientPromise();
-  }
-  clientPromise = globalWithMongo._mongoClientPromise;
-} else {
-  clientPromise = createClientPromise();
+if (!globalWithMongo._mongoClientPromise) {
+  const promise = createClientPromise();
+  globalWithMongo._mongoClientPromise = promise;
+  // Clear the cache on failure so the next request gets a fresh attempt
+  // instead of immediately re-throwing the cached rejection forever.
+  promise.catch(() => {
+    if (globalWithMongo._mongoClientPromise === promise) {
+      globalWithMongo._mongoClientPromise = undefined;
+    }
+  });
 }
+clientPromise = globalWithMongo._mongoClientPromise;
 
 export default clientPromise;

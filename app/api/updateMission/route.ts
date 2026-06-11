@@ -9,6 +9,7 @@ export async function PUT(req: Request) {
       description,
       completionMethod,
       requiredSignups,
+      isRequired,
       links,
       missionLinks,
       missionLink,
@@ -84,6 +85,7 @@ export async function PUT(req: Request) {
       missionLinks: (normalizedLinks as { title: string; link: string }[]).map((item) => item.link),
       // legacy fallback for code paths still reading a single link
       missionLink: normalizedLinks[0]?.link || "",
+      isRequired: Boolean(isRequired),
       updatedAt: new Date().toISOString(),
     }
 

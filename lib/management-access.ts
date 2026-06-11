@@ -117,6 +117,14 @@ export const managementPageSections: Array<{
         iconKey: "target",
       },
       {
+        key: "user-checkins",
+        title: "User Check-ins",
+        url: "/admin/user-checkins",
+        accessKeys: ["/user-checkins", "user-checkins"],
+        section: "manage",
+        iconKey: "calendar",
+      },
+      {
         key: "users",
         title: "Users",
         url: "/admin/users",

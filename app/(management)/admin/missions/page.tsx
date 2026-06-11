@@ -51,6 +51,7 @@ export default function MissionsList() {
     description?: string
     completionMethod?: "qr-scanning" | "help-desk" | "sign-up"
     requiredSignups?: number | null
+    isRequired?: boolean
     missionLink?: string
     missionLinks?: string[]
     links?: MissionLink[]
@@ -85,6 +86,7 @@ export default function MissionsList() {
             description: item.description || "",
             completionMethod: item.completionMethod || "qr-scanning",
             requiredSignups: item.requiredSignups ?? undefined,
+            isRequired: item.isRequired ?? false,
             links: normalizedLinks,
             missionLinks: normalizedLinks.map((linkItem) => linkItem.link),
             missionLink: normalizedLinks[0]?.link || "",
@@ -258,8 +260,14 @@ export default function MissionsList() {
                     <TableRow key={mission.id}>
                       <TableCell>
                         <div className="space-y-1">
-                          <div className="font-medium max-w-70 truncate">{mission.missionTitle}</div>
-                          {/* <div className="text-xs text-muted-foreground">ID: {mission.id.slice(0, 8)}</div> */}
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium max-w-60 truncate">{mission.missionTitle}</span>
+                            {mission.isRequired && (
+                              <span className="shrink-0 rounded-full border border-amber-500/40 bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-amber-400">
+                                Required
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </TableCell>
                       <TableCell>

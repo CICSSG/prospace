@@ -290,17 +290,22 @@ export async function getAdminUserMissionsData(): Promise<{ success: boolean; er
     const client = await clientPromise
     const db = client.db(process.env.MONGODB_DATABASE)
 
-    const [userRows, missionRows, categoryRows, completionRows] = await Promise.all([
-      db.collection("users").find({}).toArray(),
-      db.collection("missions").find({}).toArray(),
-      db.collection("missionCategories").find({}).toArray(),
-      db.collection("missionCompletions").find({}).toArray(),
+    const [userRows, missionRows, categoryRows, completionGroups] = await Promise.all([
+      db.collection("users").find({}).project({ _id: 1, userId: 1, clerkId: 1, firstName: 1, lastName: 1, email: 1, course: 1, shortBio: 1 }).toArray(),
+      db.collection("missions").find({}).project({ _id: 1, missionTitle: 1, title: 1, description: 1, categoryId: 1, categoryName: 1, completionMethod: 1 }).toArray(),
+      db.collection("missionCategories").find({}).project({ _id: 1, categoryName: 1 }).toArray(),
+      // Group completions by userId in MongoDB so we transfer N user-groups instead of M individual records
+      db.collection("missionCompletions").aggregate([
+        { $project: { userId: 1, missionId: 1, createdAt: 1, updatedAt: 1 } },
+        { $group: { _id: "$userId", completions: { $push: { missionId: "$missionId", createdAt: "$createdAt", updatedAt: "$updatedAt" } } } },
+      ]).toArray(),
     ])
 
     const users = userRows as unknown as Array<{ _id: string; userId?: string | number; clerkId?: string; firstName?: string; lastName?: string; email?: string; course?: string; shortBio?: string }>
     const missionsSource = missionRows as unknown as Array<{ _id: string; missionTitle?: string; title?: string; description?: string; categoryId?: string; categoryName?: string; completionMethod?: string }>
     const categoriesSource = categoryRows as unknown as Array<{ _id: string; categoryName?: string }>
-    const completionsSource = completionRows as unknown as Array<{ _id: string; userId?: string | number; missionId?: string; createdAt?: string; updatedAt?: string }>
+    type CompletionGroup = { _id: string | number; completions: Array<{ missionId?: string; createdAt?: string; updatedAt?: string }> }
+    const groupedCompletions = completionGroups as unknown as CompletionGroup[]
 
     const categoryById = new Map<string, string>()
     const categories = categoriesSource
@@ -342,14 +347,15 @@ export async function getAdminUserMissionsData(): Promise<{ success: boolean; er
       .sort((left, right) => left.title.localeCompare(right.title, undefined, { sensitivity: "base" }))
 
     const completionsByUser = new Map<string, Map<string, { createdAt?: string; updatedAt?: string }>>()
-    for (const completion of completionsSource) {
-      const userKey = asString(completion.userId)
-      const missionKey = asString(completion.missionId)
-      if (!userKey || !missionKey) continue
-
-      const existing = completionsByUser.get(userKey) ?? new Map<string, { createdAt?: string; updatedAt?: string }>()
-      existing.set(missionKey, { createdAt: completion.createdAt, updatedAt: completion.updatedAt })
-      completionsByUser.set(userKey, existing)
+    for (const group of groupedCompletions) {
+      const userKey = asString(group._id)
+      if (!userKey) continue
+      const missionsMap = new Map<string, { createdAt?: string; updatedAt?: string }>()
+      for (const c of group.completions) {
+        const missionKey = asString(c.missionId)
+        if (missionKey) missionsMap.set(missionKey, { createdAt: c.createdAt, updatedAt: c.updatedAt })
+      }
+      completionsByUser.set(userKey, missionsMap)
     }
 
     const compiledUsers = users
@@ -379,7 +385,7 @@ export async function getAdminUserMissionsData(): Promise<{ success: boolean; er
           .sort((left, right) => left.title.localeCompare(right.title, undefined, { sensitivity: "base" }))
 
         return {
-          id: user._id,
+          id: asString(user._id),
           userId: user.userId ?? userKey,
           clerkId: user.clerkId || "",
           firstName: user.firstName || "",
@@ -433,17 +439,22 @@ export async function getDataUserMissionsData(): Promise<{ success: boolean; err
     const client = await clientPromise
     const db = client.db(process.env.MONGODB_DATABASE)
 
-    const [userRows, missionRows, categoryRows, completionRows] = await Promise.all([
-      db.collection("users").find({}).toArray(),
-      db.collection("missions").find({}).toArray(),
-      db.collection("missionCategories").find({}).toArray(),
-      db.collection("missionCompletions").find({}).toArray(),
+    const [userRows, missionRows, categoryRows, completionGroups] = await Promise.all([
+      db.collection("users").find({}).project({ _id: 1, userId: 1, clerkId: 1, firstName: 1, lastName: 1, email: 1, course: 1, shortBio: 1 }).toArray(),
+      db.collection("missions").find({}).project({ _id: 1, missionTitle: 1, title: 1, description: 1, categoryId: 1, categoryName: 1, completionMethod: 1 }).toArray(),
+      db.collection("missionCategories").find({}).project({ _id: 1, categoryName: 1 }).toArray(),
+      // Group completions by userId in MongoDB so we transfer N user-groups instead of M individual records
+      db.collection("missionCompletions").aggregate([
+        { $project: { userId: 1, missionId: 1, createdAt: 1, updatedAt: 1 } },
+        { $group: { _id: "$userId", completions: { $push: { missionId: "$missionId", createdAt: "$createdAt", updatedAt: "$updatedAt" } } } },
+      ]).toArray(),
     ])
 
     const users = userRows as unknown as Array<{ _id: string; userId?: string | number; clerkId?: string; firstName?: string; lastName?: string; email?: string; course?: string; shortBio?: string }>
     const missionsSource = missionRows as unknown as Array<{ _id: string; missionTitle?: string; title?: string; description?: string; categoryId?: string; categoryName?: string; completionMethod?: string }>
     const categoriesSource = categoryRows as unknown as Array<{ _id: string; categoryName?: string }>
-    const completionsSource = completionRows as unknown as Array<{ _id: string; userId?: string | number; missionId?: string; createdAt?: string; updatedAt?: string }>
+    type CompletionGroup = { _id: string | number; completions: Array<{ missionId?: string; createdAt?: string; updatedAt?: string }> }
+    const groupedCompletions = completionGroups as unknown as CompletionGroup[]
 
     const categoryById = new Map<string, string>()
     const categories = categoriesSource
@@ -485,14 +496,15 @@ export async function getDataUserMissionsData(): Promise<{ success: boolean; err
       .sort((left, right) => left.title.localeCompare(right.title, undefined, { sensitivity: "base" }))
 
     const completionsByUser = new Map<string, Map<string, { createdAt?: string; updatedAt?: string }>>()
-    for (const completion of completionsSource) {
-      const userKey = asString(completion.userId)
-      const missionKey = asString(completion.missionId)
-      if (!userKey || !missionKey) continue
-
-      const existing = completionsByUser.get(userKey) ?? new Map<string, { createdAt?: string; updatedAt?: string }>()
-      existing.set(missionKey, { createdAt: completion.createdAt, updatedAt: completion.updatedAt })
-      completionsByUser.set(userKey, existing)
+    for (const group of groupedCompletions) {
+      const userKey = asString(group._id)
+      if (!userKey) continue
+      const missionsMap = new Map<string, { createdAt?: string; updatedAt?: string }>()
+      for (const c of group.completions) {
+        const missionKey = asString(c.missionId)
+        if (missionKey) missionsMap.set(missionKey, { createdAt: c.createdAt, updatedAt: c.updatedAt })
+      }
+      completionsByUser.set(userKey, missionsMap)
     }
 
     const compiledUsers = users
@@ -522,7 +534,7 @@ export async function getDataUserMissionsData(): Promise<{ success: boolean; err
           .sort((left, right) => left.title.localeCompare(right.title, undefined, { sensitivity: "base" }))
 
         return {
-          id: user._id,
+          id: asString(user._id),
           userId: user.userId ?? userKey,
           clerkId: user.clerkId || "",
           firstName: user.firstName || "",
@@ -933,5 +945,271 @@ export async function inspectOrCreateMongoUserByEmail(data: {
   } catch (error) {
     console.error("Failed to inspect or create Mongo user by email:", error)
     return { success: false, error: "Failed to inspect or create user data" }
+  }
+}
+
+// ── User Check-ins ──────────────────────────────────────────────────────────
+
+type CheckInCompanySummary = {
+  checkInId: string
+  companyId: string
+  companyName: string
+  checkInAt: string
+  checkInDate: string
+  source: "manual" | "scanner"
+}
+
+export type UserCheckInRecord = {
+  id: string
+  userId: string | number | null
+  clerkId: string
+  checkInKey: string
+  fullName: string
+  firstName: string
+  lastName: string
+  email: string
+  course: string
+  checkInCount: number
+  checkedInCompanyIds: string[]
+  checkedInCompanies: CheckInCompanySummary[]
+}
+
+export type UserCheckInsResponse = {
+  users: UserCheckInRecord[]
+  companies: Array<{ id: string; name: string }>
+  lastUpdated: string
+}
+
+function isAuthorizedForUserCheckIns(metadata: ManagementAccessMetadata | undefined) {
+  return Boolean(metadata?.isAdmin) && canAccessManagementPath("/admin/user-checkins", metadata?.pageAccess ?? undefined, metadata?.adminRole)
+}
+
+export async function getAdminUserCheckInsData(): Promise<{
+  success: boolean
+  error?: string
+  data?: UserCheckInsResponse
+}> {
+  try {
+    const { sessionClaims, userId } = await auth()
+    const metadata = sessionClaims?.publicMetadata as ManagementAccessMetadata | undefined
+
+    if (!userId || !isAuthorizedForUserCheckIns(metadata)) {
+      return { success: false, error: "Unauthorized" }
+    }
+
+    const client = await clientPromise
+    const db = client.db(process.env.MONGODB_DATABASE)
+
+    const [userRows, companyRows, checkInRows] = await Promise.all([
+      db.collection("users").find({}).project({ _id: 1, userId: 1, clerkId: 1, firstName: 1, lastName: 1, email: 1, course: 1 }).toArray(),
+      db.collection("companies").find({}).project({ _id: 1, name: 1 }).sort({ name: 1 }).toArray(),
+      db.collection("companyCheckins").find({}).project({ _id: 1, checkInKey: 1, companyId: 1, companyName: 1, checkInAt: 1, checkInDate: 1, source: 1 }).toArray(),
+    ])
+
+    const users = userRows as unknown as Array<{
+      _id: string
+      userId?: string | number | null
+      clerkId?: string
+      firstName?: string
+      lastName?: string
+      email?: string
+      course?: string
+    }>
+
+    const companies = companyRows.map((c) => ({
+      id: asString(c._id),
+      name: asString(c.name || "Unnamed company"),
+    }))
+
+    const companyNamesById = new Map(companies.map((c) => [c.id, c.name]))
+
+    const checkIns = checkInRows as unknown as Array<{
+      _id: string
+      checkInKey?: string
+      companyId?: string
+      companyName?: string
+      checkInAt?: string
+      checkInDate?: string
+      source?: string
+    }>
+
+    const checkInsByKey = new Map<string, CheckInCompanySummary[]>()
+    for (const checkIn of checkIns) {
+      const key = checkIn.checkInKey || ""
+      if (!key || !checkIn.companyId) continue
+      const list = checkInsByKey.get(key) ?? []
+      list.push({
+        checkInId: asString(checkIn._id),
+        companyId: checkIn.companyId,
+        companyName: companyNamesById.get(checkIn.companyId) || checkIn.companyName || "Unknown company",
+        checkInAt: checkIn.checkInAt || "",
+        checkInDate: checkIn.checkInDate || "",
+        source: checkIn.source === "scanner" ? "scanner" : "manual",
+      })
+      checkInsByKey.set(key, list)
+    }
+
+    const compiledUsers: UserCheckInRecord[] = users
+      .map((user) => {
+        const checkInKey = asString(user.userId || user.clerkId || user._id)
+        if (!checkInKey) return null
+
+        const checkedInCompanies = checkInsByKey.get(checkInKey) ?? []
+
+        return {
+          id: asString(user._id),
+          userId: user.userId ?? null,
+          clerkId: user.clerkId || "",
+          checkInKey,
+          fullName: getDisplayName(user.firstName, user.lastName, user.email),
+          firstName: user.firstName || "",
+          lastName: user.lastName || "",
+          email: user.email || "",
+          course: user.course || "",
+          checkInCount: checkedInCompanies.length,
+          checkedInCompanyIds: checkedInCompanies.map((c) => c.companyId),
+          checkedInCompanies,
+        }
+      })
+      .filter(Boolean) as UserCheckInRecord[]
+
+    compiledUsers.sort((a, b) => {
+      const countDiff = b.checkInCount - a.checkInCount
+      if (countDiff !== 0) return countDiff
+      return a.fullName.localeCompare(b.fullName, undefined, { sensitivity: "base" })
+    })
+
+    return {
+      success: true,
+      data: { users: compiledUsers, companies, lastUpdated: new Date().toISOString() },
+    }
+  } catch (error) {
+    console.error("Failed to load admin user check-ins:", error)
+    return { success: false, error: "Failed to load user check-ins" }
+  }
+}
+
+export async function updateAdminUserCheckIns(data: {
+  userMongoId: string
+  companyIds: string[]
+}): Promise<{ success: boolean; error?: string; data?: { added: number; removed: number } }> {
+  try {
+    const { sessionClaims, userId } = await auth()
+    const metadata = sessionClaims?.publicMetadata as ManagementAccessMetadata | undefined
+
+    if (!userId || !isAuthorizedForUserCheckIns(metadata)) {
+      return { success: false, error: "Unauthorized" }
+    }
+
+    if (!data.userMongoId || !Array.isArray(data.companyIds)) {
+      return { success: false, error: "userMongoId and companyIds are required" }
+    }
+
+    const client = await clientPromise
+    const db = client.db(process.env.MONGODB_DATABASE)
+    const usersCollection = db.collection("users")
+    const companiesCollection = db.collection("companies")
+    const checkInsCollection = db.collection("companyCheckins")
+    const connectCollection = db.collection("connect")
+
+    const userQuery = ObjectId.isValid(data.userMongoId)
+      ? { _id: new ObjectId(data.userMongoId) }
+      : { _id: data.userMongoId as unknown }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const user = (await usersCollection.findOne(userQuery as any)) as {
+      _id: string | ObjectId
+      userId?: string | number | null
+      clerkId?: string
+      firstName?: string
+      lastName?: string
+      email?: string
+      course?: string
+      shortBio?: string
+      portfolioLink?: string
+      socialLinks?: string[]
+    } | null
+
+    if (!user) {
+      return { success: false, error: "User not found" }
+    }
+
+    const checkInKey = asString(user.userId || user.clerkId || user._id)
+    const targetCompanyIds = Array.from(new Set(data.companyIds.filter(Boolean)))
+
+    const existingCheckIns = (await checkInsCollection.find({ checkInKey }).toArray()) as unknown as Array<{
+      _id: ObjectId
+      companyId?: string
+    }>
+
+    const existingCompanyIds = new Set(existingCheckIns.map((c) => c.companyId || "").filter(Boolean))
+    const targetSet = new Set(targetCompanyIds)
+
+    const toAdd = targetCompanyIds.filter((id) => !existingCompanyIds.has(id))
+    const toRemove = existingCheckIns.filter((c) => c.companyId && !targetSet.has(c.companyId))
+
+    const now = new Date()
+    const nowStr = now.toISOString()
+    const checkInAt = nowStr
+    const checkInDate = now.toLocaleDateString("en-CA")
+    const checkInTime = now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false })
+
+    if (toAdd.length > 0) {
+      const companyQueryIds = toAdd.map((id) => (ObjectId.isValid(id) ? new ObjectId(id) : id)) as unknown as ObjectId[]
+      const companyDocs = (await companiesCollection.find({ _id: { $in: companyQueryIds } }).toArray()) as unknown as Array<{
+        _id: string | ObjectId
+        name?: string
+      }>
+      const companyNamesById = new Map(companyDocs.map((c) => [asString(c._id), c.name || "Unknown company"]))
+      const fullName = getDisplayName(user.firstName, user.lastName, user.email)
+
+      await checkInsCollection.insertMany(
+        toAdd.map((companyId) => ({
+          companyId,
+          companyName: companyNamesById.get(companyId) || "Unknown company",
+          checkInKey,
+          userId: user.userId ?? null,
+          clerkId: user.clerkId || "",
+          email: user.email || "",
+          firstName: user.firstName || "",
+          lastName: user.lastName || "",
+          fullName,
+          course: user.course || "",
+          shortBio: user.shortBio || "",
+          portfolioLink: user.portfolioLink || "",
+          socialLinks: Array.isArray(user.socialLinks) ? user.socialLinks : [],
+          checkInAt,
+          checkInDate,
+          checkInTime,
+          source: "manual" as const,
+          createdAt: nowStr,
+          updatedAt: nowStr,
+        }))
+      )
+
+      const userIdForConnect = user.clerkId || asString(user._id) || asString(user.userId)
+      if (userIdForConnect) {
+        const existingConnects = await connectCollection
+          .find({ user_id: userIdForConnect, user_connect: { $in: toAdd }, type: "company" })
+          .project({ user_connect: 1 })
+          .toArray()
+        const alreadyConnected = new Set(existingConnects.map((c) => String((c as { user_connect?: unknown }).user_connect ?? "")))
+        const connectsToInsert = toAdd
+          .filter((companyId) => !alreadyConnected.has(companyId))
+          .map((companyId) => ({ user_id: userIdForConnect, user_connect: companyId, type: "company", createdAt: nowStr, updatedAt: nowStr }))
+        if (connectsToInsert.length > 0) {
+          await connectCollection.insertMany(connectsToInsert)
+        }
+      }
+    }
+
+    if (toRemove.length > 0) {
+      await checkInsCollection.deleteMany({ _id: { $in: toRemove.map((c) => c._id) } })
+    }
+
+    return { success: true, data: { added: toAdd.length, removed: toRemove.length } }
+  } catch (error) {
+    console.error("Failed to update user check-ins:", error)
+    return { success: false, error: "Failed to update user check-ins" }
   }
 }

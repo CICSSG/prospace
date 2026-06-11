@@ -21,6 +21,7 @@ type Mission = {
   categoryName?: string
   completionMethod?: "qr-scanning" | "help-desk" | "sign-up"
   requiredSignups?: number | null
+  isRequired?: boolean
 }
 
 type MissionGroup = {
@@ -35,6 +36,7 @@ type MissionRecord = {
   description?: string
   completionMethod?: "qr-scanning" | "help-desk" | "sign-up"
   requiredSignups?: number | null
+  isRequired?: boolean
   links?: MissionLink[]
   missionLinks?: string[]
   missionLink?: string
@@ -161,6 +163,7 @@ const MissionsPage = () => {
           categoryId: mission.categoryId,
           completionMethod: mission.completionMethod || "qr-scanning",
           requiredSignups: mission.requiredSignups ?? undefined,
+          isRequired: mission.isRequired ?? false,
           categoryName:
             mission.categoryName ||
             (mission.categoryId ? categoryById.get(String(mission.categoryId)) : undefined) ||
@@ -334,7 +337,11 @@ const MissionsPage = () => {
                 {isOpen ? (
                   <div className="px-4 py-4">
                     <div className="flex w-full flex-col gap-3">
-                      {group.missions.sort((a, b) => a.title.localeCompare(b.title)).map((mission) => (
+                      {group.missions.sort((a, b) => {
+                        if (a.isRequired && !b.isRequired) return -1
+                        if (!a.isRequired && b.isRequired) return 1
+                        return a.title.localeCompare(b.title)
+                      }).map((mission) => (
                         (() => {
                           const isCompleted = completedMissionIds.includes(mission.id)
                           const signupProgress = signupProgressByMissionId[mission.id]
@@ -354,9 +361,16 @@ const MissionsPage = () => {
                             </div>
                             <div className="min-w-0 flex-1">
                               <div className="flex items-start justify-between gap-4">
-                                <p className={`text-[17px] font-semibold leading-tight ${sora.className} ${isCompleted ? 'line-through text-white/45' : ''}`}>
-                                  {mission.title}
-                                </p>
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <p className={`text-[17px]  font-semibold leading-tight ${sora.className} ${isCompleted ? 'line-through text-gray-600' : 'text-white/95'}`}>
+                                    {mission.title}
+                                  </p>
+                                  {mission.isRequired && (
+                                    <span className="shrink-0 rounded-full border border-amber-400/40 bg-amber-400/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-widest text-amber-300">
+                                      Required
+                                    </span>
+                                  )}
+                                </div>
 
                                 {mission.completionMethod === "sign-up" && signupProgress ? (
                                   <span className="shrink-0 whitespace-nowrap uppercase tracking-[0.18em] text-white/55 tabular-nums leading-none">

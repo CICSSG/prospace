@@ -12,7 +12,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { Building2, CalendarDays, LayoutDashboardIcon, ListIcon, Target, UsersIcon } from "lucide-react"
+import { BarChart2, Building2, CalendarDays, LayoutDashboardIcon, ListIcon, Target, UsersIcon } from "lucide-react"
 import Image from "next/image"
 import {
   getVisibleManagementSections,
@@ -31,6 +31,7 @@ const iconByKey = {
   calendar: <CalendarDays />,
   target: <Target />,
   users: <UsersIcon />,
+  chart: <BarChart2 />,
 } satisfies Record<ManagementPageDefinition["iconKey"], React.ReactNode>
 
 export function AppSidebar({ userData, ...props }: AppSidebarProps) {

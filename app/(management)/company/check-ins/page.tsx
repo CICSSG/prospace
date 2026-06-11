@@ -2,7 +2,7 @@
 
 import { useUser } from "@clerk/nextjs"
 import * as XLSX from "xlsx"
-import { Download, Plus, QrCode, RefreshCw, Search, Trash2 } from "lucide-react"
+import { Download, Loader2, Plus, QrCode, RefreshCw, Search, Trash2 } from "lucide-react"
 import { Scanner } from "@yudiel/react-qr-scanner"
 import { useEffect, useMemo, useRef, useState } from "react"
 import { toast } from "sonner"
@@ -693,6 +693,7 @@ export default function CompanyCheckInsPage() {
 	const [pendingScannedUserId, setPendingScannedUserId] = useState<string | null>(null)
 	const [scanCompanyOpen, setScanCompanyOpen] = useState(false)
 	const [scanCompanyLoading, setScanCompanyLoading] = useState(false)
+	const [downloadingResumes, setDownloadingResumes] = useState(false)
 	const [companiesReloading, setCompaniesReloading] = useState(false)
 	const companiesLoadedRef = useRef(false)
 	const resolvedSelectedCompanyId = isSuperAdmin ? selectedCompanyId : selectedCompanyId || assignedCompanyId
@@ -1041,14 +1042,17 @@ export default function CompanyCheckInsPage() {
 								return
 							}
 
+							setDownloadingResumes(true)
+							toast.info("Preparing download, this may take a moment...")
 							window.location.href = downloadResumesUrl
+							setTimeout(() => setDownloadingResumes(false), 5000)
 						}}
-						disabled={!downloadResumesUrl || !hasDownloadableResumes}
+						disabled={!downloadResumesUrl || !hasDownloadableResumes || downloadingResumes}
 						className="inline-flex items-center gap-2 rounded-lg border border-white/15 bg-white/10 px-3 py-2 text-sm text-foreground hover:bg-white/15 disabled:cursor-not-allowed disabled:opacity-60"
 						title={!hasDownloadableResumes ? "No resumes are available for this company" : "Download all resumes"}
 					>
-						<Download className="size-4" />
-						Download all resumes
+						{downloadingResumes ? <Loader2 className="size-4 animate-spin" /> : <Download className="size-4" />}
+						{downloadingResumes ? "Preparing..." : "Download all resumes"}
 					</button>
 
 					{(isSuperAdmin || isMultiCompany) && (

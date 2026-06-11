@@ -15,7 +15,7 @@ export type ManagementPageDefinition = {
   url: string
   accessKeys: string[]
   section: ManagementSectionKey
-  iconKey: "dashboard" | "list" | "building" | "calendar" | "target" | "users"
+  iconKey: "dashboard" | "list" | "building" | "calendar" | "target" | "users" | "chart"
 }
 
 export type ManagementAccessMetadata = {
@@ -123,7 +123,15 @@ export const managementPageSections: Array<{
         accessKeys: ["/users", "users"],
         section: "manage",
         iconKey: "users",
-      }
+      },
+      {
+        key: "analytics",
+        title: "Analytics",
+        url: "/admin/analytics",
+        accessKeys: ["/analytics", "analytics"],
+        section: "manage",
+        iconKey: "chart",
+      },
     ],
   },
   {

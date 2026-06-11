@@ -1212,7 +1212,7 @@ export default function CompanyCheckInsPage() {
 									<TableCell>
 										<div className="space-y-1">
 											<div className="font-medium">{record.fullName || "Unnamed user"}</div>
-											<div className="text-xs text-muted-foreground">
+											<div className="max-w-50 truncate text-xs text-muted-foreground">
 												{record.course || "No course"}{record.checkInKey ? ` • ${record.checkInKey}` : ""}
 											</div>
 										</div>

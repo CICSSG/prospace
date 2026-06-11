@@ -85,8 +85,8 @@ function makeBucketFormatter(rangeFrom: string, bucketMs: number): (key: string)
     const t = new Date(startMs + idx * bucketMs)
     if (bucketMs < 86400000) {
       return (
-        t.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" }) +
-        " " + String(t.getUTCHours()).padStart(2, "0") + "h"
+        t.toLocaleDateString("en-US", { month: "short", day: "numeric" }) +
+        " " + t.toLocaleTimeString("en-US", { hour: "numeric", hour12: true })
       )
     }
     if (bucketMs < 86400000 * 28) {
@@ -521,9 +521,9 @@ export default function AnalyticsPage() {
           <ChartCard title="User Registrations" subtitle={`${granularity} · ${rangeLabel}`}>
             {loading ? <SkeletonChart /> : (
               <ResponsiveContainer width="100%" height={240}>
-                <LineChart data={data?.usersByMonth ?? []} margin={{ top: 4, right: 8, bottom: 0, left: -16 }}>
+                <LineChart data={data?.usersByMonth ?? []} margin={{ top: 4, right: 8, bottom: 48, left: -16 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#ffffff0d" />
-                  <XAxis dataKey="month" tickFormatter={bucketFormatter} tick={{ fill: "#9ca3af", fontSize: 11 }} tickLine={false} axisLine={false} interval={0} />
+                  <XAxis dataKey="month" tickFormatter={bucketFormatter} tick={{ fill: "#9ca3af", fontSize: 11, angle: -45, textAnchor: "end", dy: 4 }} tickLine={false} axisLine={false} interval={0} />
                   <YAxis allowDecimals={false} tick={{ fill: "#9ca3af", fontSize: 11 }} tickLine={false} axisLine={false} />
                   <Tooltip content={<ChartTooltip formatLabel={bucketFormatter} />} />
                   <Line type="monotone" dataKey="count" name="New users" stroke={CHART_COLORS.indigo} strokeWidth={2} dot={false} activeDot={{ r: 4, fill: CHART_COLORS.indigo }} />
@@ -535,9 +535,9 @@ export default function AnalyticsPage() {
           <ChartCard title="Check-ins Over Time" subtitle={`${granularity} · ${rangeLabel}`}>
             {loading ? <SkeletonChart /> : (
               <ResponsiveContainer width="100%" height={240}>
-                <BarChart data={data?.checkInsByMonth ?? []} margin={{ top: 4, right: 8, bottom: 0, left: -16 }}>
+                <BarChart data={data?.checkInsByMonth ?? []} margin={{ top: 4, right: 8, bottom: 48, left: -16 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#ffffff0d" vertical={false} />
-                  <XAxis dataKey="month" tickFormatter={bucketFormatter} tick={{ fill: "#9ca3af", fontSize: 11 }} tickLine={false} axisLine={false} interval={0} />
+                  <XAxis dataKey="month" tickFormatter={bucketFormatter} tick={{ fill: "#9ca3af", fontSize: 11, angle: -45, textAnchor: "end", dy: 4 }} tickLine={false} axisLine={false} interval={0} />
                   <YAxis allowDecimals={false} tick={{ fill: "#9ca3af", fontSize: 11 }} tickLine={false} axisLine={false} />
                   <Tooltip content={<ChartTooltip formatLabel={bucketFormatter} />} />
                   <Bar dataKey="count" name="Check-ins" fill={CHART_COLORS.violet} radius={[3, 3, 0, 0]} />
@@ -552,9 +552,9 @@ export default function AnalyticsPage() {
           <ChartCard title="Attendance" subtitle={`${granularity} · ${rangeLabel}`}>
             {loading ? <SkeletonChart /> : (
               <ResponsiveContainer width="100%" height={240}>
-                <BarChart data={data?.attendanceByMonth ?? []} margin={{ top: 4, right: 8, bottom: 0, left: -16 }}>
+                <BarChart data={data?.attendanceByMonth ?? []} margin={{ top: 4, right: 8, bottom: 48, left: -16 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#ffffff0d" vertical={false} />
-                  <XAxis dataKey="month" tickFormatter={bucketFormatter} tick={{ fill: "#9ca3af", fontSize: 11 }} tickLine={false} axisLine={false} interval={0} />
+                  <XAxis dataKey="month" tickFormatter={bucketFormatter} tick={{ fill: "#9ca3af", fontSize: 11, angle: -45, textAnchor: "end", dy: 4 }} tickLine={false} axisLine={false} interval={0} />
                   <YAxis allowDecimals={false} tick={{ fill: "#9ca3af", fontSize: 11 }} tickLine={false} axisLine={false} />
                   <Tooltip content={<ChartTooltip formatLabel={bucketFormatter} />} />
                   <Bar dataKey="count" name="Attendance" fill={CHART_COLORS.amber} radius={[3, 3, 0, 0]} />
@@ -566,9 +566,9 @@ export default function AnalyticsPage() {
           <ChartCard title="Mission Completions" subtitle={`${granularity} · ${rangeLabel}`}>
             {loading ? <SkeletonChart /> : (
               <ResponsiveContainer width="100%" height={240}>
-                <LineChart data={data?.missionCompletionsByMonth ?? []} margin={{ top: 4, right: 8, bottom: 0, left: -16 }}>
+                <LineChart data={data?.missionCompletionsByMonth ?? []} margin={{ top: 4, right: 8, bottom: 48, left: -16 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#ffffff0d" />
-                  <XAxis dataKey="month" tickFormatter={bucketFormatter} tick={{ fill: "#9ca3af", fontSize: 11 }} tickLine={false} axisLine={false} interval={0} />
+                  <XAxis dataKey="month" tickFormatter={bucketFormatter} tick={{ fill: "#9ca3af", fontSize: 11, angle: -45, textAnchor: "end", dy: 4 }} tickLine={false} axisLine={false} interval={0} />
                   <YAxis allowDecimals={false} tick={{ fill: "#9ca3af", fontSize: 11 }} tickLine={false} axisLine={false} />
                   <Tooltip content={<ChartTooltip formatLabel={bucketFormatter} />} />
                   <Line type="monotone" dataKey="count" name="Completions" stroke={CHART_COLORS.rose} strokeWidth={2} dot={false} activeDot={{ r: 4, fill: CHART_COLORS.rose }} />

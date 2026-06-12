@@ -578,12 +578,12 @@ export default function AnalyticsPage() {
           </ChartCard>
         </section>
 
-        {/* ── Row 3: Check-in sources + Top missions ── */}
-        <section className="grid gap-4 xl:grid-cols-2">
+        {/* ── Row 3: Check-in sources + Attendance sources + Top missions ── */}
+        <section className="grid gap-4 xl:grid-cols-3">
           <ChartCard title="Check-in Sources" subtitle={`Distribution · ${rangeLabel}`}>
             {loading ? <SkeletonChart /> : (
-              <div className="flex flex-col items-center gap-4 sm:flex-row">
-                <ResponsiveContainer width="100%" height={220}>
+              <div className="flex flex-col items-center gap-4">
+                <ResponsiveContainer width="100%" height={200}>
                   <PieChart>
                     <Pie
                       data={data?.checkInSources ?? []}
@@ -591,29 +591,22 @@ export default function AnalyticsPage() {
                       nameKey="source"
                       cx="50%"
                       cy="50%"
-                      innerRadius={55}
-                      outerRadius={85}
+                      innerRadius={50}
+                      outerRadius={78}
                       paddingAngle={3}
                     >
                       {(data?.checkInSources ?? []).map((entry) => (
-                        <Cell
-                          key={entry.source}
-                          fill={SOURCE_COLORS[entry.source] ?? CHART_COLORS.amber}
-                        />
+                        <Cell key={entry.source} fill={SOURCE_COLORS[entry.source] ?? CHART_COLORS.amber} />
                       ))}
                     </Pie>
                     <Tooltip content={<PieTooltip />} />
-                    <Legend
-                      iconType="circle"
-                      iconSize={8}
-                      formatter={(value) => (
-                        <span className="text-xs capitalize text-foreground/70">{value}</span>
-                      )}
-                    />
+                    <Legend iconType="circle" iconSize={8} formatter={(value) => (
+                      <span className="text-xs capitalize text-foreground/70">{value}</span>
+                    )} />
                   </PieChart>
                 </ResponsiveContainer>
 
-                <div className="w-full space-y-3 sm:w-48">
+                <div className="w-full space-y-2">
                   {(data?.checkInSources ?? []).map((s) => (
                     <div key={s.source} className="rounded-xl border border-white/10 bg-white/5 p-3">
                       <p className="text-xs capitalize text-foreground/50">{s.source}</p>
@@ -627,6 +620,52 @@ export default function AnalyticsPage() {
                   ))}
                   {(data?.checkInSources ?? []).length === 0 && (
                     <p className="text-sm text-foreground/40">No check-ins in this period</p>
+                  )}
+                </div>
+              </div>
+            )}
+          </ChartCard>
+
+          <ChartCard title="Attendance Sources" subtitle={`Distribution · ${rangeLabel}`}>
+            {loading ? <SkeletonChart /> : (
+              <div className="flex flex-col items-center gap-4">
+                <ResponsiveContainer width="100%" height={200}>
+                  <PieChart>
+                    <Pie
+                      data={data?.attendanceSources ?? []}
+                      dataKey="count"
+                      nameKey="source"
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={50}
+                      outerRadius={78}
+                      paddingAngle={3}
+                    >
+                      {(data?.attendanceSources ?? []).map((entry) => (
+                        <Cell key={entry.source} fill={SOURCE_COLORS[entry.source] ?? CHART_COLORS.amber} />
+                      ))}
+                    </Pie>
+                    <Tooltip content={<PieTooltip />} />
+                    <Legend iconType="circle" iconSize={8} formatter={(value) => (
+                      <span className="text-xs capitalize text-foreground/70">{value}</span>
+                    )} />
+                  </PieChart>
+                </ResponsiveContainer>
+
+                <div className="w-full space-y-2">
+                  {(data?.attendanceSources ?? []).map((s) => (
+                    <div key={s.source} className="rounded-xl border border-white/10 bg-white/5 p-3">
+                      <p className="text-xs capitalize text-foreground/50">{s.source}</p>
+                      <p className="mt-0.5 text-xl font-semibold">{s.count.toLocaleString()}</p>
+                      <p className="text-xs text-foreground/40">
+                        {data && data.totalAttendance > 0
+                          ? ((s.count / data.totalAttendance) * 100).toFixed(1) + "%"
+                          : "0%"}
+                      </p>
+                    </div>
+                  ))}
+                  {(data?.attendanceSources ?? []).length === 0 && (
+                    <p className="text-sm text-foreground/40">No attendance in this period</p>
                   )}
                 </div>
               </div>

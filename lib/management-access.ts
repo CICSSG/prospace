@@ -133,6 +133,14 @@ export const managementPageSections: Array<{
         iconKey: "calendar",
       },
       {
+        key: "admin-attendance",
+        title: "Attendance",
+        url: "/admin/attendance",
+        accessKeys: ["/admin/attendance", "admin/attendance"],
+        section: "manage",
+        iconKey: "calendar",
+      },
+      {
         key: "users",
         title: "Users",
         url: "/admin/users",

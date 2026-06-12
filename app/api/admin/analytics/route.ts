@@ -33,6 +33,7 @@ export type AnalyticsData = {
   upcomingSessions: number
   totalCheckIns: number
   totalAttendance: number
+  attendanceSources: SourcePoint[]
   totalMissions: number
   totalMissionCompletions: number
   totalConnections: number
@@ -132,6 +133,7 @@ export async function GET(request: NextRequest) {
       companyCheckInRaw,
       totalAttendance,
       attendanceByMonthRaw,
+      attendanceSourcesRaw,
       totalMissions,
       allMissions,
       totalMissionCompletions,
@@ -182,6 +184,10 @@ export async function GET(request: NextRequest) {
       db.collection("attendance").aggregate([
         { $match: { attendanceDate: { $gte: from, $lte: to } } },
         { $group: { _id: buildGroupId("attendanceAt", startMs, bucketMs), count: { $sum: 1 } } },
+      ]).toArray(),
+      db.collection("attendance").aggregate([
+        { $match: { attendanceDate: { $gte: from, $lte: to } } },
+        { $group: { _id: "$source", count: { $sum: 1 } } },
       ]).toArray(),
       // Missions — all-time inventory
       db.collection("missions").countDocuments({}),
@@ -252,6 +258,10 @@ export async function GET(request: NextRequest) {
       upcomingSessions,
       totalCheckIns,
       totalAttendance,
+      attendanceSources: (attendanceSourcesRaw as Array<{ _id: unknown; count: unknown }>).map((s) => ({
+        source: String(s._id || "unknown"),
+        count:  Number(s.count) || 0,
+      })),
       totalMissions,
       totalMissionCompletions,
       totalConnections,

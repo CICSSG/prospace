@@ -56,8 +56,10 @@ export default function RootLayout({
     >
       <AppSidebar variant="sidebar" userData={user} />
       <SidebarInset>
-        <SiteHeader />
-        <div className="flex w-full flex-col p-4">
+        <div className="fixed top-0 z-10 w-full border-b border-white/10 bg-background/95 backdrop-blur">
+          <SiteHeader />
+        </div>
+        <div className="flex w-full flex-col p-4 pt-16">
           {children}
           <Toaster />
         </div>
